@@ -159,7 +159,7 @@ export function SelectField({
       >
         {label}
       </Typography>
-      <Select onValueChange={onValueChange} value={value}>
+      <Select presentation="bottom-sheet" onValueChange={onValueChange} value={value}>
         <Select.Trigger
           className={`rounded-field border pr-5 ${compact ? 'h-signup-control' : 'h-auth-control'} ${showIcon ? 'pl-4' : 'pl-5'} ${
             fieldTone === 'softNeutral' ? 'bg-login-field' : 'bg-field'
