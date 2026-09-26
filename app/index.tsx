@@ -1,36 +1,63 @@
-import { appTheme } from '@/lib/theme';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { Typography } from 'heroui-native';
+import { router } from 'expo-router';
+import { FadeIn } from 'react-native-reanimated';
+
+import { BrandMark } from '@/components/auth/BrandMark';
+import { AnimatedView } from '@/components/ui/primitives/AnimatedView';
+import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
+import { getAuthenticatedProfile, supabase } from '@/lib/supabase';
+import { numigosTheme } from '@/lib/theme';
 
 export default function SplashScreen() {
-  const router = useRouter();
+  const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    const spinnerTimer = setTimeout(() => setShowSpinner(true), 650);
+    let isMounted = true;
 
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (active) router.replace(!error && data.session ? '/home' : '/login');
-    });
+    const resolveSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!isMounted) return;
+
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+
+      const { profile } = await getAuthenticatedProfile(session.user.id);
+      if (!isMounted) return;
+      router.replace(profile?.is_verified ? '/home' : '/login');
+    };
+
+    void resolveSession();
 
     return () => {
-      active = false;
+      isMounted = false;
+      clearTimeout(spinnerTimer);
     };
-  }, [router]);
+  }, []);
 
   return (
-    <SafeAreaView className="bg-background flex-1">
-      <View className="flex-1 items-center justify-center px-6">
-        <View className="bg-accent mb-5 size-24 items-center justify-center rounded-3xl">
-          <Typography className="text-accent-foreground text-4xl font-bold">N</Typography>
-        </View>
-        <Typography className="text-foreground text-4xl font-bold">Numigos</Typography>
+    <SafeAreaView className="bg-brand flex-1" edges={['top', 'bottom', 'left', 'right']}>
+      <View className="flex-1 items-center justify-center px-8">
+        <AnimatedView entering={FadeIn.duration(280)} className="items-center">
+          <BrandMark />
+          <Typography className="font-display text-brand mt-7 text-white">Numigos</Typography>
+          <Typography className="text-brand-soft mt-2 text-base font-medium">
+            Campus starts here.
+          </Typography>
+        </AnimatedView>
       </View>
+
       <View className="h-16 items-center justify-center">
-        <ActivityIndicator color={appTheme.colors.accent} />
+        {showSpinner ? (
+          <ActivityIndicator color={numigosTheme.colors.surface} size="small" />
+        ) : null}
       </View>
     </SafeAreaView>
   );

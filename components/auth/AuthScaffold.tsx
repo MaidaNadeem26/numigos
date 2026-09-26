@@ -1,52 +1,63 @@
-import { goBackOrReplace } from '@/lib/navigation';
-import { Button, Typography } from 'heroui-native';
-import { type Href } from 'expo-router';
-import type { ReactNode } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Button, Typography } from 'heroui-native';
+import { Ionicons } from '@expo/vector-icons';
+
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
+import { BrandMark } from '@/components/auth/BrandMark';
+import { numigosTheme } from '@/lib/theme';
 
-type AuthScaffoldProps = {
+interface AuthScaffoldProps extends PropsWithChildren {
   title: string;
-  children: ReactNode;
-  backFallback?: Href;
+  subtitle: string;
+  onBack?: () => void;
   footer?: ReactNode;
-};
+}
 
-export function AuthScaffold({ title, children, backFallback, footer }: AuthScaffoldProps) {
+export function AuthScaffold({ title, subtitle, onBack, children, footer }: AuthScaffoldProps) {
   return (
-    <SafeAreaView className="bg-background flex-1">
+    <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
-        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1"
       >
         <ScrollView
-          className="flex-1"
-          contentContainerClassName="grow px-5 pb-8 pt-4"
+          bounces={false}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View className="mx-auto w-full max-w-lg grow">
-            {backFallback ? (
-              <Button
-                className="mb-5 self-start"
-                size="sm"
-                variant="ghost"
-                onPress={() => goBackOrReplace(backFallback)}
-              >
-                <Button.Label>Back</Button.Label>
-              </Button>
-            ) : null}
-
-            <View className="mb-8 items-center">
-              <View className="bg-accent mb-4 size-16 items-center justify-center rounded-2xl">
-                <Typography className="text-accent-foreground text-2xl font-bold">N</Typography>
-              </View>
-              <Typography className="text-foreground text-center text-3xl font-bold">
-                {title}
-              </Typography>
+          <View className="px-6 pt-5 pb-10">
+            <View className="mb-7 h-11 justify-center">
+              {onBack ? (
+                <Button
+                  accessibilityLabel="Go back"
+                  className="size-11 self-start rounded-full border border-white/20 bg-white/10"
+                  isIconOnly
+                  onPress={onBack}
+                  variant="tertiary"
+                >
+                  <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={21} />
+                </Button>
+              ) : null}
             </View>
 
-            <View className="grow">{children}</View>
-            {footer ? <View className="mt-6">{footer}</View> : null}
+            <View className="mb-7 flex-row items-center gap-4">
+              <BrandMark compact />
+              <Typography className="font-display text-[26px] text-white">Numigos</Typography>
+            </View>
+
+            <Typography className="font-display text-auth-title leading-tight text-white">
+              {title}
+            </Typography>
+            <Typography className="text-auth-subtitle text-brand-soft mt-2 max-w-[340px] font-sans leading-6">
+              {subtitle}
+            </Typography>
+          </View>
+
+          <View className="auth-panel-shadow rounded-t-auth-panel bg-canvas pb-safe-offset-8 flex-1 px-6 pt-8">
+            <View className="mx-auto w-full max-w-[440px]">{children}</View>
+            {footer ? <View className="mx-auto mt-8 w-full max-w-[440px]">{footer}</View> : null}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

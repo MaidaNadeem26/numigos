@@ -6,9 +6,13 @@ export type OtpPurpose = 'signup' | 'recovery';
 type AuthFlowContextValue = {
   signupDraft: SignupFields;
   setSignupDraft: (draft: SignupFields) => void;
+  updateSignupDraft: (draft: Partial<SignupFields>) => void;
   otpEmail: string;
+  verificationEmail: string;
   otpPurpose: OtpPurpose;
   beginOtp: (email: string, purpose: OtpPurpose) => void;
+  beginSignupVerification: (email: string) => void;
+  beginRecovery: (email: string) => void;
   clearSignupDraft: () => void;
 };
 
@@ -23,11 +27,21 @@ export function AuthFlowProvider({ children }: { children: ReactNode }) {
     () => ({
       signupDraft,
       setSignupDraft,
+      updateSignupDraft: (draft) => setSignupDraft((current) => ({ ...current, ...draft })),
       otpEmail,
+      verificationEmail: otpEmail,
       otpPurpose,
       beginOtp: (email, purpose) => {
         setOtpEmail(email);
         setOtpPurpose(purpose);
+      },
+      beginSignupVerification: (email) => {
+        setOtpEmail(email);
+        setOtpPurpose('signup');
+      },
+      beginRecovery: (email) => {
+        setOtpEmail(email);
+        setOtpPurpose('recovery');
       },
       clearSignupDraft: () => setSignupDraft(EMPTY_SIGNUP_FIELDS),
     }),

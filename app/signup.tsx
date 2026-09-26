@@ -1,170 +1,169 @@
+import { useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { Button, Typography } from 'heroui-native';
+import { router } from 'expo-router';
+
 import { AuthScaffold } from '@/components/auth/AuthScaffold';
-import { FormField } from '@/components/auth/FormField';
-import {
-  getAuthErrorMessage,
-  normalizeEmail,
-  validateSignup,
-  type FieldErrors,
-  type SignupFields,
-} from '@/lib/auth-validation';
+import { FormField, SelectField } from '@/components/auth/FormField';
 import { useAuthFlow } from '@/lib/auth-flow';
+import { mapAuthError, validateSignup } from '@/lib/auth-validation';
 import { supabase } from '@/lib/supabase';
-import { DEPARTMENTS } from '@/lib/theme';
-import { Button, FieldError, Label, Select, Spinner, Typography } from 'heroui-native';
-import { useRouter } from 'expo-router';
-import { Fragment, useState } from 'react';
-import { View } from 'react-native';
+import { numigosTheme } from '@/lib/theme';
+
+const departments = [
+  { value: 'Computer Science', label: 'Computer Science' },
+  { value: 'Software Engineering', label: 'Software Engineering' },
+  { value: 'Electrical Engineering', label: 'Electrical Engineering' },
+  { value: 'Civil Engineering', label: 'Civil Engineering' },
+  { value: 'Mechanical Engineering', label: 'Mechanical Engineering' },
+  { value: 'Business and Management', label: 'Business and Management' },
+] as const;
 
 export default function SignupScreen() {
-  const router = useRouter();
-  const { signupDraft, setSignupDraft, beginOtp } = useAuthFlow();
-  const [errors, setErrors] = useState<FieldErrors<SignupFields>>({});
-  const [requestError, setRequestError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { signupDraft, updateSignupDraft, beginSignupVerification } = useAuthFlow();
+  const [confirmPassword, setConfirmPassword] = useState(signupDraft.password);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectedDepartment = DEPARTMENTS.find(
+  const selectedDepartment = departments.find(
     (department) => department.value === signupDraft.department,
   );
 
-  const updateField = (field: keyof SignupFields, value: string) => {
-    const next = { ...signupDraft, [field]: value };
-    setSignupDraft(next);
-    if (errors[field]) setErrors(validateSignup(next));
-    setRequestError('');
-  };
-
   const handleSignup = async () => {
-    const nextErrors = validateSignup(signupDraft);
+    const nextErrors = validateSignup({
+      ...signupDraft,
+      confirmPassword,
+    });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    setIsLoading(true);
-    setRequestError('');
-    const email = normalizeEmail(signupDraft.email);
+    const normalizedEmail = signupDraft.email.trim().toLowerCase();
+    setIsSubmitting(true);
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password: signupDraft.password,
       options: {
         data: {
           full_name: signupDraft.fullName.trim(),
           roll_number: signupDraft.rollNumber.trim(),
           department: signupDraft.department,
+          role: 'student',
         },
       },
     });
-    setIsLoading(false);
+    setIsSubmitting(false);
 
     if (error) {
-      setRequestError(getAuthErrorMessage(error));
-      return;
-    }
-    if (data.user?.identities?.length === 0) {
-      setRequestError('An account already exists for this email. Sign in instead.');
+      setErrors({ form: mapAuthError(error.message) });
       return;
     }
 
-    beginOtp(email, 'signup');
-    router.push({ pathname: '/verify', params: { email, purpose: 'signup' } });
+    if (!data.user || data.user.identities?.length === 0) {
+      setErrors({ form: 'An account already exists for this email. Sign in instead.' });
+      return;
+    }
+
+    beginSignupVerification(normalizedEmail);
+    router.push({ pathname: '/verify', params: { mode: 'signup' } });
   };
 
   return (
     <AuthScaffold
-      title="Create account"
-      backFallback="/login"
-      footer={
-        <Button variant="ghost" onPress={() => router.replace('/login')}>
-          <Button.Label>Already have an account? Sign in</Button.Label>
-        </Button>
-      }
+      onBack={() => router.back()}
+      subtitle="Use your NUTECH email to join campus events and student societies."
+      title="Create your account"
     >
       <View className="gap-1">
         <FormField
           autoCapitalize="words"
-          autoComplete="name"
           error={errors.fullName}
           label="Full name"
+          onChangeText={(fullName) => updateSignupDraft({ fullName })}
           placeholder="Your full name"
+          textContentType="name"
           value={signupDraft.fullName}
-          onChangeText={(value) => updateField('fullName', value)}
         />
         <FormField
-          autoCapitalize="none"
-          autoComplete="email"
           error={errors.email}
           keyboardType="email-address"
           label="University email"
-          placeholder="name@nutech.edu.pk"
+          onChangeText={(email) => updateSignupDraft({ email })}
+          placeholder="you@nutech.edu.pk"
+          textContentType="emailAddress"
           value={signupDraft.email}
-          onChangeText={(value) => updateField('email', value)}
-          onBlur={() => setErrors(validateSignup(signupDraft))}
         />
         <FormField
-          autoCapitalize="none"
-          autoComplete="new-password"
-          error={errors.password}
-          label="Password"
-          placeholder="At least 8 characters"
-          secureTextEntry
-          value={signupDraft.password}
-          onChangeText={(value) => updateField('password', value)}
-        />
-        <FormField
-          autoCapitalize="none"
-          autoComplete="new-password"
-          error={errors.confirmPassword}
-          label="Confirm password"
-          placeholder="Re-enter your password"
-          secureTextEntry
-          value={signupDraft.confirmPassword}
-          onChangeText={(value) => updateField('confirmPassword', value)}
-        />
-        <FormField
-          autoCapitalize="characters"
           error={errors.rollNumber}
           label="Registration / roll number"
-          placeholder="Enter your roll number"
+          onChangeText={(rollNumber) => updateSignupDraft({ rollNumber })}
+          placeholder="e.g. F23-CS-001"
           value={signupDraft.rollNumber}
-          onChangeText={(value) => updateField('rollNumber', value)}
+        />
+        <SelectField
+          error={errors.department}
+          label="Department"
+          onValueChange={(department) => updateSignupDraft({ department: department?.value ?? '' })}
+          options={departments}
+          placeholder="Choose your department"
+          value={selectedDepartment}
+        />
+        <FormField
+          error={errors.password}
+          label="Password"
+          onChangeText={(password) => updateSignupDraft({ password })}
+          onToggleSecure={() => setShowPassword((current) => !current)}
+          placeholder="At least 8 characters and 1 number"
+          secureTextEntry={!showPassword}
+          textContentType="newPassword"
+          value={signupDraft.password}
+        />
+        <FormField
+          error={errors.confirmPassword}
+          label="Confirm password"
+          onChangeText={setConfirmPassword}
+          onToggleSecure={() => setShowConfirmPassword((current) => !current)}
+          placeholder="Enter your password again"
+          secureTextEntry={!showConfirmPassword}
+          textContentType="newPassword"
+          value={confirmPassword}
         />
 
-        <View className="gap-2">
-          <Label isRequired isInvalid={Boolean(errors.department)}>
-            Department
-          </Label>
-          <Select
-            value={selectedDepartment}
-            onValueChange={(option) => updateField('department', option?.value ?? '')}
-          >
-            <Select.Trigger>
-              <Select.Value placeholder="Select your department" />
-              <Select.TriggerIndicator />
-            </Select.Trigger>
-            <Select.Portal>
-              <Select.Overlay />
-              <Select.Content presentation="popover" width="trigger">
-                {DEPARTMENTS.map((department) => (
-                  <Fragment key={department.value}>
-                    <Select.Item value={department.value} label={department.label} />
-                  </Fragment>
-                ))}
-              </Select.Content>
-            </Select.Portal>
-          </Select>
-          <View className="min-h-5">
-            {errors.department ? <FieldError>{errors.department}</FieldError> : null}
-          </View>
-        </View>
-
         <View className="min-h-12 justify-center">
-          {requestError ? (
-            <Typography className="text-danger text-sm">{requestError}</Typography>
+          {errors.form ? (
+            <View className="bg-error-soft rounded-xl px-4 py-3">
+              <Typography className="text-error text-sm font-medium">{errors.form}</Typography>
+            </View>
           ) : null}
         </View>
 
-        <Button isDisabled={isLoading} size="lg" onPress={handleSignup}>
-          {isLoading ? <Spinner size="sm" /> : null}
-          <Button.Label>{isLoading ? 'Creating account' : 'Create account'}</Button.Label>
+        <Button
+          className="action-shadow rounded-action bg-brand mt-2 h-14"
+          isDisabled={isSubmitting}
+          onPress={handleSignup}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={numigosTheme.colors.surface} />
+          ) : (
+            <Button.Label className="text-action font-semibold text-white">
+              Create account
+            </Button.Label>
+          )}
         </Button>
+
+        <View className="mt-6 flex-row items-center justify-center">
+          <Typography className="text-ink-muted font-sans text-sm">
+            Already have an account?{' '}
+          </Typography>
+          <Button
+            className="h-10 rounded-full px-2"
+            onPress={() => router.replace('/login')}
+            variant="tertiary"
+          >
+            <Button.Label className="text-brand text-sm font-semibold">Sign in</Button.Label>
+          </Button>
+        </View>
       </View>
     </AuthScaffold>
   );

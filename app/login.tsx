@@ -1,178 +1,175 @@
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { Button, Typography } from 'heroui-native';
+import { router } from 'expo-router';
+
 import { AuthScaffold } from '@/components/auth/AuthScaffold';
 import { FormField } from '@/components/auth/FormField';
-import {
-  getAuthErrorMessage,
-  normalizeEmail,
-  validateLogin,
-  type FieldErrors,
-  type LoginFields,
-} from '@/lib/auth-validation';
+import { mapAuthError, validateEmail, validateLogin } from '@/lib/auth-validation';
 import { useAuthFlow } from '@/lib/auth-flow';
-import { supabase } from '@/lib/supabase';
-import { Button, Spinner, Typography } from 'heroui-native';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
-
-const EMPTY_LOGIN: LoginFields = { email: '', password: '' };
+import { getAuthenticatedProfile, supabase } from '@/lib/supabase';
+import { numigosTheme } from '@/lib/theme';
 
 export default function LoginScreen() {
-  const router = useRouter();
-  const { beginOtp } = useAuthFlow();
-  const [fields, setFields] = useState(EMPTY_LOGIN);
-  const [errors, setErrors] = useState<FieldErrors<LoginFields>>({});
-  const [requestError, setRequestError] = useState('');
-  const [loadingAction, setLoadingAction] = useState<'login' | 'reset' | null>(null);
+  const { beginRecovery } = useAuthFlow();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingRecovery, setIsSendingRecovery] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [recoveryStatus, setRecoveryStatus] = useState('');
 
-  const updateField = (field: keyof LoginFields, value: string) => {
-    const next = { ...fields, [field]: value };
-    setFields(next);
-    if (errors[field]) setErrors(validateLogin(next));
-    setRequestError('');
-  };
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
   const handleLogin = async () => {
-    const nextErrors = validateLogin(fields);
+    const nextErrors = validateLogin({ email: normalizedEmail, password });
     setErrors(nextErrors);
+    setRecoveryStatus('');
     if (Object.keys(nextErrors).length > 0) return;
 
-    setLoadingAction('login');
-    setRequestError('');
-    const email = normalizeEmail(fields.email);
+    setIsSubmitting(true);
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: fields.password,
+      email: normalizedEmail,
+      password,
     });
 
-    if (!error && data.user) {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, is_verified')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError || !profile) {
-        await supabase.auth.signOut();
-        setLoadingAction(null);
-        setRequestError('Your student profile is unavailable. Contact support.');
-        return;
-      }
-
-      if (!profile.is_verified) {
-        const { error: resendError } = await supabase.auth.resend({ type: 'signup', email });
-        setLoadingAction(null);
-        if (resendError) {
-          setRequestError(getAuthErrorMessage(resendError));
-          return;
-        }
-        beginOtp(email, 'signup');
-        router.push({ pathname: '/verify', params: { email, purpose: 'signup' } });
-        return;
-      }
-
-      if (profile.role !== 'student') {
-        await supabase.auth.signOut();
-        setLoadingAction(null);
-        setRequestError('This app currently supports student accounts only.');
-        return;
-      }
-
-      setLoadingAction(null);
-      router.replace('/home');
+    if (error || !data.user) {
+      setIsSubmitting(false);
+      setErrors({ form: mapAuthError(error?.message ?? 'Unable to sign in.') });
       return;
     }
 
-    if (error?.message.toLowerCase().includes('email not confirmed')) {
-      const { error: resendError } = await supabase.auth.resend({ type: 'signup', email });
-      setLoadingAction(null);
-      if (resendError) {
-        setRequestError(getAuthErrorMessage(resendError));
-        return;
-      }
-      beginOtp(email, 'signup');
-      router.push({ pathname: '/verify', params: { email, purpose: 'signup' } });
+    const { profile, error: profileError } = await getAuthenticatedProfile(data.user.id);
+    setIsSubmitting(false);
+
+    if (profileError) {
+      setErrors({ form: mapAuthError(profileError.message) });
       return;
     }
 
-    setLoadingAction(null);
-    setRequestError(getAuthErrorMessage(error));
+    if (!profile?.is_verified) {
+      await supabase.auth.signOut();
+      beginRecovery(normalizedEmail);
+      router.push({ pathname: '/verify', params: { mode: 'signup' } });
+      return;
+    }
+
+    router.replace('/home');
   };
 
-  const handleForgotPassword = async () => {
-    const emailErrors = validateLogin({ email: fields.email, password: 'valid' });
-    setErrors((current) => ({ ...current, email: emailErrors.email }));
-    if (emailErrors.email) return;
-
-    setLoadingAction('reset');
-    setRequestError('');
-    const email = normalizeEmail(fields.email);
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    setLoadingAction(null);
-
-    if (error) {
-      setRequestError(getAuthErrorMessage(error));
+  const handleRecovery = async () => {
+    const emailError = validateEmail(normalizedEmail);
+    if (emailError) {
+      setErrors({ email: emailError });
       return;
     }
 
-    beginOtp(email, 'recovery');
-    router.push({ pathname: '/verify', params: { email, purpose: 'recovery' } });
+    setIsSendingRecovery(true);
+    setErrors({});
+    setRecoveryStatus('');
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail);
+    setIsSendingRecovery(false);
+
+    if (error) {
+      setErrors({ form: mapAuthError(error.message) });
+      return;
+    }
+
+    beginRecovery(normalizedEmail);
+    setRecoveryStatus('A recovery code is on its way.');
+    router.push({ pathname: '/verify', params: { mode: 'recovery' } });
   };
 
   return (
     <AuthScaffold
-      title="Welcome back"
-      footer={
-        <Button variant="ghost" onPress={() => router.push('/signup')}>
-          <Button.Label>Don&apos;t have an account? Sign up</Button.Label>
-        </Button>
+      subtitle={
+        isRecoveryMode
+          ? 'Enter your university email and we’ll send a secure recovery code.'
+          : 'Sign in to discover what’s happening across campus.'
       }
+      title={isRecoveryMode ? 'Reset your password' : 'Welcome back'}
     >
       <View className="gap-1">
         <FormField
           autoCapitalize="none"
-          autoComplete="email"
           error={errors.email}
           keyboardType="email-address"
           label="University email"
-          placeholder="name@nutech.edu.pk"
-          value={fields.email}
-          onChangeText={(value) => updateField('email', value)}
-          onBlur={() =>
-            setErrors(validateLogin({ ...fields, password: fields.password || 'valid' }))
-          }
-        />
-        <FormField
-          autoCapitalize="none"
-          autoComplete="current-password"
-          error={errors.password}
-          label="Password"
-          placeholder="Enter your password"
-          secureTextEntry
-          value={fields.password}
-          onChangeText={(value) => updateField('password', value)}
+          onChangeText={setEmail}
+          placeholder="you@nutech.edu.pk"
+          textContentType="emailAddress"
+          value={email}
         />
 
-        <Button
-          className="self-end"
-          isDisabled={loadingAction !== null}
-          size="sm"
-          variant="ghost"
-          onPress={handleForgotPassword}
-        >
-          {loadingAction === 'reset' ? <Spinner size="sm" /> : null}
-          <Button.Label>Forgot password?</Button.Label>
-        </Button>
+        {!isRecoveryMode ? (
+          <FormField
+            error={errors.password}
+            label="Password"
+            onChangeText={setPassword}
+            onToggleSecure={() => setShowPassword((current) => !current)}
+            placeholder="Enter your password"
+            secureTextEntry={!showPassword}
+            textContentType="password"
+            value={password}
+          />
+        ) : null}
 
         <View className="min-h-12 justify-center">
-          {requestError ? (
-            <Typography className="text-danger text-sm">{requestError}</Typography>
+          {errors.form ? (
+            <View className="bg-error-soft rounded-xl px-4 py-3">
+              <Typography className="text-error text-sm font-medium">{errors.form}</Typography>
+            </View>
+          ) : recoveryStatus ? (
+            <View className="bg-success-soft rounded-xl px-4 py-3">
+              <Typography className="text-success text-sm font-medium">{recoveryStatus}</Typography>
+            </View>
           ) : null}
         </View>
 
-        <Button isDisabled={loadingAction !== null} size="lg" onPress={handleLogin}>
-          {loadingAction === 'login' ? <Spinner size="sm" /> : null}
-          <Button.Label>{loadingAction === 'login' ? 'Signing in' : 'Sign in'}</Button.Label>
+        <Button
+          className="action-shadow rounded-action bg-brand mt-2 h-14"
+          isDisabled={isSubmitting || isSendingRecovery}
+          onPress={isRecoveryMode ? handleRecovery : handleLogin}
+        >
+          {isSubmitting || isSendingRecovery ? (
+            <ActivityIndicator color={numigosTheme.colors.surface} />
+          ) : (
+            <Button.Label className="text-action font-semibold text-white">
+              {isRecoveryMode ? 'Send recovery code' : 'Sign in'}
+            </Button.Label>
+          )}
         </Button>
+
+        <Button
+          className="mt-2 h-11 self-center rounded-full px-4"
+          onPress={() => {
+            setErrors({});
+            setRecoveryStatus('');
+            setIsRecoveryMode((current) => !current);
+          }}
+          variant="tertiary"
+        >
+          <Button.Label className="text-brand text-sm font-semibold">
+            {isRecoveryMode ? 'Back to sign in' : 'Forgot password?'}
+          </Button.Label>
+        </Button>
+
+        {!isRecoveryMode ? (
+          <View className="mt-5 flex-row items-center justify-center">
+            <Typography className="text-ink-muted font-sans text-sm">
+              Don’t have an account?{' '}
+            </Typography>
+            <Button
+              className="h-10 rounded-full px-2"
+              onPress={() => router.push('/signup')}
+              variant="tertiary"
+            >
+              <Button.Label className="text-brand text-sm font-semibold">Sign up</Button.Label>
+            </Button>
+          </View>
+        ) : null}
       </View>
     </AuthScaffold>
   );

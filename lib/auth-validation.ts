@@ -34,6 +34,20 @@ export function isUniversityEmail(email: string) {
   return /^[^@\s]+@nutech\.edu\.pk$/.test(normalized);
 }
 
+export function validateEmail(email: string) {
+  if (!email.trim()) return 'University email is required.';
+  if (!isUniversityEmail(email)) return `Use your ${UNIVERSITY_EMAIL_DOMAIN} email.`;
+  return undefined;
+}
+
+export function validatePassword(password: string) {
+  if (!password) return 'Password is required.';
+  if (password.length < 8 || !/\d/.test(password)) {
+    return 'Use 8 or more characters with at least one number.';
+  }
+  return undefined;
+}
+
 export function validateSignup(fields: SignupFields): FieldErrors<SignupFields> {
   const errors: FieldErrors<SignupFields> = {};
 
@@ -71,7 +85,12 @@ export function validateLogin(fields: LoginFields): FieldErrors<LoginFields> {
 }
 
 export function getAuthErrorMessage(error: unknown): string {
-  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  const message =
+    typeof error === 'string'
+      ? error.toLowerCase()
+      : error instanceof Error
+        ? error.message.toLowerCase()
+        : '';
 
   if (message.includes('network') || message.includes('fetch')) {
     return 'No internet connection. Check your connection and try again.';
@@ -103,3 +122,5 @@ export function getAuthErrorMessage(error: unknown): string {
 
   return 'We could not complete that request. Check your details and try again.';
 }
+
+export const mapAuthError = getAuthErrorMessage;

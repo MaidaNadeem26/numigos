@@ -18,6 +18,24 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   },
 });
 
+export interface AuthenticatedProfile {
+  role: string;
+  is_verified: boolean;
+}
+
+export async function getAuthenticatedProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role, is_verified')
+    .eq('id', userId)
+    .maybeSingle();
+
+  return {
+    profile: data,
+    error,
+  };
+}
+
 if (Platform.OS !== 'web') {
   AppState.addEventListener('change', (state) => {
     if (state === 'active') {
