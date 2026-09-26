@@ -39,18 +39,50 @@ export default function LoginScreen() {
     setLoadingAction('login');
     setRequestError('');
     const email = normalizeEmail(fields.email);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password: fields.password,
     });
 
-    if (!error) {
+    if (!error && data.user) {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, is_verified')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut();
+        setLoadingAction(null);
+        setRequestError('Your student profile is unavailable. Contact support.');
+        return;
+      }
+
+      if (!profile.is_verified) {
+        const { error: resendError } = await supabase.auth.resend({ type: 'signup', email });
+        setLoadingAction(null);
+        if (resendError) {
+          setRequestError(getAuthErrorMessage(resendError));
+          return;
+        }
+        beginOtp(email, 'signup');
+        router.push({ pathname: '/verify', params: { email, purpose: 'signup' } });
+        return;
+      }
+
+      if (profile.role !== 'student') {
+        await supabase.auth.signOut();
+        setLoadingAction(null);
+        setRequestError('This app currently supports student accounts only.');
+        return;
+      }
+
       setLoadingAction(null);
       router.replace('/home');
       return;
     }
 
-    if (error.message.toLowerCase().includes('email not confirmed')) {
+    if (error?.message.toLowerCase().includes('email not confirmed')) {
       const { error: resendError } = await supabase.auth.resend({ type: 'signup', email });
       setLoadingAction(null);
       if (resendError) {

@@ -12,8 +12,8 @@ export default function SplashScreen() {
   useEffect(() => {
     let active = true;
 
-    void supabase.auth.getSession().then(({ data }) => {
-      if (active) router.replace(data.session ? '/home' : '/login');
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (active) router.replace(!error && data.session ? '/home' : '/login');
     });
 
     return () => {

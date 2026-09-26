@@ -49,7 +49,6 @@ export default function SignupScreen() {
           full_name: signupDraft.fullName.trim(),
           roll_number: signupDraft.rollNumber.trim(),
           department: signupDraft.department,
-          role: 'student',
         },
       },
     });

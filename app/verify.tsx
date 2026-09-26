@@ -20,6 +20,7 @@ export default function VerifyScreen() {
   const [code, setCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(RESEND_SECONDS);
   const [recoveryVerified, setRecoveryVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -50,7 +51,6 @@ export default function VerifyScreen() {
 
     if (error) {
       completionLock.current = false;
-      setCode('');
       setErrorMessage(getAuthErrorMessage(error));
       return;
     }
@@ -66,12 +66,14 @@ export default function VerifyScreen() {
   };
 
   const resendCode = async () => {
-    if (cooldown > 0 || !email) return;
+    if (cooldown > 0 || !email || isResending) return;
+    setIsResending(true);
     setErrorMessage('');
     const { error } =
       purpose === 'signup'
         ? await supabase.auth.resend({ type: 'signup', email })
         : await supabase.auth.resetPasswordForEmail(email);
+    setIsResending(false);
 
     if (error) {
       setErrorMessage(getAuthErrorMessage(error));
@@ -181,12 +183,17 @@ export default function VerifyScreen() {
         </View>
 
         <Button
-          isDisabled={cooldown > 0 || isVerifying || !email}
+          isDisabled={cooldown > 0 || isVerifying || isResending || !email}
           variant="ghost"
           onPress={resendCode}
         >
+          {isResending ? <Spinner size="sm" /> : null}
           <Button.Label>
-            {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
+            {isResending
+              ? 'Sending code'
+              : cooldown > 0
+                ? `Resend code in ${cooldown}s`
+                : 'Resend code'}
           </Button.Label>
         </Button>
       </View>
