@@ -88,23 +88,19 @@ export default function HomeScreen() {
   }, [filteredFeed.length]);
 
   const renderFeedItem = useCallback(({ item }: { item: FeedItem }) => {
-    return (
-      <View className="mb-3 px-6">
-        {item.type === 'event' ? (
-          <EventCard
-            item={item}
-            onPress={() => router.push({ pathname: '/event/[id]', params: { id: item.id } })}
-          />
-        ) : (
-          <SocietyPostCard item={item} />
-        )}
-      </View>
+    return item.type === 'event' ? (
+      <EventCard
+        item={item}
+        onPress={() => router.push({ pathname: '/event/[id]', params: { id: item.id } })}
+      />
+    ) : (
+      <SocietyPostCard item={item} />
     );
   }, []);
 
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top']}>
-      <View className="bg-brand px-6 pt-2 pb-5">
+      <View className="bg-brand px-4 pt-2 pb-5">
         <View className="flex-row items-start justify-between">
           <View className="min-w-0 flex-1 pr-4">
             <Typography className="text-[11px] leading-4 font-medium text-white/65">
@@ -147,7 +143,7 @@ export default function HomeScreen() {
       <View className="bg-surface flex-1 pt-4">
         <ScrollView
           className="mb-3 max-h-[30px]"
-          contentContainerClassName="gap-2 px-6"
+          contentContainerClassName="gap-2 px-4"
           horizontal
           showsHorizontalScrollIndicator={false}
         >
@@ -164,7 +160,10 @@ export default function HomeScreen() {
                 onPress={() => handleFilterChange(filter)}
               >
                 <Typography
-                  className={`text-[10px] font-semibold ${selected ? 'text-white' : 'text-home-muted'}`}
+                  className="text-[10px] font-semibold"
+                  style={{
+                    color: selected ? numigosTheme.colors.surface : numigosTheme.colors.homeMuted,
+                  }}
                 >
                   {filter}
                 </Typography>
@@ -174,8 +173,13 @@ export default function HomeScreen() {
         </ScrollView>
 
         <FlatList
-          contentContainerStyle={{ paddingBottom: 12, flexGrow: visibleFeed.length === 0 ? 1 : 0 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 12,
+            flexGrow: visibleFeed.length === 0 ? 1 : 0,
+          }}
           data={visibleFeed}
+          ItemSeparatorComponent={() => <View className="h-3" />}
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={

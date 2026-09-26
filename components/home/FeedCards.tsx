@@ -27,7 +27,7 @@ export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () 
     <GesturePressable
       accessibilityLabel={`Open ${item.title}`}
       accessibilityRole="button"
-      className="border-home-card-border bg-surface flex-row rounded-2xl border p-2.5 active:opacity-80"
+      className="border-home-card-border bg-surface w-full flex-row rounded-2xl border p-2.5 active:opacity-80"
       onPress={onPress}
     >
       <View className="h-16 w-16 rounded-xl" style={{ backgroundColor: getEventColor(item.id) }} />
@@ -54,7 +54,7 @@ export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () 
 
 export function SocietyPostCard({ item }: { item: PostFeedItem }) {
   return (
-    <View className="border-home-card-border bg-surface rounded-2xl border px-3 py-3">
+    <View className="border-home-card-border bg-surface w-full rounded-2xl border px-3 py-3">
       <View className="flex-row items-center">
         <View className="bg-home-chip h-9 w-9 items-center justify-center overflow-hidden rounded-full">
           <Image
