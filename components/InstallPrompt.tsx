@@ -1,9 +1,12 @@
+import { useSegments } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Text } from 'heroui-native';
+
+import { TAB_BAR_CONTENT_HEIGHT } from '@/lib/layout';
 
 /**
  * Install affordance for the PWA, web only:
@@ -51,13 +54,15 @@ function isIosSafari(): boolean {
   return isIos && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
 }
 
-const TAB_BAR_HEIGHT = 49;
-
 export function InstallPrompt() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosHint, setShowIosHint] = useState(false);
   const insets = useSafeAreaInsets();
-  const bottom = insets.bottom + TAB_BAR_HEIGHT + 12;
+  const segments = useSegments();
+  const { width: viewportWidth } = useWindowDimensions();
+  const isCompact = viewportWidth <= 360;
+  const isTabRoute = segments[0] === '(tabs)';
+  const bottom = insets.bottom + (isTabRoute ? TAB_BAR_CONTENT_HEIGHT : 0) + 12;
 
   useEffect(() => {
     if (!isEligibleBrowserContext()) return undefined;
@@ -114,9 +119,11 @@ export function InstallPrompt() {
     return (
       <View
         style={{ bottom }}
-        className="border-border bg-card absolute right-4 left-4 z-50 flex-row items-center gap-3 rounded-lg border p-4 shadow-lg"
+        className={`border-border bg-card absolute right-4 left-4 z-50 gap-3 rounded-lg border p-4 shadow-lg ${
+          isCompact ? 'items-stretch' : 'flex-row items-center'
+        }`}
       >
-        <View className="flex-1">
+        <View className="min-w-0 flex-1">
           <Text.Paragraph type="body-sm" weight="semibold">
             Add to home screen
           </Text.Paragraph>
@@ -150,9 +157,11 @@ export function InstallPrompt() {
     return (
       <View
         style={{ bottom }}
-        className="border-border bg-card absolute right-4 left-4 z-50 flex-row items-center gap-3 rounded-lg border p-4 shadow-lg"
+        className={`border-border bg-card absolute right-4 left-4 z-50 gap-3 rounded-lg border p-4 shadow-lg ${
+          isCompact ? 'items-stretch' : 'flex-row items-center'
+        }`}
       >
-        <View className="flex-1">
+        <View className="min-w-0 flex-1">
           <Text.Paragraph type="body-sm" weight="semibold">
             Add to home screen
           </Text.Paragraph>

@@ -2,6 +2,7 @@ import { Bookmark, CalendarDays, Home, UserRound } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TAB_BAR_CONTENT_HEIGHT } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
 const TAB_ICON_SIZE = 18;
@@ -17,7 +18,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: numigosTheme.colors.brand,
         tabBarInactiveTintColor: '#B3BBB8',
         tabBarStyle: {
-          height: 38 + insets.bottom,
+          height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
           paddingTop: 5,
           paddingBottom: Math.max(insets.bottom, 5),
           backgroundColor: numigosTheme.colors.surface,

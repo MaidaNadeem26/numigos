@@ -8,10 +8,11 @@ import { FormField } from '@/components/auth/FormField';
 import { mapAuthError, validateEmail, validateLogin } from '@/lib/auth-validation';
 import { useAuthFlow } from '@/lib/auth-flow';
 import { getAuthenticatedProfile, supabase } from '@/lib/supabase';
+import { getAuthHeroHeight } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
 export default function LoginScreen() {
-  const { height: viewportHeight } = useWindowDimensions();
+  const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
   const { beginRecovery } = useAuthFlow();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -87,9 +88,8 @@ export default function LoginScreen() {
     <AuthScaffold
       alignContentLeft
       dense
-      heroHeight={Math.round(viewportHeight * 0.29)}
+      heroHeight={getAuthHeroHeight(viewportHeight, viewportWidth)}
       hideHeroBrand
-      singleViewport
       useHeroArtwork
       subtitle={
         isRecoveryMode
@@ -171,7 +171,7 @@ export default function LoginScreen() {
         </Button>
 
         {!isRecoveryMode ? (
-          <View className="mt-1 flex-row items-center justify-center">
+          <View className="mt-1 flex-row flex-wrap items-center justify-center">
             <Typography className="text-ink-muted font-sans text-sm">
               Don’t have an account?{' '}
             </Typography>

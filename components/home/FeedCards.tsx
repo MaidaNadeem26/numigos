@@ -30,7 +30,10 @@ export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () 
       className="border-home-card-border bg-surface w-full flex-row rounded-2xl border p-2.5 active:opacity-80"
       onPress={onPress}
     >
-      <View className="h-16 w-16 rounded-xl" style={{ backgroundColor: getEventColor(item.id) }} />
+      <View
+        className="h-16 w-16 shrink-0 rounded-xl"
+        style={{ backgroundColor: getEventColor(item.id) }}
+      />
       <View className="min-w-0 flex-1 justify-center pl-3">
         <Typography
           className="text-brand text-[8px] leading-[11px] font-bold uppercase"
@@ -56,7 +59,7 @@ export function SocietyPostCard({ item }: { item: PostFeedItem }) {
   return (
     <View className="border-home-card-border bg-surface w-full rounded-2xl border px-3 py-3">
       <View className="flex-row items-center">
-        <View className="bg-home-chip h-9 w-9 items-center justify-center overflow-hidden rounded-full">
+        <View className="bg-home-chip h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full">
           <Image
             accessibilityIgnoresInvertColors
             resizeMode="contain"
@@ -71,11 +74,13 @@ export function SocietyPostCard({ item }: { item: PostFeedItem }) {
           >
             {item.society}
           </Typography>
-          <Typography className="text-home-muted mt-0.5 text-[8px] leading-3">
+          <Typography className="text-home-muted mt-0.5 text-[8px] leading-3" numberOfLines={1}>
             {item.timestamp}
           </Typography>
         </View>
-        <Typography className="text-home-muted text-[7px] font-semibold uppercase">Post</Typography>
+        <Typography className="text-home-muted shrink-0 text-[7px] font-semibold uppercase">
+          Post
+        </Typography>
       </View>
 
       <Typography className="text-home-ink mt-3 text-[10px] leading-[15px]" numberOfLines={3}>

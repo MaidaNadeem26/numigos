@@ -74,9 +74,9 @@ export function FormField({
         <Input
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
-          className={`rounded-field text-ink border pr-12 font-sans text-base ${
-            compact ? 'h-signup-control' : 'h-auth-control'
-          } ${
+          className={`rounded-field text-ink border font-sans text-base ${
+            onToggleSecure ? 'pr-12' : 'pr-5'
+          } ${compact ? 'h-signup-control' : 'h-auth-control'} ${
             fieldTone === 'softNeutral' ? 'bg-login-field' : 'bg-field'
           } ${icon ? 'pl-12' : 'pl-5'} ${
             error
@@ -174,7 +174,10 @@ export function SelectField({
               />
             </View>
           ) : null}
-          <Select.Value className="text-ink flex-1 font-sans text-base" placeholder={placeholder} />
+          <Select.Value
+            className="text-ink min-w-0 flex-1 font-sans text-base"
+            placeholder={placeholder}
+          />
           <Select.TriggerIndicator className="text-brand" />
         </Select.Trigger>
         <Select.Portal>

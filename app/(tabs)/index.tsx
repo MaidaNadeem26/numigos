@@ -2,12 +2,13 @@ import { Typography } from 'heroui-native';
 import { Bell, Search } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, ScrollView, TextInput, View } from 'react-native';
+import { FlatList, ScrollView, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { EventCard, SocietyPostCard } from '@/components/home/FeedCards';
 import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { HOME_FEED, type FeedItem } from '@/lib/home-feed';
+import { HOME_HORIZONTAL_PADDING, isSmallPhone } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
 const FILTERS = ['All', 'Events', 'Posts', 'Sports'] as const;
@@ -29,6 +30,8 @@ function searchableText(item: FeedItem) {
 }
 
 export default function HomeScreen() {
+  const { width: viewportWidth } = useWindowDimensions();
+  const compactWidth = isSmallPhone(viewportWidth);
   const [activeFilter, setActiveFilter] = useState<FeedFilter>('All');
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -99,18 +102,26 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <SafeAreaView className="bg-brand flex-1" edges={['top']}>
-      <View className="bg-brand px-4 pt-2 pb-5">
+    <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
+      <View className="bg-brand pt-2 pb-5" style={{ paddingHorizontal: HOME_HORIZONTAL_PADDING }}>
         <View className="flex-row items-start justify-between">
           <View className="min-w-0 flex-1 pr-4">
             <Typography className="text-[11px] leading-4 font-medium text-white/65">
               {dateLabel}
             </Typography>
             <View className="mt-0.5 flex-row flex-wrap items-baseline">
-              <Typography className="font-display text-home-highlight text-[20px] leading-7 font-bold">
+              <Typography
+                className={`font-display text-home-highlight leading-7 font-bold ${
+                  compactWidth ? 'text-[18px]' : 'text-[20px]'
+                }`}
+              >
                 {todayEventCount}
               </Typography>
-              <Typography className="font-display ml-1.5 text-[20px] leading-7 font-bold text-white">
+              <Typography
+                className={`font-display ml-1.5 leading-7 font-bold text-white ${
+                  compactWidth ? 'text-[18px]' : 'text-[20px]'
+                }`}
+              >
                 {todayEventCount === 1 ? 'event' : 'events'} happening today
               </Typography>
             </View>
@@ -119,7 +130,7 @@ export default function HomeScreen() {
           <GesturePressable
             accessibilityLabel="Open notifications"
             accessibilityRole="button"
-            className="relative h-9 w-9 items-center justify-center rounded-full bg-white/20 active:opacity-75"
+            className="relative h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 active:opacity-75"
           >
             <Bell color={numigosTheme.colors.surface} size={17} strokeWidth={2} />
             <View className="border-brand bg-home-highlight absolute top-[6px] right-[6px] h-2 w-2 rounded-full border" />
@@ -142,10 +153,15 @@ export default function HomeScreen() {
 
       <View className="bg-surface flex-1 pt-4">
         <ScrollView
-          className="mb-3 max-h-[30px]"
-          contentContainerClassName="gap-2 px-4"
+          className="mb-3"
+          contentContainerStyle={{
+            alignItems: 'center',
+            columnGap: 8,
+            paddingHorizontal: HOME_HORIZONTAL_PADDING,
+          }}
           horizontal
           showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0, flexShrink: 0 }}
         >
           {FILTERS.map((filter) => {
             const selected = filter === activeFilter;
@@ -153,14 +169,17 @@ export default function HomeScreen() {
               <GesturePressable
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                className={`h-[30px] items-center justify-center rounded-full px-4 active:opacity-75 ${
+                className={`min-h-8 shrink-0 items-center justify-center rounded-full px-4 py-1.5 active:opacity-75 ${
                   selected ? 'bg-home-ink' : 'bg-home-chip'
                 }`}
                 key={filter}
                 onPress={() => handleFilterChange(filter)}
               >
                 <Typography
-                  className="text-[10px] font-semibold"
+                  className={`text-[10px] leading-[14px] font-semibold ${
+                    selected ? 'text-white' : 'text-home-muted'
+                  }`}
+                  numberOfLines={1}
                   style={{
                     color: selected ? numigosTheme.colors.surface : numigosTheme.colors.homeMuted,
                   }}
@@ -173,10 +192,11 @@ export default function HomeScreen() {
         </ScrollView>
 
         <FlatList
+          className="flex-1"
           contentContainerStyle={{
-            paddingHorizontal: 16,
+            paddingHorizontal: HOME_HORIZONTAL_PADDING,
             paddingBottom: 12,
-            flexGrow: visibleFeed.length === 0 ? 1 : 0,
+            flexGrow: 1,
           }}
           data={visibleFeed}
           ItemSeparatorComponent={() => <View className="h-3" />}

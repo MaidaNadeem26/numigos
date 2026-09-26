@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, TextInput, View } from 'react-native';
+import { ActivityIndicator, TextInput, useWindowDimensions, View } from 'react-native';
 import { Button, InputOTP, Typography } from 'heroui-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
@@ -8,6 +8,7 @@ import { FormField } from '@/components/auth/FormField';
 import { useAuthFlow } from '@/lib/auth-flow';
 import { mapAuthError, validatePassword } from '@/lib/auth-validation';
 import { supabase } from '@/lib/supabase';
+import { isSmallPhone } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
 const OTP_LENGTH = 6;
@@ -16,6 +17,8 @@ const RESEND_SECONDS = 45;
 type VerificationMode = 'signup' | 'recovery';
 
 export default function VerificationScreen() {
+  const { width: viewportWidth } = useWindowDimensions();
+  const compactWidth = isSmallPhone(viewportWidth);
   const params = useLocalSearchParams<{ mode?: VerificationMode }>();
   const { verificationEmail, signupDraft } = useAuthFlow();
   const mode: VerificationMode = params.mode === 'recovery' ? 'recovery' : 'signup';
@@ -194,15 +197,24 @@ export default function VerificationScreen() {
             }}
             value={code}
           >
-            <InputOTP.Group className="w-full flex-row justify-between gap-2">
+            <InputOTP.Group
+              className="w-full flex-row justify-between"
+              style={{ columnGap: compactWidth ? 5 : 8 }}
+            >
               {Array.from({ length: OTP_LENGTH }, (_, index) => (
                 <InputOTP.Slot
-                  className="rounded-field border-line bg-surface h-16 flex-1 border"
+                  className={`rounded-field border-line bg-surface min-w-0 flex-1 border ${
+                    compactWidth ? 'h-14' : 'h-16'
+                  }`}
                   index={index}
                   key={index}
                 >
-                  <InputOTP.SlotPlaceholder className="text-otp text-ink-muted" />
-                  <InputOTP.SlotValue className="font-display-semibold text-otp text-ink" />
+                  <InputOTP.SlotPlaceholder
+                    className={`${compactWidth ? 'text-[21px]' : 'text-otp'} text-ink-muted`}
+                  />
+                  <InputOTP.SlotValue
+                    className={`font-display-semibold ${compactWidth ? 'text-[21px]' : 'text-otp'} text-ink`}
+                  />
                   <InputOTP.SlotCaret className="bg-brand" />
                 </InputOTP.Slot>
               ))}

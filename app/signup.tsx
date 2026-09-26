@@ -13,6 +13,7 @@ import {
   type SignupFields,
   validateSignup,
 } from '@/lib/auth-validation';
+import { getAuthHeroHeight } from '@/lib/layout';
 import { supabase } from '@/lib/supabase';
 
 type SignupErrors = FieldErrors<SignupFields>;
@@ -25,7 +26,7 @@ const BASIC_DETAIL_KEYS: (keyof SignupErrors)[] = [
 ];
 
 export default function SignupScreen() {
-  const { height: viewportHeight } = useWindowDimensions();
+  const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
   const { signupDraft, updateSignupDraft, beginSignupVerification } = useAuthFlow();
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -99,7 +100,7 @@ export default function SignupScreen() {
           <View className={`h-1 flex-1 rounded-full ${step === 2 ? 'bg-brand' : 'bg-line'}`} />
         </View>
       }
-      heroHeight={Math.round(viewportHeight * 0.29)}
+      heroHeight={getAuthHeroHeight(viewportHeight, viewportWidth)}
       hideHeroBrand
       subtitle={
         step === 1 ? 'Step 1 of 2 — your basic details' : 'Step 2 of 2 — your academic details'
@@ -162,16 +163,18 @@ export default function SignupScreen() {
             <Button.Label className="font-semibold text-white">Continue</Button.Label>
           </Button>
 
-          <Button
-            className="mt-1 self-center px-4"
-            onPress={() => router.replace('/login')}
-            variant="tertiary"
-          >
-            <Button.Label className="text-ink-muted font-sans text-sm font-normal">
+          <View className="mt-1 flex-row flex-wrap items-center justify-center">
+            <Typography className="text-ink-muted font-sans text-sm">
               Already have an account?{' '}
-              <Typography className="text-brand font-semibold">Sign in</Typography>
-            </Button.Label>
-          </Button>
+            </Typography>
+            <Button
+              className="h-10 rounded-full px-2"
+              onPress={() => router.replace('/login')}
+              variant="tertiary"
+            >
+              <Button.Label className="text-brand text-sm font-semibold">Sign in</Button.Label>
+            </Button>
+          </View>
         </>
       ) : (
         <>

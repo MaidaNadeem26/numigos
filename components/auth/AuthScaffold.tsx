@@ -1,9 +1,17 @@
 import type { PropsWithChildren, ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { Typography } from 'heroui-native';
 
 import { CampusHero } from '@/components/auth/CampusHero';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
+
+import { getScreenHorizontalPadding } from '@/lib/layout';
 
 interface AuthScaffoldProps extends PropsWithChildren {
   title: string;
@@ -15,7 +23,6 @@ interface AuthScaffoldProps extends PropsWithChildren {
   dense?: boolean;
   heroHeight?: number;
   hideHeroBrand?: boolean;
-  singleViewport?: boolean;
   useHeroArtwork?: boolean;
   alignContentLeft?: boolean;
 }
@@ -31,10 +38,11 @@ export function AuthScaffold({
   dense = false,
   heroHeight,
   hideHeroBrand = false,
-  singleViewport = false,
   useHeroArtwork = false,
   alignContentLeft = false,
 }: AuthScaffoldProps) {
+  const { width: viewportWidth } = useWindowDimensions();
+
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
@@ -45,8 +53,8 @@ export function AuthScaffold({
           bounces={false}
           className="bg-canvas flex-1"
           contentContainerStyle={{ flexGrow: 1 }}
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
-          scrollEnabled={!singleViewport}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
         >
@@ -59,9 +67,10 @@ export function AuthScaffold({
           />
 
           <View
-            className={`auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap px-auth-screen flex-1 ${
+            className={`auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap flex-1 ${
               dense ? 'pb-safe-offset-3 pt-4' : 'pt-auth-section pb-safe-offset-8'
             }`}
+            style={{ paddingHorizontal: getScreenHorizontalPadding(viewportWidth) }}
           >
             <View className="mx-auto w-full max-w-[440px]">
               {header}
