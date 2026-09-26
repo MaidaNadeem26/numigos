@@ -1,147 +1,329 @@
-import { Typography } from 'heroui-native';
-import { Bookmark, CalendarDays, Check, MapPin, Share2, Users } from 'lucide-react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Image, ScrollView, View } from 'react-native';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bookmark,
+  BriefcaseBusiness,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Clock3,
+  GraduationCap,
+  Mail,
+  MapPin,
+  Share2,
+  ShieldCheck,
+  Star,
+  UserRound,
+} from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Image, ImageBackground, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 
-import { ScreenHeader } from '@/components/student/ScreenHeader';
-import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
+import { LinearGradient } from '@/components/ui/primitives/LinearGradient';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
-import { getEventById, STUDENT_BOOKMARK_IDS, STUDENT_REGISTRATION_IDS } from '@/lib/home-feed';
+import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
+import { HOME_FEED, type EventFeedItem } from '@/lib/home-feed';
+import { goBackOrReplace } from '@/lib/navigation';
 import { numigosTheme } from '@/lib/theme';
 
-export default function EventDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const event = getEventById(id);
-  const [bookmarked, setBookmarked] = useState(Boolean(id && STUDENT_BOOKMARK_IDS.includes(id)));
-  const [registered, setRegistered] = useState(
-    Boolean(id && STUDENT_REGISTRATION_IDS.includes(id)),
+const { colors } = numigosTheme;
+const HERO_IMAGE = require('@/assets/images/numigos-campus-event-hero.png');
+
+const eventDetails = {
+  date: 'Saturday, Sep 26, 2024',
+  timing: '2:00 PM – 5:00 PM PKT',
+  duration: '3 Hours',
+  venue: 'Main Auditorium, Academic Block 2',
+  filled: 142,
+  capacity: 200,
+  description:
+    'Get hands-on experience training reinforcement learning models with AWS DeepRacer and explore foundational Generative AI tools on AWS Cloud. Free cloud credits and official participation certificates provided by AWS Academic Alliance. Bring your laptops!',
+  highlights: [
+    'Hands-on AWS Console access with preloaded credits',
+    'Live simulation races on the virtual DeepRacer track',
+    'Networking with student cloud ambassadors and senior peers',
+    'Refreshments provided by the student council',
+  ],
+};
+
+function IconButton({ children, onPress }: { children: React.ReactNode; onPress: () => void }) {
+  return (
+    <GesturePressable
+      accessibilityRole="button"
+      onPress={onPress}
+      className="h-11 w-11 items-center justify-center rounded-2xl bg-white"
+    >
+      {children}
+    </GesturePressable>
+  );
+}
+
+function DetailCard({
+  icon,
+  label,
+  children,
+  trailing,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <View className="border-border flex-row items-center rounded-[22px] border bg-white p-4">
+      <View className="bg-surface-secondary mr-4 h-14 w-14 items-center justify-center rounded-2xl">
+        {icon}
+      </View>
+      <View className="min-w-0 flex-1">
+        <Text className="text-muted text-xs font-semibold uppercase">{label}</Text>
+        {children}
+      </View>
+      {trailing}
+    </View>
+  );
+}
+
+export default function EventDetailsScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const [registered, setRegistered] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+
+  const event = useMemo(
+    () => HOME_FEED.find((item): item is EventFeedItem => item.type === 'event' && item.id === id),
+    [id],
   );
 
   if (!event) {
     return (
-      <SafeAreaView className="bg-background flex-1">
-        <ScreenHeader title="Event details" />
-        <View className="flex-1 items-center justify-center px-6">
-          <Typography className="text-home-ink text-lg font-bold">Event not found</Typography>
-          <Typography className="text-home-muted mt-2 text-center text-sm">
-            This event is no longer available.
-          </Typography>
-        </View>
+      <SafeAreaView className="bg-background flex-1 items-center justify-center px-6">
+        <Text className="text-foreground text-xl font-bold">Event not found</Text>
+        <GesturePressable
+          onPress={() => goBackOrReplace('/(tabs)/explore')}
+          className="bg-accent mt-5 rounded-full px-6 py-3"
+        >
+          <Text className="font-semibold text-white">Back to Explore</Text>
+        </GesturePressable>
       </SafeAreaView>
     );
   }
 
+  const contentWidth = Math.min(width, 620);
+  const fillPercent = Math.round((eventDetails.filled / eventDetails.capacity) * 100);
+
   return (
-    <SafeAreaView className="bg-background flex-1" edges={['top', 'left', 'right']}>
-      <ScreenHeader
-        title="Event details"
-        right={
-          <GesturePressable
-            accessibilityLabel="Share event"
-            accessibilityRole="button"
-            className="bg-home-chip h-10 w-10 items-center justify-center rounded-full active:opacity-70"
-          >
-            <Share2 color={numigosTheme.colors.homeInk} size={18} />
-          </GesturePressable>
-        }
-      />
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="pb-safe-offset-28"
-        showsVerticalScrollIndicator={false}
-      >
-        <Image
-          accessibilityIgnoresInvertColors
-          resizeMode="cover"
-          source={event.image}
-          style={{ width: '100%', height: 220 }}
-        />
-        <View className="px-4 py-5">
-          <View className="bg-brand-mist self-start rounded-full px-2.5 py-1">
-            <Typography className="text-brand text-[9px] font-bold">{event.category}</Typography>
+    <SafeAreaView className="bg-background flex-1" edges={['top', 'bottom']}>
+      <View className="flex-1 self-center" style={{ width: contentWidth }}>
+        <View className="flex-row items-center px-4 py-3">
+          <IconButton onPress={() => goBackOrReplace('/(tabs)/explore')}>
+            <ArrowLeft size={24} color={colors.ink} strokeWidth={2.2} />
+          </IconButton>
+          <Text className="text-foreground ml-3 flex-1 text-2xl font-bold">Event Details</Text>
+          <View className="bg-accent-soft h-11 w-11 items-center justify-center rounded-full border-2 border-white">
+            <UserRound size={22} color={colors.brand} />
           </View>
-          <Typography className="font-display text-home-ink mt-3 text-[25px] leading-8 font-bold">
-            {event.title}
-          </Typography>
-          <Typography className="text-brand mt-2 text-[12px] font-semibold">
-            Hosted by {event.society}
-          </Typography>
-
-          <View className="border-home-card-border bg-surface mt-5 gap-4 rounded-2xl border p-4">
-            <View className="flex-row items-center">
-              <View className="bg-brand-mist h-9 w-9 items-center justify-center rounded-full">
-                <CalendarDays color={numigosTheme.colors.brand} size={17} />
-              </View>
-              <View className="min-w-0 flex-1 pl-3">
-                <Typography className="text-home-ink text-[12px] font-semibold">
-                  {event.schedule}
-                </Typography>
-                <Typography className="text-home-muted mt-0.5 text-[9px]">
-                  Add to your campus calendar
-                </Typography>
-              </View>
-            </View>
-            <View className="flex-row items-center">
-              <View className="bg-brand-mist h-9 w-9 items-center justify-center rounded-full">
-                <MapPin color={numigosTheme.colors.brand} size={17} />
-              </View>
-              <View className="min-w-0 flex-1 pl-3">
-                <Typography className="text-home-ink text-[12px] font-semibold">
-                  {event.location ?? 'NUTECH Main Campus'}
-                </Typography>
-                <Typography className="text-home-muted mt-0.5 text-[9px]">Islamabad</Typography>
-              </View>
-            </View>
-            <View className="flex-row items-center">
-              <View className="bg-brand-mist h-9 w-9 items-center justify-center rounded-full">
-                <Users color={numigosTheme.colors.brand} size={17} />
-              </View>
-              <View className="min-w-0 flex-1 pl-3">
-                <Typography className="text-home-ink text-[12px] font-semibold">
-                  {event.attendees ?? 64} students attending
-                </Typography>
-                <Typography className="text-home-muted mt-0.5 text-[9px]">
-                  Open to all NUTECH students
-                </Typography>
-              </View>
-            </View>
-          </View>
-
-          <Typography className="font-display text-home-ink mt-6 text-[17px] font-bold">
-            About this event
-          </Typography>
-          <Typography className="text-ink-muted mt-2 text-[12px] leading-5">
-            {event.description ??
-              `Join ${event.society} for ${event.title}, a student-led campus event designed to help you meet people, learn something new, and take part in university life.`}
-          </Typography>
         </View>
-      </ScrollView>
-      <View className="border-home-card-border bg-surface pb-safe-offset-3 flex-row gap-3 border-t px-4 pt-3">
-        <GesturePressable
-          accessibilityLabel={bookmarked ? 'Remove bookmark' : 'Bookmark event'}
-          accessibilityRole="button"
-          className="border-home-card-border h-12 w-12 items-center justify-center rounded-full border active:opacity-70"
-          onPress={() => setBookmarked((value) => !value)}
+
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 14 }}
+          showsVerticalScrollIndicator={false}
         >
-          <Bookmark
-            color={bookmarked ? numigosTheme.colors.brand : numigosTheme.colors.homeMuted}
-            fill={bookmarked ? numigosTheme.colors.brand : 'transparent'}
-            size={20}
-          />
-        </GesturePressable>
-        <GesturePressable
-          accessibilityRole="button"
-          className={`h-12 flex-1 flex-row items-center justify-center rounded-full ${registered ? 'bg-brand-soft' : 'bg-brand'} active:opacity-80`}
-          onPress={() => setRegistered((value) => !value)}
-        >
-          {registered ? <Check color={numigosTheme.colors.brand} size={18} /> : null}
-          <Typography
-            className={`ml-1 text-[13px] font-bold ${registered ? 'text-brand' : 'text-white'}`}
+          <ImageBackground
+            source={HERO_IMAGE}
+            resizeMode="cover"
+            imageStyle={{ borderRadius: 26 }}
+            style={{ width: '100%', height: Math.min(360, Math.max(285, width * 0.74)) }}
           >
-            {registered ? 'Registered' : 'Register now'}
-          </Typography>
-        </GesturePressable>
+            <LinearGradient
+              colors={['rgba(3,49,41,0.03)', 'rgba(3,49,41,0.9)']}
+              className="flex-1 justify-between rounded-[26px] p-4"
+            >
+              <View className="flex-row flex-wrap justify-between gap-2">
+                <View className="flex-row items-center rounded-full bg-white px-3.5 py-2">
+                  <View className="bg-accent mr-2 h-2.5 w-2.5 rounded-full" />
+                  <Text className="text-foreground font-semibold">Technology & Cloud</Text>
+                </View>
+                <View className="flex-row items-center rounded-full bg-[#FFD39B] px-3.5 py-2">
+                  <Star size={17} color="#68421F" />
+                  <Text className="ml-2 font-semibold text-[#4A2D14]">Featured Event</Text>
+                </View>
+              </View>
+              <View>
+                <View className="mb-3 flex-row items-center self-start rounded-full bg-[#A8D8C9] px-3.5 py-2">
+                  <BriefcaseBusiness size={17} color={colors.brand} />
+                  <Text className="text-primary ml-2 font-semibold">Workshop & Hackathon</Text>
+                </View>
+                <Text className="text-[30px] leading-9 font-bold text-white">{event.title}</Text>
+              </View>
+            </LinearGradient>
+          </ImageBackground>
+
+          <GesturePressable
+            onPress={() => router.push('/societies/aws-cloud-club')}
+            className="border-border flex-row items-center rounded-[22px] border bg-white p-4"
+          >
+            <Image
+              source={event.image}
+              resizeMode="cover"
+              style={{ width: 58, height: 58, borderRadius: 29 }}
+            />
+            <View className="ml-3 min-w-0 flex-1">
+              <View className="flex-row items-center">
+                <Text className="text-foreground shrink text-lg font-bold" numberOfLines={1}>
+                  AWS Cloud Club NUTECH
+                </Text>
+                <ShieldCheck className="ml-1" size={19} color={colors.brand} />
+              </View>
+              <Text className="text-muted mt-0.5 text-sm">
+                Student Society Chapter · 480 Members
+              </Text>
+            </View>
+            <View className="bg-surface-secondary ml-2 flex-row items-center rounded-2xl px-3 py-2.5">
+              <Text className="text-primary text-xl">＋</Text>
+              <Text className="text-primary ml-1 font-semibold">Join</Text>
+            </View>
+          </GesturePressable>
+
+          <DetailCard
+            icon={<CalendarDays size={25} color={colors.brand} />}
+            label="Date & schedule"
+            trailing={
+              <View className="rounded-full bg-[#FFE0B3] px-3 py-1.5">
+                <Text className="text-xs font-bold text-[#704515]">This Week</Text>
+              </View>
+            }
+          >
+            <Text className="text-foreground mt-1 text-lg font-semibold">{eventDetails.date}</Text>
+          </DetailCard>
+
+          <DetailCard
+            icon={<Clock3 size={25} color="#875118" />}
+            label="Session timing"
+            trailing={<Text className="text-muted text-sm">{eventDetails.duration}</Text>}
+          >
+            <Text className="text-foreground mt-1 text-lg font-semibold">
+              {eventDetails.timing}
+            </Text>
+          </DetailCard>
+
+          <DetailCard
+            icon={<MapPin size={26} color="#972D36" />}
+            label="Campus venue"
+            trailing={<ChevronRight size={22} color={colors.inkMuted} />}
+          >
+            <Text className="text-foreground mt-1 text-lg font-semibold" numberOfLines={2}>
+              {eventDetails.venue}
+            </Text>
+          </DetailCard>
+
+          <View className="border-border rounded-[22px] border bg-white p-5">
+            <View className="flex-row flex-wrap items-baseline gap-x-2 gap-y-1">
+              <View className="bg-accent h-3 w-3 rounded-full" />
+              <Text className="text-foreground text-xl font-bold">Capacity Status</Text>
+              <Text className="text-primary text-base font-semibold">
+                {eventDetails.filled} / {eventDetails.capacity} seats filled ({fillPercent}%)
+              </Text>
+            </View>
+            <View className="bg-surface-secondary mt-4 h-3 overflow-hidden rounded-full">
+              <LinearGradient
+                colors={[colors.brand, '#39856E']}
+                className="h-full rounded-full"
+                style={{ width: `${fillPercent}%` }}
+              />
+            </View>
+            <View className="mt-5 flex-row items-center self-start rounded-xl bg-[#FDE2E3] px-3 py-2">
+              <Clock3 size={17} color="#922F39" />
+              <Text className="ml-2 font-semibold text-[#8C2C35]">
+                Registration closes in: 4 hours
+              </Text>
+            </View>
+            <View className="bg-surface-secondary mt-2 flex-row items-center self-start rounded-xl px-3 py-2">
+              <GraduationCap size={18} color={colors.inkMuted} />
+              <Text className="text-muted ml-2 text-sm">Open to all NUTECH Undergraduates</Text>
+            </View>
+          </View>
+
+          <View className="border-border rounded-[22px] border bg-white p-5">
+            <View className="flex-row items-center">
+              <BriefcaseBusiness size={24} color={colors.ink} />
+              <Text className="text-foreground ml-3 text-2xl font-bold">About Event</Text>
+            </View>
+            <Text className="text-foreground mt-5 text-base leading-7">
+              {eventDetails.description}
+            </Text>
+            <View className="bg-surface-secondary mt-5 rounded-2xl p-4">
+              <Text className="text-muted mb-3 text-xs font-bold uppercase">
+                Key highlights & perks
+              </Text>
+              {eventDetails.highlights.map((highlight) => (
+                <View key={highlight} className="mb-3 flex-row items-start last:mb-0">
+                  <View className="mt-0.5 mr-3 h-6 w-6 items-center justify-center rounded-full bg-white">
+                    <Check size={14} color={colors.brand} strokeWidth={3} />
+                  </View>
+                  <Text className="text-foreground min-w-0 flex-1 text-sm leading-6">
+                    {highlight}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View className="border-border rounded-[22px] border bg-white p-5">
+            <Text className="text-muted text-xs font-bold uppercase">Organized by</Text>
+            <View className="mt-4 flex-row items-center">
+              <View className="bg-accent-soft h-12 w-12 items-center justify-center rounded-full">
+                <UserRound size={23} color={colors.brand} />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-foreground text-base font-bold">Usman Tariq</Text>
+                <Text className="text-muted text-sm">
+                  President, BS Computer Science ’25 · Student Lead
+                </Text>
+              </View>
+            </View>
+            <View className="mt-4 flex-row items-center">
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-[#FFF1DF]">
+                <GraduationCap size={24} color="#875118" />
+              </View>
+              <View className="ml-3 flex-1">
+                <Text className="text-foreground text-base font-bold">Dr. Kamran Ahsan</Text>
+                <Text className="text-muted text-sm">Faculty Advisor, Dept. of Computing</Text>
+              </View>
+            </View>
+            <GesturePressable className="bg-surface-secondary mt-5 flex-row items-center justify-center rounded-2xl py-3.5">
+              <Mail size={20} color={colors.inkMuted} />
+              <Text className="text-foreground ml-2 font-semibold">Contact Organizer</Text>
+            </GesturePressable>
+          </View>
+        </ScrollView>
+
+        <View className="border-border flex-row gap-3 border-t bg-white px-4 py-3">
+          <IconButton onPress={() => setBookmarked((value) => !value)}>
+            <Bookmark
+              size={23}
+              color={bookmarked ? colors.brand : colors.ink}
+              fill={bookmarked ? colors.brand : 'transparent'}
+            />
+          </IconButton>
+          <IconButton onPress={() => undefined}>
+            <Share2 size={23} color={colors.ink} />
+          </IconButton>
+          <GesturePressable
+            onPress={() => setRegistered((value) => !value)}
+            className="bg-accent min-h-11 flex-1 flex-row items-center justify-center rounded-2xl px-4"
+          >
+            <Text className="text-base font-bold text-white">
+              {registered ? 'Registration Confirmed' : 'Register for Event'}
+            </Text>
+            {registered ? (
+              <Check className="ml-2" size={20} color="white" />
+            ) : (
+              <ArrowRight className="ml-2" size={20} color="white" />
+            )}
+          </GesturePressable>
+        </View>
       </View>
     </SafeAreaView>
   );
