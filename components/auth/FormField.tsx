@@ -124,6 +124,10 @@ interface SelectFieldProps {
   onValueChange: (value?: { value: string; label: string }) => void;
   placeholder: string;
   error?: string;
+  compact?: boolean;
+  borderless?: boolean;
+  fieldTone?: 'default' | 'softNeutral';
+  showIcon?: boolean;
 }
 
 export function SelectField({
@@ -133,23 +137,29 @@ export function SelectField({
   onValueChange,
   placeholder,
   error,
+  compact = false,
+  borderless = false,
+  fieldTone = 'default',
+  showIcon = true,
 }: SelectFieldProps) {
   return (
-    <View className="gap-2">
+    <View className={compact ? 'gap-1' : 'gap-2'}>
       <Typography className="text-field-label text-ink ml-1 font-semibold">{label}</Typography>
       <Select onValueChange={onValueChange} value={value}>
         <Select.Trigger
-          className={`rounded-field bg-field h-auth-control border pr-5 pl-4 ${
-            error ? 'border-error' : 'border-line'
-          }`}
+          className={`rounded-field h-auth-control border pr-5 ${showIcon ? 'pl-4' : 'pl-5'} ${
+            fieldTone === 'softNeutral' ? 'bg-login-field' : 'bg-field'
+          } ${error ? 'border-error' : borderless ? 'border-transparent' : 'border-line'}`}
         >
-          <View className="mr-3">
-            <Ionicons
-              color={error ? numigosTheme.colors.error : numigosTheme.colors.inkMuted}
-              name="school-outline"
-              size={19}
-            />
-          </View>
+          {showIcon ? (
+            <View className="mr-3">
+              <Ionicons
+                color={error ? numigosTheme.colors.error : numigosTheme.colors.inkMuted}
+                name="school-outline"
+                size={19}
+              />
+            </View>
+          ) : null}
           <Select.Value className="text-ink flex-1 font-sans text-base" placeholder={placeholder} />
           <Select.TriggerIndicator className="text-brand" />
         </Select.Trigger>
@@ -168,7 +178,7 @@ export function SelectField({
           </Select.Content>
         </Select.Portal>
       </Select>
-      <View className="min-h-5 pl-1">
+      <View className={compact && !error ? 'h-1 pl-1' : 'min-h-5 pl-1'}>
         {error ? <Typography className="text-error font-sans text-sm">{error}</Typography> : null}
       </View>
     </View>

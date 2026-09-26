@@ -71,17 +71,27 @@ export default function SignupScreen() {
 
   return (
     <AuthScaffold
+      alignContentLeft
       compactHero
+      dense
+      header={
+        <View className="mb-5 flex-row gap-2">
+          <View className="bg-brand h-1 flex-1 rounded-full" />
+          <View className="bg-line h-1 flex-1 rounded-full" />
+        </View>
+      }
       useHeroArtwork
       onBack={() => router.back()}
-      subtitle="Use your NUTECH email to join campus events and student societies."
+      subtitle="Your NUTECH student details"
       title="Create your account"
     >
       <View className="gap-1">
         <FormField
           autoCapitalize="words"
+          borderless
+          compact
           error={errors.fullName}
-          icon="person-outline"
+          fieldTone="softNeutral"
           label="Full name"
           onChangeText={(fullName) => updateSignupDraft({ fullName })}
           placeholder="Your full name"
@@ -89,8 +99,10 @@ export default function SignupScreen() {
           value={signupDraft.fullName}
         />
         <FormField
+          borderless
+          compact
           error={errors.email}
-          icon="mail-outline"
+          fieldTone="softNeutral"
           keyboardType="email-address"
           label="University email"
           onChangeText={(email) => updateSignupDraft({ email })}
@@ -99,54 +111,64 @@ export default function SignupScreen() {
           value={signupDraft.email}
         />
         <FormField
+          borderless
+          compact
+          error={errors.password}
+          fieldTone="softNeutral"
+          label="Password"
+          onChangeText={(password) => updateSignupDraft({ password })}
+          onToggleSecure={() => setShowPassword((current) => !current)}
+          placeholder="Create a password"
+          preciseIconAlignment
+          secureTextEntry={!showPassword}
+          textContentType="newPassword"
+          value={signupDraft.password}
+        />
+        <FormField
+          borderless
+          compact
+          error={errors.confirmPassword}
+          fieldTone="softNeutral"
+          label="Confirm password"
+          onChangeText={setConfirmPassword}
+          onToggleSecure={() => setShowConfirmPassword((current) => !current)}
+          placeholder="Re-enter password"
+          preciseIconAlignment
+          secureTextEntry={!showConfirmPassword}
+          textContentType="newPassword"
+          value={confirmPassword}
+        />
+        <FormField
+          borderless
+          compact
           error={errors.rollNumber}
-          icon="card-outline"
+          fieldTone="softNeutral"
           label="Registration / roll number"
           onChangeText={(rollNumber) => updateSignupDraft({ rollNumber })}
           placeholder="e.g. F23-CS-001"
           value={signupDraft.rollNumber}
         />
         <SelectField
+          borderless
+          compact
           error={errors.department}
+          fieldTone="softNeutral"
           label="Department"
           onValueChange={(department) => updateSignupDraft({ department: department?.value ?? '' })}
           options={departments}
           placeholder="Choose your department"
+          showIcon={false}
           value={selectedDepartment}
         />
-        <FormField
-          error={errors.password}
-          icon="lock-closed-outline"
-          label="Password"
-          onChangeText={(password) => updateSignupDraft({ password })}
-          onToggleSecure={() => setShowPassword((current) => !current)}
-          placeholder="At least 8 characters and 1 number"
-          secureTextEntry={!showPassword}
-          textContentType="newPassword"
-          value={signupDraft.password}
-        />
-        <FormField
-          error={errors.confirmPassword}
-          icon="shield-checkmark-outline"
-          label="Confirm password"
-          onChangeText={setConfirmPassword}
-          onToggleSecure={() => setShowConfirmPassword((current) => !current)}
-          placeholder="Enter your password again"
-          secureTextEntry={!showConfirmPassword}
-          textContentType="newPassword"
-          value={confirmPassword}
-        />
 
-        <View className="min-h-12 justify-center">
-          {errors.form ? (
-            <View className="bg-error-soft rounded-xl px-4 py-3">
-              <Typography className="text-error text-sm font-medium">{errors.form}</Typography>
-            </View>
-          ) : null}
-        </View>
+        {errors.form ? (
+          <View className="bg-error-soft mt-2 rounded-xl px-4 py-3">
+            <Typography className="text-error text-sm font-medium">{errors.form}</Typography>
+          </View>
+        ) : null}
 
         <Button
-          className="action-shadow rounded-action bg-brand mt-2 h-14"
+          className="rounded-action bg-brand mt-3 h-14"
           isDisabled={isSubmitting}
           onPress={handleSignup}
         >
@@ -159,12 +181,12 @@ export default function SignupScreen() {
           )}
         </Button>
 
-        <View className="mt-6 flex-row items-center justify-center">
+        <View className="mt-3 flex-row items-center justify-center">
           <Typography className="text-ink-muted font-sans text-sm">
             Already have an account?{' '}
           </Typography>
           <Button
-            className="h-10 rounded-full px-2"
+            className="h-10 rounded-full px-1"
             onPress={() => router.replace('/login')}
             variant="tertiary"
           >

@@ -10,6 +10,7 @@ interface AuthScaffoldProps extends PropsWithChildren {
   subtitle: string;
   onBack?: () => void;
   footer?: ReactNode;
+  header?: ReactNode;
   compactHero?: boolean;
   dense?: boolean;
   heroHeight?: number;
@@ -25,6 +26,7 @@ export function AuthScaffold({
   onBack,
   children,
   footer,
+  header,
   compactHero = false,
   dense = false,
   heroHeight,
@@ -62,6 +64,7 @@ export function AuthScaffold({
             }`}
           >
             <View className="mx-auto w-full max-w-[440px]">
+              {header}
               <Typography
                 className={`font-display text-auth-title text-ink leading-tight ${
                   alignContentLeft ? 'text-left' : 'text-center'
