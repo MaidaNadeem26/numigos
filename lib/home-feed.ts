@@ -23,6 +23,7 @@ export type EventFeedItem = {
   category: DashboardCategory;
   image: ImageSourcePropType;
   approved: boolean;
+  discoveryOrder: number;
   registrationDeadline?: string;
 };
 
@@ -97,6 +98,7 @@ export const HOME_FEED: FeedItem[] = [
     category: 'Tech',
     image: getCategoryImage('Tech'),
     approved: true,
+    discoveryOrder: 2,
     registrationDeadline: 'today+2',
   },
   {
@@ -123,6 +125,7 @@ export const HOME_FEED: FeedItem[] = [
     category: 'Sports',
     image: getCategoryImage('Sports'),
     approved: true,
+    discoveryOrder: 3,
   },
   {
     id: 'post-robotics-workshop',
@@ -149,6 +152,7 @@ export const HOME_FEED: FeedItem[] = [
     category: 'Cultural',
     image: getCategoryImage('Cultural'),
     approved: true,
+    discoveryOrder: 4,
   },
   {
     id: 'post-photo-walk',
@@ -174,6 +178,7 @@ export const HOME_FEED: FeedItem[] = [
     category: 'Business',
     image: getCategoryImage('Business'),
     approved: true,
+    discoveryOrder: 5,
   },
   {
     id: 'event-cloud-study-jam',
@@ -186,6 +191,7 @@ export const HOME_FEED: FeedItem[] = [
     category: 'Tech',
     image: getCategoryImage('Tech'),
     approved: true,
+    discoveryOrder: 1,
   },
 ];
 
@@ -217,6 +223,20 @@ export const FOLLOWED_SOCIETIES: Society[] = [
     fullName: 'Cultural Society',
     category: 'Cultural',
     logo: getCategoryImage('Cultural'),
+  },
+  {
+    id: 'robotics-club',
+    shortName: 'Robotics',
+    fullName: 'Robotics & Automation Club',
+    category: 'Tech',
+    logo: getCategoryImage('Tech'),
+  },
+  {
+    id: 'photography-club',
+    shortName: 'Photo',
+    fullName: 'Photography Club',
+    category: 'Arts',
+    logo: getCategoryImage('Arts'),
   },
 ];
 
@@ -267,4 +287,23 @@ export function getTodayEventCount() {
   return HOME_FEED.filter(
     (item) => item.type === 'event' && item.approved && item.relativeDay === 'Today',
   ).length;
+}
+
+export function getFeaturedEvent() {
+  return HOME_FEED.filter(
+    (item): item is EventFeedItem => item.type === 'event' && item.approved,
+  ).sort((first, second) => first.discoveryOrder - second.discoveryOrder)[0];
+}
+
+export function getThisWeekEvents(limit = 5) {
+  return HOME_FEED.filter((item): item is EventFeedItem => item.type === 'event' && item.approved)
+    .sort((first, second) => first.discoveryOrder - second.discoveryOrder)
+    .slice(0, limit);
+}
+
+export function getFollowedSocietyPosts() {
+  const followedSocietyNames = new Set(FOLLOWED_SOCIETIES.map((society) => society.fullName));
+  return HOME_FEED.filter(
+    (item): item is PostFeedItem => item.type === 'post' && followedSocietyNames.has(item.society),
+  );
 }
