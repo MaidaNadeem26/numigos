@@ -58,9 +58,8 @@ export function CampusHero({
 
   return (
     <View
-      className={`bg-brand px-auth-screen relative overflow-hidden ${
-        compact ? 'h-auth-hero-compact' : 'h-auth-hero'
-      }`}
+      className="bg-brand px-auth-screen relative overflow-hidden"
+      style={{ height: heroHeight, width: '100%' }}
     >
       <View className="bg-brand-strong absolute -top-24 -right-20 size-72 rounded-full opacity-70" />
       <View className="bg-brand-soft absolute -bottom-36 -left-20 size-72 rounded-full opacity-10" />

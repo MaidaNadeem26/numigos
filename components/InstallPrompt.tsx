@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Text } from 'heroui-native';
 
-import { TAB_BAR_CONTENT_HEIGHT } from '@/lib/layout';
+import { getTabBarHeight, MIN_TOUCH_TARGET } from '@/lib/layout';
 
 /**
  * Install affordance for the PWA, web only:
@@ -62,7 +62,7 @@ export function InstallPrompt() {
   const { width: viewportWidth } = useWindowDimensions();
   const isCompact = viewportWidth <= 360;
   const isTabRoute = segments[0] === '(tabs)';
-  const bottom = insets.bottom + (isTabRoute ? TAB_BAR_CONTENT_HEIGHT : 0) + 12;
+  const bottom = (isTabRoute ? getTabBarHeight(insets.bottom) : insets.bottom) + 12;
 
   useEffect(() => {
     if (!isEligibleBrowserContext()) return undefined;
@@ -118,7 +118,7 @@ export function InstallPrompt() {
   if (installEvent) {
     return (
       <View
-        style={{ bottom }}
+        style={{ bottom, maxWidth: 560, alignSelf: 'center', width: 'auto' }}
         className={`border-border bg-card absolute right-4 left-4 z-50 gap-3 rounded-lg border p-4 shadow-lg ${
           isCompact ? 'items-stretch' : 'flex-row items-center'
         }`}
@@ -133,7 +133,8 @@ export function InstallPrompt() {
         </View>
         <Pressable
           accessibilityRole="button"
-          className="rounded-md px-3 py-2"
+          className="items-center justify-center rounded-md px-4"
+          style={{ minHeight: MIN_TOUCH_TARGET }}
           onPress={() => setInstallEvent(null)}
         >
           <Text.Paragraph type="body-sm" weight="semibold" color="muted">
@@ -142,7 +143,8 @@ export function InstallPrompt() {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          className="bg-primary rounded-md px-3 py-2"
+          className="bg-primary items-center justify-center rounded-md px-4"
+          style={{ minHeight: MIN_TOUCH_TARGET }}
           onPress={handleInstall}
         >
           <Text.Paragraph type="body-sm" weight="semibold" className="text-primary-foreground">
@@ -156,7 +158,7 @@ export function InstallPrompt() {
   if (showIosHint) {
     return (
       <View
-        style={{ bottom }}
+        style={{ bottom, maxWidth: 560, alignSelf: 'center', width: 'auto' }}
         className={`border-border bg-card absolute right-4 left-4 z-50 gap-3 rounded-lg border p-4 shadow-lg ${
           isCompact ? 'items-stretch' : 'flex-row items-center'
         }`}
@@ -171,7 +173,8 @@ export function InstallPrompt() {
         </View>
         <Pressable
           accessibilityRole="button"
-          className="rounded-md px-3 py-2"
+          className="items-center justify-center rounded-md px-4"
+          style={{ minHeight: MIN_TOUCH_TARGET }}
           onPress={dismissIosHint}
         >
           <Text.Paragraph type="body-sm" weight="semibold" color="muted">

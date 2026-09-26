@@ -17,7 +17,17 @@ import {
 } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image, ImageBackground, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  ImageBackground,
+  Linking,
+  ScrollView,
+  Share,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 
 import { LinearGradient } from '@/components/ui/primitives/LinearGradient';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
@@ -46,10 +56,22 @@ const eventDetails = {
   ],
 };
 
-function IconButton({ children, onPress }: { children: React.ReactNode; onPress: () => void }) {
+function IconButton({
+  accessibilityLabel,
+  children,
+  onPress,
+  selected,
+}: {
+  accessibilityLabel: string;
+  children: React.ReactNode;
+  onPress: () => void;
+  selected?: boolean;
+}) {
   return (
     <GesturePressable
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
+      accessibilityState={{ selected }}
       onPress={onPress}
       className="h-11 w-11 items-center justify-center rounded-2xl bg-white"
     >
@@ -86,7 +108,7 @@ function DetailCard({
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
   const [registered, setRegistered] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
 
@@ -97,9 +119,14 @@ export default function EventDetailsScreen() {
 
   if (!event) {
     return (
-      <SafeAreaView className="bg-background flex-1 items-center justify-center px-6">
+      <SafeAreaView
+        className="bg-background flex-1 items-center justify-center px-6"
+        edges={['top', 'right', 'bottom', 'left']}
+      >
         <Text className="text-foreground text-xl font-bold">Event not found</Text>
         <GesturePressable
+          accessibilityLabel="Back to Explore"
+          accessibilityRole="button"
           onPress={() => goBackOrReplace('/(tabs)/explore')}
           className="bg-accent mt-5 rounded-full px-6 py-3"
         >
@@ -109,14 +136,21 @@ export default function EventDetailsScreen() {
     );
   }
 
-  const contentWidth = Math.min(width, 620);
+  const contentWidth = Math.min(width, 760);
+  const heroHeight = Math.min(
+    360,
+    Math.max(height < 700 ? 220 : 260, Math.min(width * 0.7, height * 0.46)),
+  );
   const fillPercent = Math.round((eventDetails.filled / eventDetails.capacity) * 100);
 
   return (
-    <SafeAreaView className="bg-background flex-1" edges={['top', 'bottom']}>
+    <SafeAreaView className="bg-background flex-1" edges={['top', 'right', 'bottom', 'left']}>
       <View className="flex-1 self-center" style={{ width: contentWidth }}>
         <View className="flex-row items-center px-4 py-3">
-          <IconButton onPress={() => goBackOrReplace('/(tabs)/explore')}>
+          <IconButton
+            accessibilityLabel="Go back"
+            onPress={() => goBackOrReplace('/(tabs)/explore')}
+          >
             <ArrowLeft size={24} color={colors.ink} strokeWidth={2.2} />
           </IconButton>
           <Text className="text-foreground ml-3 flex-1 text-2xl font-bold">Event Details</Text>
@@ -127,14 +161,14 @@ export default function EventDetailsScreen() {
 
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 14 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 108, gap: 14 }}
           showsVerticalScrollIndicator={false}
         >
           <ImageBackground
             source={HERO_IMAGE}
             resizeMode="cover"
             imageStyle={{ borderRadius: 26 }}
-            style={{ width: '100%', height: Math.min(360, Math.max(285, width * 0.74)) }}
+            style={{ width: '100%', height: heroHeight }}
           >
             <LinearGradient
               colors={['rgba(3,49,41,0.03)', 'rgba(3,49,41,0.9)']}
@@ -161,6 +195,8 @@ export default function EventDetailsScreen() {
           </ImageBackground>
 
           <GesturePressable
+            accessibilityLabel="Open AWS Cloud Club NUTECH"
+            accessibilityRole="button"
             onPress={() => router.push('/societies/aws-cloud-club')}
             className="border-border flex-row items-center rounded-[22px] border bg-white p-4"
           >
@@ -292,7 +328,19 @@ export default function EventDetailsScreen() {
                 <Text className="text-muted text-sm">Faculty Advisor, Dept. of Computing</Text>
               </View>
             </View>
-            <GesturePressable className="bg-surface-secondary mt-5 flex-row items-center justify-center rounded-2xl py-3.5">
+            <GesturePressable
+              accessibilityLabel="Contact organizer by email"
+              accessibilityRole="button"
+              className="bg-surface-secondary mt-5 min-h-11 flex-row items-center justify-center rounded-2xl py-3.5"
+              onPress={() => {
+                void Linking.openURL('mailto:studentaffairs@nutech.edu.pk').catch(() => {
+                  Alert.alert(
+                    'Email unavailable',
+                    'Please contact Student Affairs through the NUTECH portal.',
+                  );
+                });
+              }}
+            >
               <Mail size={20} color={colors.inkMuted} />
               <Text className="text-foreground ml-2 font-semibold">Contact Organizer</Text>
             </GesturePressable>
@@ -300,17 +348,29 @@ export default function EventDetailsScreen() {
         </ScrollView>
 
         <View className="border-border flex-row gap-3 border-t bg-white px-4 py-3">
-          <IconButton onPress={() => setBookmarked((value) => !value)}>
+          <IconButton
+            accessibilityLabel={bookmarked ? 'Remove saved event' : 'Save event'}
+            onPress={() => setBookmarked((value) => !value)}
+            selected={bookmarked}
+          >
             <Bookmark
               size={23}
               color={bookmarked ? colors.brand : colors.ink}
               fill={bookmarked ? colors.brand : 'transparent'}
             />
           </IconButton>
-          <IconButton onPress={() => undefined}>
+          <IconButton
+            accessibilityLabel="Share event"
+            onPress={() => {
+              void Share.share({ message: `${event.title} at NUTECH — ${eventDetails.date}` });
+            }}
+          >
             <Share2 size={23} color={colors.ink} />
           </IconButton>
           <GesturePressable
+            accessibilityLabel={registered ? 'Cancel event registration' : 'Register for event'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: registered }}
             onPress={() => setRegistered((value) => !value)}
             className="bg-accent min-h-11 flex-1 flex-row items-center justify-center rounded-2xl px-4"
           >

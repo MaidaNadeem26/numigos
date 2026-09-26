@@ -55,12 +55,13 @@ export default function RegisterSocietyScreen() {
         subtitle="Submit a request to Student Affairs"
       />
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
         <ScrollView
           className="flex-1"
-          contentContainerClassName="px-4 pb-safe-offset-8 pt-5"
+          contentContainerClassName="mx-auto w-full max-w-[680px] px-4 pb-safe-offset-8 pt-5"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -107,6 +108,7 @@ export default function RegisterSocietyScreen() {
             value={advisor}
           />
           <GesturePressable
+            accessibilityLabel="Submit society registration request"
             accessibilityRole="button"
             className="bg-brand mt-2 h-13 items-center justify-center rounded-full active:opacity-80"
             onPress={() => {

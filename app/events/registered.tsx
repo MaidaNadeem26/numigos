@@ -1,7 +1,8 @@
-import { Typography } from 'heroui-native';
+import { CalendarX2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { FlatList, View } from 'react-native';
+import { FlatList } from 'react-native';
 
+import { EmptyState } from '@/components/ui/EmptyState';
 import { EventListCard } from '@/components/events/EventListCard';
 import { ScreenHeader } from '@/components/student/ScreenHeader';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
@@ -18,8 +19,8 @@ export default function RegisteredEventsScreen() {
         subtitle={`${events.length} upcoming events`}
       />
       <FlatList
-        className="flex-1"
-        contentContainerStyle={{ padding: 16, gap: 12 }}
+        className="mx-auto w-full max-w-[680px] flex-1"
+        contentContainerStyle={{ padding: 16, paddingBottom: 32, gap: 12, flexGrow: 1 }}
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -30,11 +31,11 @@ export default function RegisteredEventsScreen() {
           />
         )}
         ListEmptyComponent={
-          <View className="items-center py-24">
-            <Typography className="text-home-ink text-base font-bold">
-              No registrations yet
-            </Typography>
-          </View>
+          <EmptyState
+            description="Events you register for will appear here."
+            icon={CalendarX2}
+            title="No registered events"
+          />
         }
       />
     </SafeAreaView>

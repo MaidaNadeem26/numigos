@@ -3,10 +3,10 @@ import { Bookmark } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { FlatList, View } from 'react-native';
 
+import { EmptyState } from '@/components/ui/EmptyState';
 import { EventListCard } from '@/components/events/EventListCard';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { getBookmarkedEvents } from '@/lib/home-feed';
-import { numigosTheme } from '@/lib/theme';
 
 export default function BookmarksScreen() {
   const router = useRouter();
@@ -23,8 +23,14 @@ export default function BookmarksScreen() {
         </Typography>
       </View>
       <FlatList
-        className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24, gap: 12 }}
+        className="mx-auto w-full max-w-[680px] flex-1"
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: 32,
+          gap: 12,
+          flexGrow: 1,
+        }}
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -35,17 +41,11 @@ export default function BookmarksScreen() {
           />
         )}
         ListEmptyComponent={
-          <View className="flex-1 items-center justify-center px-8 py-24">
-            <View className="bg-brand-mist h-14 w-14 items-center justify-center rounded-full">
-              <Bookmark color={numigosTheme.colors.brand} size={24} />
-            </View>
-            <Typography className="text-home-ink mt-4 text-base font-bold">
-              No saved events
-            </Typography>
-            <Typography className="text-home-muted mt-1 text-center text-xs">
-              Bookmark an event to find it here.
-            </Typography>
-          </View>
+          <EmptyState
+            description="Bookmark an event to find it here."
+            icon={Bookmark}
+            title="No saved events"
+          />
         }
       />
     </SafeAreaView>

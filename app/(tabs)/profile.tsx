@@ -66,7 +66,7 @@ function StatCard({ value, label, icon: Icon, tone = 'emerald' }: StatCardProps)
     <View className="border-home-card-border bg-surface min-w-0 flex-1 flex-row items-center justify-between rounded-xl border px-3 py-3">
       <View className="min-w-0 flex-1">
         <Typography className="text-home-ink text-[20px] leading-6 font-bold">{value}</Typography>
-        <Typography className="text-home-muted mt-1 text-[9px] font-semibold" numberOfLines={1}>
+        <Typography className="text-home-muted mt-1 text-xs font-semibold" numberOfLines={1}>
           {label}
         </Typography>
       </View>
@@ -118,7 +118,7 @@ function SettingRow({
         >
           {label}
         </Typography>
-        <Typography className="text-home-muted mt-0.5 text-[9px]" numberOfLines={1}>
+        <Typography className="text-home-muted mt-0.5 text-xs" numberOfLines={1}>
           {detail}
         </Typography>
       </View>
@@ -136,8 +136,13 @@ export default function ProfileScreen() {
   const societies = FOLLOWED_SOCIETIES.slice(0, 4);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    router.replace('/login');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      router.replace('/login');
+    } catch {
+      Alert.alert("Couldn't sign out", 'Check your connection and try again.');
+    }
   };
 
   return (
@@ -164,13 +169,13 @@ export default function ProfileScreen() {
               <GesturePressable
                 accessibilityLabel="Notification preferences"
                 accessibilityRole="button"
-                className="relative h-9 w-9 items-center justify-center rounded-full active:bg-black/5"
+                className="relative h-11 w-11 items-center justify-center rounded-full active:bg-black/5"
                 onPress={() => router.push('/reminders')}
               >
                 <Bell color={ICON_COLORS.ink} size={19} strokeWidth={1.7} />
                 <View className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#8B641D]" />
               </GesturePressable>
-              <View className="border-brand h-9 w-9 items-center justify-center rounded-full border bg-[#EEF4F1]">
+              <View className="border-brand h-11 w-11 items-center justify-center rounded-full border bg-[#EEF4F1]">
                 <UserRound color={numigosTheme.colors.brand} size={20} strokeWidth={1.7} />
               </View>
             </View>
@@ -182,29 +187,29 @@ export default function ProfileScreen() {
             </View>
             <View className="bg-brand -mt-2 flex-row items-center rounded-full px-2.5 py-1">
               <GraduationCap color="white" size={11} strokeWidth={2} />
-              <Typography className="ml-1 text-[8px] font-bold text-white">STUDENT</Typography>
+              <Typography className="ml-1 text-[11px] font-bold text-white">STUDENT</Typography>
             </View>
             <Typography className="font-display text-home-ink mt-2 text-[20px] leading-6 font-bold">
               {PROFILE.name}
             </Typography>
             <View className="mt-2 flex-row items-center rounded-full bg-[#EDF5F2] px-3 py-1">
               <ShieldCheck color={ICON_COLORS.emerald} size={12} strokeWidth={1.8} />
-              <Typography className="text-home-ink ml-1.5 text-[9px]" numberOfLines={1}>
+              <Typography className="text-home-ink ml-1.5 text-xs" numberOfLines={1}>
                 {PROFILE.email}
               </Typography>
             </View>
             <View className="mt-2 flex-row items-center rounded-sm bg-[#F3F1ED] px-2.5 py-1">
               <IdCard color={ICON_COLORS.ink} size={12} strokeWidth={1.7} />
-              <Typography className="text-home-ink ml-1.5 text-[9px] font-medium">
+              <Typography className="text-home-ink ml-1.5 text-xs font-medium">
                 Reg No: {PROFILE.registration}
               </Typography>
             </View>
-            <Typography className="text-home-muted mt-2 text-center text-[9px] leading-4">
+            <Typography className="text-home-muted mt-2 text-center text-xs leading-4">
               {PROFILE.department}
             </Typography>
             <View className="mt-1.5 flex-row items-center">
               <View className="bg-brand mr-1.5 h-1.5 w-1.5 rounded-full" />
-              <Typography className="text-brand text-[8px] font-semibold">
+              <Typography className="text-brand text-[11px] font-semibold">
                 Active Enrolled · {PROFILE.semester}
               </Typography>
             </View>
@@ -225,7 +230,7 @@ export default function ProfileScreen() {
             <Typography className="font-display text-home-ink text-[17px] font-bold">
               Campus Activity
             </Typography>
-            <Typography className="text-brand text-[8px] font-semibold">
+            <Typography className="text-brand text-[11px] font-semibold">
               Fall Semester 2024
             </Typography>
           </View>
@@ -243,7 +248,7 @@ export default function ProfileScreen() {
                 <Typography className="text-home-ink text-[12px] font-semibold">
                   My Registered Events
                 </Typography>
-                <Typography className="text-home-muted mt-0.5 text-[9px]">
+                <Typography className="text-home-muted mt-0.5 text-xs">
                   1 event scheduled for today
                 </Typography>
               </View>
@@ -254,7 +259,7 @@ export default function ProfileScreen() {
               <View className="min-w-0 flex-1">
                 <View className="flex-row items-center">
                   <View className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#8B641D]" />
-                  <Typography className="text-[8px] font-semibold text-[#75561D]">
+                  <Typography className="text-[11px] font-semibold text-[#75561D]">
                     UPCOMING TODAY
                   </Typography>
                 </View>
@@ -263,7 +268,7 @@ export default function ProfileScreen() {
                 </Typography>
                 <View className="mt-1 flex-row items-center">
                   <Clock3 color={ICON_COLORS.muted} size={11} />
-                  <Typography className="text-home-muted ml-1 text-[8px]">
+                  <Typography className="text-home-muted ml-1 text-[11px]">
                     2:00 PM · NUTECH Auditorium 2
                   </Typography>
                 </View>
@@ -273,7 +278,7 @@ export default function ProfileScreen() {
                 className="bg-brand rounded-sm px-3 py-2 active:opacity-75"
                 onPress={() => router.push('/event/event-cloud-study-jam')}
               >
-                <Typography className="text-[9px] font-bold text-white">View Ticket</Typography>
+                <Typography className="text-xs font-bold text-white">View Ticket</Typography>
               </GesturePressable>
             </View>
           </View>
@@ -287,16 +292,16 @@ export default function ProfileScreen() {
                 <Typography className="text-home-ink text-[12px] font-semibold">
                   My Societies
                 </Typography>
-                <Typography className="text-home-muted mt-0.5 text-[9px]">
+                <Typography className="text-home-muted mt-0.5 text-xs">
                   4 active memberships
                 </Typography>
               </View>
               <GesturePressable
                 accessibilityRole="button"
-                className="px-1 py-2 active:opacity-60"
+                className="min-h-11 items-center justify-center px-3 active:opacity-60"
                 onPress={() => router.push('/societies')}
               >
-                <Typography className="text-brand text-[9px] font-semibold">Explore All</Typography>
+                <Typography className="text-brand text-xs font-semibold">Explore All</Typography>
               </GesturePressable>
             </View>
             <View className="mt-4 flex-row justify-between">
@@ -305,7 +310,7 @@ export default function ProfileScreen() {
                   key={society.id}
                   accessibilityLabel={society.fullName}
                   accessibilityRole="button"
-                  className="w-[23%] items-center active:opacity-65"
+                  className="min-h-11 min-w-[22%] flex-1 items-center justify-center active:opacity-65"
                   onPress={() => router.push(`/societies/${society.id}`)}
                 >
                   <View className="border-home-card-border h-11 w-11 items-center justify-center overflow-hidden rounded-full border bg-[#F3F7F5]">
@@ -316,7 +321,7 @@ export default function ProfileScreen() {
                     />
                   </View>
                   <Typography
-                    className="text-home-ink mt-1.5 text-center text-[8px] font-medium"
+                    className="text-home-ink mt-1.5 text-center text-[11px] font-medium"
                     numberOfLines={1}
                   >
                     {society.shortName}
@@ -338,7 +343,7 @@ export default function ProfileScreen() {
               <Typography className="text-home-ink text-[12px] font-semibold">
                 Saved &amp; Bookmarked Events
               </Typography>
-              <Typography className="text-home-muted mt-0.5 text-[9px]">
+              <Typography className="text-home-muted mt-0.5 text-xs">
                 8 sessions saved for later review
               </Typography>
             </View>
@@ -358,7 +363,7 @@ export default function ProfileScreen() {
                 <Typography className="text-home-ink text-[12px] font-semibold">
                   Event Attendance History
                 </Typography>
-                <Typography className="text-home-muted mt-0.5 text-[9px]">
+                <Typography className="text-home-muted mt-0.5 text-xs">
                   12 verified attendance records
                 </Typography>
               </View>
@@ -366,11 +371,11 @@ export default function ProfileScreen() {
             </GesturePressable>
             <GesturePressable
               accessibilityRole="button"
-              className="mt-3 h-9 flex-row items-center justify-center rounded-md bg-[#F0F1EF] active:opacity-65"
+              className="mt-3 min-h-11 flex-row items-center justify-center rounded-md bg-[#F0F1EF] active:opacity-65"
               onPress={() => showPortalNotice('Co-Curricular Transcript')}
             >
               <Download color={ICON_COLORS.emerald} size={13} strokeWidth={1.8} />
-              <Typography className="text-home-ink ml-2 text-[9px] font-medium">
+              <Typography className="text-home-ink ml-2 text-xs font-medium">
                 Download Co-Curricular Transcript (PDF)
               </Typography>
             </GesturePressable>
@@ -380,14 +385,14 @@ export default function ProfileScreen() {
             <View className="flex-row items-start justify-between">
               <View className="min-w-0 flex-1 pr-3">
                 <View className="self-start rounded-sm bg-white/15 px-2 py-1">
-                  <Typography className="text-[7px] font-bold text-white">
+                  <Typography className="text-[11px] font-bold text-white">
                     OSA INITIATIVE HUB
                   </Typography>
                 </View>
                 <Typography className="font-display mt-2 text-[16px] leading-5 font-bold text-white">
                   Register a New Student Society
                 </Typography>
-                <Typography className="mt-1.5 text-[9px] leading-4 text-white/75">
+                <Typography className="mt-1.5 text-xs leading-4 text-white/75">
                   Have an idea for a new club? Submit a formal charter proposal to the Office of
                   Student Affairs (OSA).
                 </Typography>
@@ -398,11 +403,11 @@ export default function ProfileScreen() {
             </View>
             <GesturePressable
               accessibilityRole="button"
-              className="mt-4 h-10 flex-row items-center justify-center rounded-md bg-white active:opacity-80"
+              className="mt-4 min-h-11 flex-row items-center justify-center rounded-md bg-white active:opacity-80"
               onPress={() => router.push('/societies/register')}
             >
               <PlusCircle color={ICON_COLORS.emerald} size={15} strokeWidth={1.8} />
-              <Typography className="text-home-ink ml-2 text-[10px] font-medium">
+              <Typography className="text-home-ink ml-2 text-xs font-medium">
                 Register New Society
               </Typography>
             </GesturePressable>
@@ -439,7 +444,7 @@ export default function ProfileScreen() {
 
           <View className="mt-6 flex-row items-center justify-center px-4">
             <Mail color={ICON_COLORS.muted} size={10} strokeWidth={1.6} />
-            <Typography className="text-home-muted ml-1.5 text-center text-[7px] font-semibold">
+            <Typography className="text-home-muted ml-1.5 text-center text-[11px] font-semibold">
               National University of Technology · Student Portal v2.4.1
             </Typography>
           </View>

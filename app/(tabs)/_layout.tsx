@@ -2,9 +2,10 @@ import { Compass, Home, Bookmark, CalendarDays, UserRound } from 'lucide-react-n
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { getTabBarHeight, MIN_TOUCH_TARGET } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
-const TAB_ICON_SIZE = 17;
+const TAB_ICON_SIZE = 21;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -19,13 +20,13 @@ export default function TabLayout() {
         tabBarInactiveTintColor: '#A6AFB4',
         tabBarLabelStyle: {
           fontFamily: numigosTheme.fonts.medium,
-          fontSize: 8,
-          marginTop: 1,
+          fontSize: 11,
+          marginTop: 2,
         },
         tabBarStyle: {
-          height: 48 + insets.bottom,
-          paddingTop: 5,
-          paddingBottom: Math.max(insets.bottom, 5),
+          height: getTabBarHeight(insets.bottom),
+          paddingTop: 6,
+          paddingBottom: Math.max(insets.bottom, 6),
           backgroundColor: numigosTheme.colors.surface,
           borderTopColor: numigosTheme.colors.homeCardBorder,
           borderTopWidth: 1,
@@ -35,7 +36,7 @@ export default function TabLayout() {
           shadowRadius: 3,
           elevation: 2,
         },
-        tabBarItemStyle: { paddingVertical: 0 },
+        tabBarItemStyle: { minHeight: MIN_TOUCH_TARGET, paddingVertical: 2 },
       }}
     >
       <Tabs.Screen

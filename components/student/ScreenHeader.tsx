@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
+import { MIN_TOUCH_TARGET } from '@/lib/layout';
 import { goBackOrReplace } from '@/lib/navigation';
 import { numigosTheme } from '@/lib/theme';
 
@@ -21,7 +22,8 @@ export function ScreenHeader({ title, fallback = '/(tabs)', right, subtitle }: S
         <GesturePressable
           accessibilityLabel="Go back"
           accessibilityRole="button"
-          className="bg-home-chip h-10 w-10 shrink-0 items-center justify-center rounded-full active:opacity-70"
+          className="bg-home-chip shrink-0 items-center justify-center rounded-full active:opacity-70"
+          style={{ width: MIN_TOUCH_TARGET, height: MIN_TOUCH_TARGET }}
           onPress={() => goBackOrReplace(fallback)}
         >
           <ArrowLeft color={numigosTheme.colors.homeInk} size={20} />
@@ -34,10 +36,7 @@ export function ScreenHeader({ title, fallback = '/(tabs)', right, subtitle }: S
             {title}
           </Typography>
           {subtitle ? (
-            <Typography
-              className="text-home-muted mt-0.5 text-[10px] leading-[14px]"
-              numberOfLines={1}
-            >
+            <Typography className="text-home-muted mt-0.5 text-xs leading-4" numberOfLines={1}>
               {subtitle}
             </Typography>
           ) : null}

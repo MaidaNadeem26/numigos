@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, TextInput, useWindowDimensions, View } from 'react-native';
 import { Typography } from 'heroui-native';
 
@@ -44,8 +44,13 @@ function SectionHeader({ title, onPress }: { title: string; onPress: () => void 
   return (
     <View className="mb-2 flex-row items-center justify-between">
       <Typography className="text-foreground text-[14px] font-bold">{title}</Typography>
-      <GesturePressable accessibilityRole="button" onPress={onPress}>
-        <Typography className="text-accent text-[10px] font-semibold">See all &gt;</Typography>
+      <GesturePressable
+        accessibilityLabel={`See all ${title}`}
+        accessibilityRole="button"
+        className="min-h-11 items-center justify-center px-2"
+        onPress={onPress}
+      >
+        <Typography className="text-accent text-xs font-semibold">See all &gt;</Typography>
       </GesturePressable>
     </View>
   );
@@ -73,7 +78,7 @@ function FeaturedCard() {
         />
         <View className="flex-row items-start justify-between">
           <View className="bg-home-highlight rounded-full px-2 py-0.5">
-            <Typography className="text-foreground text-[8px] font-bold">★ Featured</Typography>
+            <Typography className="text-foreground text-[11px] font-bold">★ Featured</Typography>
           </View>
           <View className="h-7 w-7 items-center justify-center rounded-full bg-white/90">
             <Ionicons color={colors.brand} name="bookmark-outline" size={14} />
@@ -87,7 +92,7 @@ function FeaturedCard() {
             >
               <Ionicons color={colors.brandMist} name="cloud-outline" size={9} />
             </View>
-            <Typography className="text-[7px] font-semibold text-white">
+            <Typography className="text-xs font-semibold text-white">
               AWS Cloud Club NUTECH
             </Typography>
           </View>
@@ -99,13 +104,13 @@ function FeaturedCard() {
       <View className="bg-white px-3 pt-2 pb-2.5">
         <View className="flex-row items-center gap-1">
           <Ionicons color={colors.inkMuted} name="time-outline" size={11} />
-          <Typography className="text-muted text-[9px] font-semibold">
+          <Typography className="text-muted text-xs font-semibold">
             Today · 2:00 PM – 5:00 PM
           </Typography>
         </View>
         <View className="mt-1 flex-row items-center gap-1">
           <Ionicons color={colors.inkMuted} name="location-outline" size={11} />
-          <Typography className="text-muted text-[9px]">
+          <Typography className="text-muted min-w-0 flex-1 text-xs" numberOfLines={2}>
             Main Auditorium, Academic Block 2
           </Typography>
         </View>
@@ -125,14 +130,11 @@ function FeaturedCard() {
                 }}
               />
             ))}
-            <Typography className="text-muted ml-2 text-[8px]">142 attending</Typography>
+            <Typography className="text-muted ml-2 text-xs">142 attending</Typography>
           </View>
-          <GesturePressable
-            className="bg-accent rounded-full px-5 py-1.5"
-            onPress={() => router.push('/event/event-cloud-study-jam')}
-          >
-            <Typography className="text-[9px] font-bold text-white">Register</Typography>
-          </GesturePressable>
+          <View className="bg-accent min-h-11 items-center justify-center rounded-full px-5">
+            <Typography className="text-sm font-bold text-white">Register</Typography>
+          </View>
         </View>
       </View>
     </GesturePressable>
@@ -142,7 +144,9 @@ function FeaturedCard() {
 function ClubCard({ club }: { club: (typeof CLUBS)[number] }) {
   return (
     <GesturePressable
-      className="flex-1 flex-row items-center rounded-xl bg-white p-2"
+      accessibilityLabel={`Open ${club.name}`}
+      accessibilityRole="button"
+      className="min-h-16 flex-1 flex-row items-center rounded-xl bg-white p-3"
       onPress={() => router.push('/societies')}
       style={{
         shadowColor: '#15251f',
@@ -156,10 +160,10 @@ function ClubCard({ club }: { club: (typeof CLUBS)[number] }) {
         <Ionicons color={colors.brand} name={club.icon} size={15} />
       </View>
       <View className="min-w-0 flex-1">
-        <Typography numberOfLines={1} className="text-foreground text-[9px] font-bold">
+        <Typography numberOfLines={1} className="text-foreground text-sm font-bold">
           {club.name}
         </Typography>
-        <Typography className="text-muted text-[7px]">{club.members}</Typography>
+        <Typography className="text-muted text-xs">{club.members}</Typography>
       </View>
       <View
         className={
@@ -168,9 +172,7 @@ function ClubCard({ club }: { club: (typeof CLUBS)[number] }) {
       >
         <Typography
           className={
-            club.joined
-              ? 'text-muted text-[7px] font-semibold'
-              : 'text-[7px] font-semibold text-white'
+            club.joined ? 'text-muted text-xs font-semibold' : 'text-xs font-semibold text-white'
           }
         >
           {club.joined ? 'Joined' : 'Join'}
@@ -183,7 +185,9 @@ function ClubCard({ club }: { club: (typeof CLUBS)[number] }) {
 function PopularCard({ item }: { item: (typeof POPULAR)[number] }) {
   return (
     <GesturePressable
-      className="flex-1 overflow-hidden rounded-xl bg-white"
+      accessibilityLabel={`Open ${item.title.replace('\n', ' ')}`}
+      accessibilityRole="button"
+      className="min-w-0 flex-1 overflow-hidden rounded-xl bg-white"
       onPress={() => router.push(item.route)}
       style={{
         shadowColor: '#15251f',
@@ -194,25 +198,26 @@ function PopularCard({ item }: { item: (typeof POPULAR)[number] }) {
       }}
     >
       <View className="h-[50px] px-2 py-2" style={{ backgroundColor: item.tone }}>
-        <Typography className="text-[7px] font-semibold" style={{ color: item.accent }}>
+        <Typography className="text-xs font-semibold" style={{ color: item.accent }}>
           {item.category}
         </Typography>
       </View>
       <View className="min-h-[87px] px-2 pt-1.5 pb-2">
-        <Typography
-          numberOfLines={2}
-          className="text-foreground text-[10px] leading-[12px] font-bold"
-        >
+        <Typography numberOfLines={2} className="text-foreground text-sm leading-[18px] font-bold">
           {item.title}
         </Typography>
         <View className="mt-1 flex-row items-center gap-1">
           <View className="bg-default h-2.5 w-2.5 rounded-full" />
-          <Typography className="text-muted text-[7px]">{item.society}</Typography>
+          <Typography className="text-muted min-w-0 flex-1 text-xs" numberOfLines={1}>
+            {item.society}
+          </Typography>
         </View>
         <View className="mt-auto flex-row items-end justify-between pt-2">
           <View>
-            <Typography className="text-accent text-[7px] font-semibold">{item.date}</Typography>
-            <Typography className="text-muted mt-0.5 text-[6px]">{item.venue}</Typography>
+            <Typography className="text-accent text-[11px] font-semibold">{item.date}</Typography>
+            <Typography className="text-muted mt-0.5 text-[11px]" numberOfLines={1}>
+              {item.venue}
+            </Typography>
           </View>
           <Ionicons color={colors.inkMuted} name="bookmark-outline" size={12} />
         </View>
@@ -224,12 +229,23 @@ function PopularCard({ item }: { item: (typeof POPULAR)[number] }) {
 export function ExploreDashboard() {
   const { width } = useWindowDimensions();
   const [activeFilter, setActiveFilter] = useState('All');
+  const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const contentWidth = useMemo(() => Math.min(width, 560), [width]);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentWidth = useMemo(() => Math.min(width, 680), [width]);
+  const stackCards = width < 375;
+
+  useEffect(
+    () => () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    },
+    [],
+  );
 
   const refresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 600);
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    refreshTimer.current = setTimeout(() => setRefreshing(false), 600);
   };
 
   return (
@@ -248,14 +264,18 @@ export function ExploreDashboard() {
             </Typography>
             <View className="flex-row items-center gap-2">
               <GesturePressable
-                className="h-9 w-9 items-center justify-center rounded-full bg-white"
+                accessibilityLabel="Open notifications"
+                accessibilityRole="button"
+                className="h-11 w-11 items-center justify-center rounded-full bg-white"
                 onPress={() => router.push('/reminders')}
               >
                 <Ionicons color={colors.ink} name="notifications-outline" size={18} />
                 <View className="bg-danger absolute top-2 right-2 h-1.5 w-1.5 rounded-full" />
               </GesturePressable>
               <GesturePressable
-                className="bg-default h-9 w-9 items-center justify-center rounded-full"
+                accessibilityLabel="Open profile"
+                accessibilityRole="button"
+                className="bg-default h-11 w-11 items-center justify-center rounded-full"
                 onPress={() => router.push('/(tabs)/profile')}
               >
                 <Ionicons color={colors.inkMuted} name="person" size={20} />
@@ -264,16 +284,22 @@ export function ExploreDashboard() {
           </View>
 
           <View className="mt-4 flex-row items-center gap-2">
-            <View className="h-10 flex-1 flex-row items-center rounded-full bg-white px-3.5">
+            <View className="min-h-11 flex-1 flex-row items-center rounded-full bg-white px-3.5">
               <Ionicons color={colors.inkMuted} name="search-outline" size={16} />
               <TextInput
-                className="text-foreground ml-2 flex-1 text-[11px]"
+                accessibilityLabel="Search events and societies"
+                className="text-foreground ml-2 min-w-0 flex-1 text-sm"
+                onChangeText={setQuery}
                 placeholder="Search hackathons, clubs, expos..."
                 placeholderTextColor={colors.inkMuted}
+                returnKeyType="search"
+                value={query}
               />
             </View>
             <GesturePressable
-              className="bg-accent h-10 w-10 items-center justify-center rounded-full"
+              accessibilityLabel="Reset event filters"
+              accessibilityRole="button"
+              className="bg-accent h-11 w-11 items-center justify-center rounded-full"
               onPress={() => setActiveFilter('All')}
             >
               <Ionicons color="white" name="options-outline" size={18} />
@@ -290,19 +316,20 @@ export function ExploreDashboard() {
               const active = filter === activeFilter;
               return (
                 <GesturePressable
+                  accessibilityLabel={`Filter by ${filter}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                   className={
                     active
-                      ? 'bg-accent rounded-full px-4 py-1.5'
-                      : 'bg-default rounded-full px-4 py-1.5'
+                      ? 'bg-accent min-h-11 items-center justify-center rounded-full px-4'
+                      : 'bg-default min-h-11 items-center justify-center rounded-full px-4'
                   }
                   key={filter}
                   onPress={() => setActiveFilter(filter)}
                 >
                   <Typography
                     className={
-                      active
-                        ? 'text-[8px] font-bold text-white'
-                        : 'text-muted text-[8px] font-semibold'
+                      active ? 'text-sm font-bold text-white' : 'text-muted text-sm font-semibold'
                     }
                   >
                     {filter}
@@ -318,7 +345,7 @@ export function ExploreDashboard() {
 
           <View className="mt-4">
             <SectionHeader title="Clubs & Societies" onPress={() => router.push('/societies')} />
-            <View className="flex-row gap-2">
+            <View className={stackCards ? 'gap-2' : 'flex-row gap-2'}>
               {CLUBS.map((club) => (
                 <ClubCard club={club} key={club.name} />
               ))}
@@ -330,7 +357,7 @@ export function ExploreDashboard() {
               title="Popular This Month"
               onPress={() => router.push('/(tabs)/calendar')}
             />
-            <View className="flex-row gap-2">
+            <View className={stackCards ? 'gap-2' : 'flex-row gap-2'}>
               {POPULAR.map((item) => (
                 <PopularCard item={item} key={item.title} />
               ))}
