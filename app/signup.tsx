@@ -72,6 +72,7 @@ export default function SignupScreen() {
   return (
     <AuthScaffold
       compactHero
+      useHeroArtwork
       onBack={() => router.back()}
       subtitle="Use your NUTECH email to join campus events and student societies."
       title="Create your account"

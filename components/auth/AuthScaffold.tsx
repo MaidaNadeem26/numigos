@@ -11,6 +11,7 @@ interface AuthScaffoldProps extends PropsWithChildren {
   onBack?: () => void;
   footer?: ReactNode;
   compactHero?: boolean;
+  useHeroArtwork?: boolean;
 }
 
 export function AuthScaffold({
@@ -20,6 +21,7 @@ export function AuthScaffold({
   children,
   footer,
   compactHero = false,
+  useHeroArtwork = false,
 }: AuthScaffoldProps) {
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
@@ -35,7 +37,7 @@ export function AuthScaffold({
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
         >
-          <CampusHero compact={compactHero} onBack={onBack} />
+          <CampusHero compact={compactHero} onBack={onBack} useArtwork={useHeroArtwork} />
 
           <View className="auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap px-auth-screen pt-auth-section pb-safe-offset-8 flex-1">
             <View className="mx-auto w-full max-w-[440px]">

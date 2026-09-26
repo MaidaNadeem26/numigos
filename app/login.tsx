@@ -84,6 +84,7 @@ export default function LoginScreen() {
 
   return (
     <AuthScaffold
+      useHeroArtwork
       subtitle={
         isRecoveryMode
           ? 'Enter your university email and we’ll send a secure recovery code.'

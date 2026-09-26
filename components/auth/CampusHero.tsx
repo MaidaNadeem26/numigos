@@ -1,15 +1,48 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Typography } from 'heroui-native';
-import { View } from 'react-native';
+import { ImageBackground, View } from 'react-native';
 
 import { numigosTheme } from '@/lib/theme';
+
+const campusEventArtwork = require('@/assets/images/numigos-campus-event-hero.png');
 
 interface CampusHeroProps {
   compact?: boolean;
   onBack?: () => void;
+  useArtwork?: boolean;
 }
 
-export function CampusHero({ compact = false, onBack }: CampusHeroProps) {
+export function CampusHero({ compact = false, onBack, useArtwork = false }: CampusHeroProps) {
+  const heroHeight = compact ? numigosTheme.spacing.heroCompact : numigosTheme.spacing.hero;
+
+  if (useArtwork) {
+    return (
+      <ImageBackground
+        className="bg-brand relative overflow-hidden"
+        imageStyle={{ height: '100%', width: '100%' }}
+        resizeMode="cover"
+        source={campusEventArtwork}
+        style={{ height: heroHeight, width: '100%' }}
+      >
+        <View className="inset-x-auth-screen absolute top-5 flex-row items-center justify-between">
+          {onBack ? (
+            <Button
+              accessibilityLabel="Go back"
+              className="size-11 min-w-0 rounded-full border border-white/25 bg-black/20 px-0"
+              onPress={onBack}
+              variant="ghost"
+            >
+              <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={21} />
+            </Button>
+          ) : (
+            <View className="size-11" />
+          )}
+          <Typography className="font-display text-hero-mark text-white">Numigos</Typography>
+        </View>
+      </ImageBackground>
+    );
+  }
+
   return (
     <View
       className={`bg-brand px-auth-screen relative overflow-hidden ${
