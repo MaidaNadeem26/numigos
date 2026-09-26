@@ -23,6 +23,7 @@ import {
 } from 'expo-router';
 
 import { initPostHog } from '@/lib/posthog';
+import { AuthFlowProvider } from '@/lib/auth-flow';
 import { registerServiceWorker } from '@/lib/registerServiceWorker';
 import { reportErrorToParent } from '@/lib/reportPreviewError';
 import { InstallPrompt } from '@/components/InstallPrompt';
@@ -141,10 +142,16 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <HeroUINativeProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ title: 'Habits', headerShown: false }} />
-        </Stack>
-        <InstallPrompt />
+        <AuthFlowProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="signup" />
+            <Stack.Screen name="verify" />
+            <Stack.Screen name="home" />
+          </Stack>
+          <InstallPrompt />
+        </AuthFlowProvider>
       </HeroUINativeProvider>
     </GestureHandlerRootView>
   );
