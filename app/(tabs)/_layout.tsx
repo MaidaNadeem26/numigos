@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { numigosTheme } from '@/lib/theme';
 
-const TAB_ICON_SIZE = 23;
+const TAB_ICON_SIZE = 19;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -15,22 +15,22 @@ export default function TabLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarActiveTintColor: numigosTheme.colors.brand,
-        tabBarInactiveTintColor: numigosTheme.colors.inkMuted,
+        tabBarInactiveTintColor: '#B3BBB8',
         tabBarStyle: {
-          height: 58 + insets.bottom,
-          paddingTop: 9,
-          paddingBottom: Math.max(insets.bottom, 8),
+          height: 50 + insets.bottom,
+          paddingTop: 7,
+          paddingBottom: Math.max(insets.bottom, 7),
           backgroundColor: numigosTheme.colors.surface,
           borderTopColor: numigosTheme.colors.line,
           borderTopWidth: 1,
           shadowColor: numigosTheme.colors.brandDeep,
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
-          elevation: 8,
+          shadowOffset: { width: 0, height: -1 },
+          shadowOpacity: 0.04,
+          shadowRadius: 4,
+          elevation: 4,
         },
         tabBarItemStyle: {
-          paddingVertical: 3,
+          paddingVertical: 2,
         },
       }}
     >
@@ -39,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarAccessibilityLabel: 'Home',
-          tabBarIcon: ({ color }) => <Home color={color} size={TAB_ICON_SIZE} strokeWidth={2.15} />,
+          tabBarIcon: ({ color }) => <Home color={color} size={TAB_ICON_SIZE} strokeWidth={2} />,
         }}
       />
       <Tabs.Screen
@@ -48,7 +48,7 @@ export default function TabLayout() {
           title: 'Bookmarks',
           tabBarAccessibilityLabel: 'Bookmarks',
           tabBarIcon: ({ color }) => (
-            <Bookmark color={color} size={TAB_ICON_SIZE} strokeWidth={2.15} />
+            <Bookmark color={color} size={TAB_ICON_SIZE} strokeWidth={2} />
           ),
         }}
       />
@@ -58,7 +58,7 @@ export default function TabLayout() {
           title: 'Calendar',
           tabBarAccessibilityLabel: 'Calendar',
           tabBarIcon: ({ color }) => (
-            <CalendarDays color={color} size={TAB_ICON_SIZE} strokeWidth={2.15} />
+            <CalendarDays color={color} size={TAB_ICON_SIZE} strokeWidth={2} />
           ),
         }}
       />
@@ -68,7 +68,7 @@ export default function TabLayout() {
           title: 'Profile',
           tabBarAccessibilityLabel: 'Profile',
           tabBarIcon: ({ color }) => (
-            <UserRound color={color} size={TAB_ICON_SIZE} strokeWidth={2.15} />
+            <UserRound color={color} size={TAB_ICON_SIZE} strokeWidth={2} />
           ),
         }}
       />

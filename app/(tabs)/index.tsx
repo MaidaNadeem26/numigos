@@ -1,17 +1,16 @@
 import { Typography } from 'heroui-native';
 import { Bell, Search } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Image, ScrollView, TextInput, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList, ScrollView, TextInput, View } from 'react-native';
 
 import { EventCard, SocietyPostCard } from '@/components/home/FeedCards';
 import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { HOME_FEED, type FeedItem } from '@/lib/home-feed';
-import { supabase } from '@/lib/supabase';
 import { numigosTheme } from '@/lib/theme';
 
-const FILTERS = ['All', 'Events', 'Society posts', 'Sports'] as const;
+const FILTERS = ['All', 'Events', 'Posts', 'Sports'] as const;
 type FeedFilter = (typeof FILTERS)[number];
 
 const INITIAL_ITEM_COUNT = 4;
@@ -19,7 +18,7 @@ const PAGE_SIZE = 2;
 
 function matchesFilter(item: FeedItem, filter: FeedFilter) {
   if (filter === 'Events') return item.type === 'event';
-  if (filter === 'Society posts') return item.type === 'post';
+  if (filter === 'Posts') return item.type === 'post';
   if (filter === 'Sports') return item.society.toLowerCase().includes('sports');
   return true;
 }
@@ -30,25 +29,21 @@ function searchableText(item: FeedItem) {
 }
 
 export default function HomeScreen() {
-  const [firstName, setFirstName] = useState('Student');
   const [activeFilter, setActiveFilter] = useState<FeedFilter>('All');
   const [query, setQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [visibleCount, setVisibleCount] = useState(INITIAL_ITEM_COUNT);
 
-  useEffect(() => {
-    void supabase.auth.getSession().then(({ data }) => {
-      const metadata = data.session?.user.user_metadata;
-      const fullName =
-        typeof metadata?.full_name === 'string'
-          ? metadata.full_name
-          : typeof metadata?.name === 'string'
-            ? metadata.name
-            : '';
-      const nextFirstName = fullName.trim().split(/\s+/)[0];
-      if (nextFirstName) setFirstName(nextFirstName);
-    });
-  }, []);
+  const dateLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      }).format(new Date()),
+    [],
+  );
+  const eventCount = useMemo(() => HOME_FEED.filter((item) => item.type === 'event').length, []);
 
   const handleFilterChange = useCallback((filter: FeedFilter) => {
     setActiveFilter(filter);
@@ -88,7 +83,7 @@ export default function HomeScreen() {
 
   const renderFeedItem = useCallback(({ item }: { item: FeedItem }) => {
     return (
-      <View className="mb-4 px-4">
+      <View className="mb-2.5 px-5">
         {item.type === 'event' ? (
           <EventCard
             item={item}
@@ -103,45 +98,30 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top']}>
-      <View className="bg-brand rounded-b-[30px] px-5 pt-3 pb-5">
-        <View className="flex-row items-center">
-          <View className="min-w-0 flex-1 pr-3">
-            <Typography className="font-display text-[23px] font-bold text-white" numberOfLines={1}>
-              Hi, {firstName} 👋
+      <View className="bg-brand px-5 pt-2 pb-4">
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Typography className="text-[11px] font-medium text-white/70">{dateLabel}</Typography>
+            <Typography className="font-display mt-0.5 text-[20px] leading-6 font-bold text-white">
+              {eventCount} events happening today
             </Typography>
-            <Typography className="mt-0.5 text-[13px] text-white/75">
-              What&apos;s happening on campus
-            </Typography>
-          </View>
-
-          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-white/15">
-            <Bell color="#ffffff" size={20} strokeWidth={2} />
-            <View className="border-brand bg-error absolute top-2 right-2 h-2 w-2 rounded-full border" />
           </View>
 
           <GesturePressable
-            accessibilityLabel="Open Profile"
+            accessibilityLabel="Open notifications"
             accessibilityRole="button"
-            className="h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-white/70 bg-white active:opacity-80"
-            onPress={() => router.push('/(tabs)/profile')}
+            className="relative h-9 w-9 items-center justify-center rounded-full bg-white/15 active:opacity-75"
           >
-            <Image
-              accessibilityIgnoresInvertColors
-              resizeMode="contain"
-              source={require('@/assets/images/nutech-logo.png')}
-              style={{ width: 29, height: 29 }}
-            />
+            <Bell color="#ffffff" size={18} strokeWidth={2} />
+            <View className="border-brand absolute top-[7px] right-[7px] h-2 w-2 rounded-full border bg-[#E9A44F]" />
           </GesturePressable>
         </View>
 
-        <View
-          className="mt-4 h-12 flex-row items-center rounded-full px-4"
-          style={{ backgroundColor: 'rgba(255,255,255,0.92)' }}
-        >
-          <Search color={numigosTheme.colors.inkMuted} size={19} strokeWidth={2} />
+        <View className="mt-3 h-11 flex-row items-center rounded-full bg-white px-4">
+          <Search color={numigosTheme.colors.inkMuted} size={17} strokeWidth={2} />
           <TextInput
             accessibilityLabel="Search events and societies"
-            className="text-ink ml-2.5 h-12 flex-1 font-sans text-sm"
+            className="text-ink ml-2.5 h-11 flex-1 font-sans text-[12px]"
             onChangeText={handleSearchChange}
             placeholder="Search events & societies"
             placeholderTextColor={numigosTheme.colors.inkMuted}
@@ -151,10 +131,10 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View className="bg-canvas flex-1 pt-4">
+      <View className="bg-canvas flex-1 pt-3">
         <ScrollView
-          className="mb-4 max-h-10"
-          contentContainerClassName="gap-2 px-4"
+          className="mb-3 max-h-8"
+          contentContainerClassName="gap-2 px-5"
           horizontal
           showsHorizontalScrollIndicator={false}
         >
@@ -164,14 +144,14 @@ export default function HomeScreen() {
               <GesturePressable
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                className={`h-9 items-center justify-center rounded-full border px-4 active:opacity-75 ${
-                  selected ? 'border-brand bg-brand' : 'border-line bg-surface'
+                className={`h-7 items-center justify-center rounded-full px-3.5 active:opacity-75 ${
+                  selected ? 'bg-brand' : 'border-line bg-surface border'
                 }`}
                 key={filter}
                 onPress={() => handleFilterChange(filter)}
               >
                 <Typography
-                  className={`text-xs font-semibold ${selected ? 'text-white' : 'text-ink-muted'}`}
+                  className={`text-[10px] font-semibold ${selected ? 'text-white' : 'text-ink-muted'}`}
                 >
                   {filter}
                 </Typography>
@@ -181,16 +161,16 @@ export default function HomeScreen() {
         </ScrollView>
 
         <FlatList
-          contentContainerStyle={{ paddingBottom: 16, flexGrow: visibleFeed.length === 0 ? 1 : 0 }}
+          contentContainerStyle={{ paddingBottom: 12, flexGrow: visibleFeed.length === 0 ? 1 : 0 }}
           data={visibleFeed}
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <View className="flex-1 items-center justify-center px-8 pb-20">
-              <Typography className="text-ink text-base font-semibold">
+              <Typography className="text-ink text-sm font-semibold">
                 No campus updates found
               </Typography>
-              <Typography className="text-ink-muted mt-1 text-center text-sm">
+              <Typography className="text-ink-muted mt-1 text-center text-xs">
                 Try another search or filter.
               </Typography>
             </View>
