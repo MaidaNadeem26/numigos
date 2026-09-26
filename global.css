@@ -17,6 +17,7 @@
   --text-auth-title: 28px;
   --text-auth-subtitle: 14px;
   --text-field-label: 13px;
+  --text-signup-label: 11px;
   --text-action: 16px;
   --text-otp: 24px;
   --text-hero-mark: 22px;
@@ -25,6 +26,7 @@
   --spacing-auth-section: 24px;
   --spacing-auth-field: 14px;
   --spacing-auth-control: 56px;
+  --spacing-signup-control: 38px;
   --spacing-auth-hero: 280px;
   --spacing-auth-hero-compact: 244px;
   --spacing-auth-overlap: 32px;

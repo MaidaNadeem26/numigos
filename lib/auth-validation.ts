@@ -1,5 +1,14 @@
 export const UNIVERSITY_EMAIL_DOMAIN = '@nutech.edu.pk';
 
+export const DEPARTMENTS = [
+  { value: 'computer-science', label: 'Computer Science' },
+  { value: 'software-engineering', label: 'Software Engineering' },
+  { value: 'artificial-intelligence', label: 'Artificial Intelligence' },
+  { value: 'electrical-engineering', label: 'Electrical Engineering' },
+  { value: 'mechanical-engineering', label: 'Mechanical Engineering' },
+  { value: 'civil-engineering', label: 'Civil Engineering' },
+] as const;
+
 export type SignupFields = {
   fullName: string;
   email: string;

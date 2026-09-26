@@ -46,7 +46,11 @@ export function FormField({
 
   return (
     <TextField className={compact ? 'gap-1' : 'gap-2'} isInvalid={Boolean(error)}>
-      <Label className="text-field-label text-ink ml-1 font-semibold">{label}</Label>
+      <Label
+        className={`${compact ? 'text-signup-label' : 'text-field-label'} text-ink ml-1 font-semibold`}
+      >
+        {label}
+      </Label>
       <View className="relative">
         {icon ? (
           <View
@@ -70,7 +74,9 @@ export function FormField({
         <Input
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
-          className={`rounded-field text-ink h-auth-control border pr-12 font-sans text-base ${
+          className={`rounded-field text-ink border pr-12 font-sans text-base ${
+            compact ? 'h-signup-control' : 'h-auth-control'
+          } ${
             fieldTone === 'softNeutral' ? 'bg-login-field' : 'bg-field'
           } ${icon ? 'pl-12' : 'pl-5'} ${
             error
@@ -95,8 +101,8 @@ export function FormField({
         {onToggleSecure ? (
           <Button
             accessibilityLabel={secureTextEntry ? 'Show password' : 'Hide password'}
-            className={`absolute top-1.5 right-1.5 size-11 rounded-full ${
-              preciseIconAlignment ? 'min-w-0 items-center justify-center px-0' : ''
+            className={`absolute right-1 min-w-0 items-center justify-center rounded-full px-0 ${
+              compact ? 'size-signup-control top-0' : 'top-1.5 size-11'
             }`}
             isIconOnly
             onPress={onToggleSecure}
@@ -111,7 +117,11 @@ export function FormField({
         ) : null}
       </View>
       <View className={compact && !error ? 'h-1 pl-1' : 'min-h-5 pl-1'}>
-        {error ? <FieldError className="text-error font-sans text-sm">{error}</FieldError> : null}
+        {error ? (
+          <FieldError className={`text-error font-sans ${compact ? 'text-xs' : 'text-sm'}`}>
+            {error}
+          </FieldError>
+        ) : null}
       </View>
     </TextField>
   );
@@ -144,10 +154,14 @@ export function SelectField({
 }: SelectFieldProps) {
   return (
     <View className={compact ? 'gap-1' : 'gap-2'}>
-      <Typography className="text-field-label text-ink ml-1 font-semibold">{label}</Typography>
+      <Typography
+        className={`${compact ? 'text-signup-label' : 'text-field-label'} text-ink ml-1 font-semibold`}
+      >
+        {label}
+      </Typography>
       <Select onValueChange={onValueChange} value={value}>
         <Select.Trigger
-          className={`rounded-field h-auth-control border pr-5 ${showIcon ? 'pl-4' : 'pl-5'} ${
+          className={`rounded-field border pr-5 ${compact ? 'h-signup-control' : 'h-auth-control'} ${showIcon ? 'pl-4' : 'pl-5'} ${
             fieldTone === 'softNeutral' ? 'bg-login-field' : 'bg-field'
           } ${error ? 'border-error' : borderless ? 'border-transparent' : 'border-line'}`}
         >
@@ -179,7 +193,11 @@ export function SelectField({
         </Select.Portal>
       </Select>
       <View className={compact && !error ? 'h-1 pl-1' : 'min-h-5 pl-1'}>
-        {error ? <Typography className="text-error font-sans text-sm">{error}</Typography> : null}
+        {error ? (
+          <Typography className={`text-error font-sans ${compact ? 'text-xs' : 'text-sm'}`}>
+            {error}
+          </Typography>
+        ) : null}
       </View>
     </View>
   );
