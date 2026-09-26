@@ -1,28 +1,33 @@
-import { Bookmark, CalendarDays, Home, UserRound } from 'lucide-react-native';
+import { Compass, Home, Bookmark, CalendarDays, UserRound } from 'lucide-react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TAB_BAR_CONTENT_HEIGHT } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
-const TAB_ICON_SIZE = 18;
+const TAB_ICON_SIZE = 17;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
   return (
     <Tabs
+      initialRouteName="explore"
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
         tabBarActiveTintColor: numigosTheme.colors.brand,
-        tabBarInactiveTintColor: '#B3BBB8',
+        tabBarInactiveTintColor: '#A6AFB4',
+        tabBarLabelStyle: {
+          fontFamily: numigosTheme.fonts.medium,
+          fontSize: 8,
+          marginTop: 1,
+        },
         tabBarStyle: {
-          height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
+          height: 48 + insets.bottom,
           paddingTop: 5,
           paddingBottom: Math.max(insets.bottom, 5),
           backgroundColor: numigosTheme.colors.surface,
-          borderTopColor: numigosTheme.colors.line,
+          borderTopColor: numigosTheme.colors.homeCardBorder,
           borderTopWidth: 1,
           shadowColor: numigosTheme.colors.brandDeep,
           shadowOffset: { width: 0, height: -1 },
@@ -30,9 +35,7 @@ export default function TabLayout() {
           shadowRadius: 3,
           elevation: 2,
         },
-        tabBarItemStyle: {
-          paddingVertical: 0,
-        },
+        tabBarItemStyle: { paddingVertical: 0 },
       }}
     >
       <Tabs.Screen
@@ -40,16 +43,16 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarAccessibilityLabel: 'Home',
-          tabBarIcon: ({ color }) => <Home color={color} size={TAB_ICON_SIZE} strokeWidth={2} />,
+          tabBarIcon: ({ color }) => <Home color={color} size={TAB_ICON_SIZE} strokeWidth={1.8} />,
         }}
       />
       <Tabs.Screen
-        name="bookmarks"
+        name="explore"
         options={{
-          title: 'Bookmarks',
-          tabBarAccessibilityLabel: 'Bookmarks',
+          title: 'Explore',
+          tabBarAccessibilityLabel: 'Explore',
           tabBarIcon: ({ color }) => (
-            <Bookmark color={color} size={TAB_ICON_SIZE} strokeWidth={2} />
+            <Compass color={color} size={TAB_ICON_SIZE} strokeWidth={1.8} />
           ),
         }}
       />
@@ -59,7 +62,17 @@ export default function TabLayout() {
           title: 'Calendar',
           tabBarAccessibilityLabel: 'Calendar',
           tabBarIcon: ({ color }) => (
-            <CalendarDays color={color} size={TAB_ICON_SIZE} strokeWidth={2} />
+            <CalendarDays color={color} size={TAB_ICON_SIZE} strokeWidth={1.8} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="bookmarks"
+        options={{
+          title: 'Saved',
+          tabBarAccessibilityLabel: 'Saved events',
+          tabBarIcon: ({ color }) => (
+            <Bookmark color={color} size={TAB_ICON_SIZE} strokeWidth={1.8} />
           ),
         }}
       />
@@ -69,7 +82,7 @@ export default function TabLayout() {
           title: 'Profile',
           tabBarAccessibilityLabel: 'Profile',
           tabBarIcon: ({ color }) => (
-            <UserRound color={color} size={TAB_ICON_SIZE} strokeWidth={2} />
+            <UserRound color={color} size={TAB_ICON_SIZE} strokeWidth={1.8} />
           ),
         }}
       />
