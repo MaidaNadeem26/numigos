@@ -50,14 +50,18 @@ Uniwind.setTheme('light');
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
-  });
+  const [loaded, error] = useFonts(
+    Platform.OS === 'web'
+      ? {}
+      : {
+          Inter_400Regular,
+          Inter_500Medium,
+          Inter_600SemiBold,
+          Inter_700Bold,
+          Manrope_600SemiBold,
+          Manrope_700Bold,
+        },
+  );
 
   // Report uncaught JS errors and unhandled promise rejections to parent (Bilt preview iframe)
   useEffect(() => {
