@@ -85,6 +85,7 @@ export default function LoginScreen() {
 
   return (
     <AuthScaffold
+      alignContentLeft
       dense
       heroHeight={Math.round(viewportHeight * 0.29)}
       hideHeroBrand
@@ -97,26 +98,27 @@ export default function LoginScreen() {
       }
       title={isRecoveryMode ? 'Reset your password' : 'Welcome back'}
     >
-      <View className="gap-0">
+      <View className="gap-1">
         <FormField
           autoCapitalize="none"
+          borderless
           compact
           error={errors.email}
-          icon="mail-outline"
+          fieldTone="softNeutral"
           keyboardType="email-address"
           label="University email"
           onChangeText={setEmail}
           placeholder="you@nutech.edu.pk"
-          preciseIconAlignment
           textContentType="emailAddress"
           value={email}
         />
 
         {!isRecoveryMode ? (
           <FormField
+            borderless
             compact
             error={errors.password}
-            icon="lock-closed-outline"
+            fieldTone="softNeutral"
             label="Password"
             onChangeText={setPassword}
             onToggleSecure={() => setShowPassword((current) => !current)}
@@ -141,7 +143,7 @@ export default function LoginScreen() {
         </View>
 
         <Button
-          className="action-shadow rounded-action bg-brand mt-1 h-14"
+          className="rounded-action bg-brand mt-1 h-14"
           isDisabled={isSubmitting || isSendingRecovery}
           onPress={isRecoveryMode ? handleRecovery : handleLogin}
         >
@@ -155,7 +157,7 @@ export default function LoginScreen() {
         </Button>
 
         <Button
-          className="h-10 self-center rounded-full px-4"
+          className="mt-2 h-10 self-center rounded-full px-4"
           onPress={() => {
             setErrors({});
             setRecoveryStatus('');

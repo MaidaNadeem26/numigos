@@ -16,6 +16,8 @@ interface FormFieldProps {
   compact?: boolean;
   error?: string;
   preciseIconAlignment?: boolean;
+  borderless?: boolean;
+  fieldTone?: 'default' | 'softNeutral';
   secureTextEntry?: boolean;
   onToggleSecure?: () => void;
   keyboardType?: 'default' | 'email-address';
@@ -32,6 +34,8 @@ export function FormField({
   compact = false,
   error,
   preciseIconAlignment = false,
+  borderless = false,
+  fieldTone = 'default',
   secureTextEntry,
   onToggleSecure,
   keyboardType = 'default',
@@ -66,9 +70,17 @@ export function FormField({
         <Input
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
-          className={`rounded-field bg-field text-ink h-auth-control border pr-12 font-sans text-base ${
-            icon ? 'pl-12' : 'pl-5'
-          } ${error ? 'border-error' : isFocused ? 'field-focus-shadow border-brand' : 'border-line'}`}
+          className={`rounded-field text-ink h-auth-control border pr-12 font-sans text-base ${
+            fieldTone === 'softNeutral' ? 'bg-login-field' : 'bg-field'
+          } ${icon ? 'pl-12' : 'pl-5'} ${
+            error
+              ? 'border-error'
+              : isFocused
+                ? 'field-focus-shadow border-brand'
+                : borderless
+                  ? 'border-transparent'
+                  : 'border-line'
+          }`}
           keyboardType={keyboardType}
           onBlur={() => setIsFocused(false)}
           onChangeText={onChangeText}

@@ -16,6 +16,7 @@ interface AuthScaffoldProps extends PropsWithChildren {
   hideHeroBrand?: boolean;
   singleViewport?: boolean;
   useHeroArtwork?: boolean;
+  alignContentLeft?: boolean;
 }
 
 export function AuthScaffold({
@@ -30,6 +31,7 @@ export function AuthScaffold({
   hideHeroBrand = false,
   singleViewport = false,
   useHeroArtwork = false,
+  alignContentLeft = false,
 }: AuthScaffoldProps) {
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
@@ -60,13 +62,17 @@ export function AuthScaffold({
             }`}
           >
             <View className="mx-auto w-full max-w-[440px]">
-              <Typography className="font-display text-auth-title text-ink text-center leading-tight">
+              <Typography
+                className={`font-display text-auth-title text-ink leading-tight ${
+                  alignContentLeft ? 'text-left' : 'text-center'
+                }`}
+              >
                 {title}
               </Typography>
               <Typography
-                className={`text-auth-subtitle text-ink-muted mx-auto max-w-[340px] text-center font-sans leading-5 ${
-                  dense ? 'mt-1' : 'mt-2'
-                }`}
+                className={`text-auth-subtitle text-ink-muted max-w-[340px] font-sans leading-5 ${
+                  alignContentLeft ? 'mr-auto text-left' : 'mx-auto text-center'
+                } ${dense ? 'mt-1' : 'mt-2'}`}
               >
                 {subtitle}
               </Typography>
