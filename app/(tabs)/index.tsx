@@ -5,7 +5,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, ScrollView, TextInput, useWindowDimensions, View } from 'react-native';
 
 import {
-  CategoryShortcuts,
   DeadlineBanner,
   QuickStats,
   SectionHeading,
@@ -15,14 +14,12 @@ import { EventCard, SocietyPostCard } from '@/components/home/FeedCards';
 import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import {
-  CATEGORY_SHORTCUTS,
   FEED_FILTERS,
   FOLLOWED_SOCIETIES,
   HOME_FEED,
   getDashboardStats,
   getDeadlineReminder,
   getTodayEventCount,
-  type EventCategory,
   type FeedFilter,
   type FeedItem,
 } from '@/lib/home-feed';
@@ -44,10 +41,6 @@ function searchableText(item: FeedItem) {
     return `${item.title} ${item.society} ${item.schedule} ${item.category}`;
   }
   return `${item.society} ${item.caption} ${item.category}`;
-}
-
-function getActiveShortcutCategory(filter: FeedFilter): EventCategory | null {
-  return CATEGORY_SHORTCUTS.find((category) => category === filter) ?? null;
 }
 
 export default function HomeScreen() {
@@ -73,11 +66,6 @@ export default function HomeScreen() {
 
   const handleFilterChange = useCallback((filter: FeedFilter) => {
     setActiveFilter(filter);
-    setVisibleCount(INITIAL_ITEM_COUNT);
-  }, []);
-
-  const handleCategorySelect = useCallback((category: EventCategory) => {
-    setActiveFilter(category);
     setVisibleCount(INITIAL_ITEM_COUNT);
   }, []);
 
@@ -130,19 +118,6 @@ export default function HomeScreen() {
   const listHeader = (
     <View>
       <QuickStats stats={stats} />
-      <CategoryShortcuts
-        activeCategory={getActiveShortcutCategory(activeFilter)}
-        onSelect={handleCategorySelect}
-      />
-      <YourSocieties societies={FOLLOWED_SOCIETIES} onExplore={() => router.push('/societies')} />
-      {deadlineReminder ? (
-        <DeadlineBanner
-          onPress={() =>
-            router.push({ pathname: '/event/[id]', params: { id: deadlineReminder.eventId } })
-          }
-          reminder={deadlineReminder}
-        />
-      ) : null}
 
       <View className="mt-6" style={{ paddingHorizontal: HOME_HORIZONTAL_PADDING }}>
         <SectionHeading>Campus feed</SectionHeading>
@@ -184,6 +159,20 @@ export default function HomeScreen() {
           );
         })}
       </ScrollView>
+    </View>
+  );
+
+  const listFooter = (
+    <View>
+      <YourSocieties societies={FOLLOWED_SOCIETIES} onExplore={() => router.push('/societies')} />
+      {deadlineReminder ? (
+        <DeadlineBanner
+          onPress={() =>
+            router.push({ pathname: '/event/[id]', params: { id: deadlineReminder.eventId } })
+          }
+          reminder={deadlineReminder}
+        />
+      ) : null}
     </View>
   );
 
@@ -258,6 +247,7 @@ export default function HomeScreen() {
               </Typography>
             </View>
           }
+          ListFooterComponent={listFooter}
           ListHeaderComponent={listHeader}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.35}
