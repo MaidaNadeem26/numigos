@@ -8,21 +8,12 @@ import { numigosTheme } from '@/lib/theme';
 
 const POST_PREVIEW_LENGTH = 138;
 
-function getEventColor(id: string) {
-  if (id.includes('innovation')) return numigosTheme.colors.eventCoral;
-  if (id.includes('futsal')) return numigosTheme.colors.eventSage;
-  return numigosTheme.colors.eventGold;
-}
-
 function getPostPreview(caption: string) {
   if (caption.length <= POST_PREVIEW_LENGTH) return caption;
-
   return `${caption.slice(0, POST_PREVIEW_LENGTH).trimEnd()}… more`;
 }
 
 export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () => void }) {
-  const [relativeDay, time] = item.schedule.split('·').map((part) => part.trim());
-
   return (
     <GesturePressable
       accessibilityLabel={`Open ${item.title}`}
@@ -30,16 +21,20 @@ export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () 
       className="border-home-card-border bg-surface w-full flex-row rounded-2xl border p-2.5 active:opacity-80"
       onPress={onPress}
     >
-      <View
-        className="h-16 w-16 shrink-0 rounded-xl"
-        style={{ backgroundColor: getEventColor(item.id) }}
-      />
+      <View className="bg-home-chip h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl">
+        <Image
+          accessibilityIgnoresInvertColors
+          resizeMode="cover"
+          source={item.image}
+          style={{ width: 72, height: 72 }}
+        />
+      </View>
       <View className="min-w-0 flex-1 justify-center pl-3">
         <Typography
           className="text-brand text-[8px] leading-[11px] font-bold uppercase"
           numberOfLines={1}
         >
-          Event · {relativeDay}
+          Event · {item.relativeDay}
         </Typography>
         <Typography
           className="text-home-ink mt-1 text-[13px] leading-4 font-bold"
@@ -48,7 +43,7 @@ export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () 
           {item.title}
         </Typography>
         <Typography className="text-home-muted mt-1 text-[9px] leading-3" numberOfLines={1}>
-          {item.society} · {time ?? item.schedule}
+          {item.society} · {item.time}
         </Typography>
       </View>
     </GesturePressable>
@@ -57,37 +52,48 @@ export function EventCard({ item, onPress }: { item: EventFeedItem; onPress: () 
 
 export function SocietyPostCard({ item }: { item: PostFeedItem }) {
   return (
-    <View className="border-home-card-border bg-surface w-full rounded-2xl border px-3 py-3">
-      <View className="flex-row items-center">
-        <View className="bg-home-chip h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full">
-          <Image
-            accessibilityIgnoresInvertColors
-            resizeMode="contain"
-            source={item.logo}
-            style={{ width: 22, height: 22 }}
-          />
-        </View>
-        <View className="min-w-0 flex-1 pl-2.5">
-          <Typography
-            className="text-home-ink text-[11px] leading-[14px] font-bold"
-            numberOfLines={1}
-          >
-            {item.society}
+    <View className="border-home-card-border bg-surface w-full overflow-hidden rounded-2xl border">
+      <View className="px-3 pt-3">
+        <View className="flex-row items-center">
+          <View className="bg-home-chip h-9 w-9 shrink-0 overflow-hidden rounded-full">
+            <Image
+              accessibilityIgnoresInvertColors
+              resizeMode="cover"
+              source={item.logo}
+              style={{ width: 36, height: 36 }}
+            />
+          </View>
+          <View className="min-w-0 flex-1 pl-2.5">
+            <Typography
+              className="text-home-ink text-[11px] leading-[14px] font-bold"
+              numberOfLines={1}
+            >
+              {item.society}
+            </Typography>
+            <Typography className="text-home-muted mt-0.5 text-[8px] leading-3" numberOfLines={1}>
+              {item.timestamp}
+            </Typography>
+          </View>
+          <Typography className="text-home-muted shrink-0 text-[7px] font-semibold uppercase">
+            Post
           </Typography>
-          <Typography className="text-home-muted mt-0.5 text-[8px] leading-3" numberOfLines={1}>
-            {item.timestamp}
-          </Typography>
         </View>
-        <Typography className="text-home-muted shrink-0 text-[7px] font-semibold uppercase">
-          Post
+
+        <Typography className="text-home-ink mt-3 text-[10px] leading-[15px]" numberOfLines={3}>
+          {getPostPreview(item.caption)}
         </Typography>
       </View>
 
-      <Typography className="text-home-ink mt-3 text-[10px] leading-[15px]" numberOfLines={3}>
-        {getPostPreview(item.caption)}
-      </Typography>
+      {item.image ? (
+        <Image
+          accessibilityIgnoresInvertColors
+          resizeMode="cover"
+          source={item.image}
+          style={{ width: '100%', height: 150, marginTop: 12 }}
+        />
+      ) : null}
 
-      <View className="mt-3 flex-row items-center">
+      <View className="flex-row items-center px-3 py-3">
         <View className="mr-4 flex-row items-center">
           <Heart color={numigosTheme.colors.homeMuted} size={13} strokeWidth={1.7} />
           <Typography className="text-home-muted ml-1 text-[9px]">{item.likes}</Typography>
@@ -97,7 +103,8 @@ export function SocietyPostCard({ item }: { item: PostFeedItem }) {
           <Typography className="text-home-muted ml-1 text-[9px]">{item.comments}</Typography>
         </View>
         <Bookmark
-          color={numigosTheme.colors.homeMuted}
+          color={item.bookmarked ? numigosTheme.colors.brand : numigosTheme.colors.homeMuted}
+          fill={item.bookmarked ? numigosTheme.colors.brand : 'transparent'}
           size={13}
           strokeWidth={1.7}
           style={{ marginLeft: 'auto' }}

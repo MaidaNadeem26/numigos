@@ -4,29 +4,50 @@ import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, ScrollView, TextInput, useWindowDimensions, View } from 'react-native';
 
+import {
+  CategoryShortcuts,
+  DeadlineBanner,
+  QuickStats,
+  SectionHeading,
+  YourSocieties,
+} from '@/components/home/DashboardSections';
 import { EventCard, SocietyPostCard } from '@/components/home/FeedCards';
 import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
-import { HOME_FEED, type FeedItem } from '@/lib/home-feed';
+import {
+  CATEGORY_SHORTCUTS,
+  FEED_FILTERS,
+  FOLLOWED_SOCIETIES,
+  HOME_FEED,
+  getDashboardStats,
+  getDeadlineReminder,
+  getTodayEventCount,
+  type EventCategory,
+  type FeedFilter,
+  type FeedItem,
+} from '@/lib/home-feed';
 import { HOME_HORIZONTAL_PADDING, isSmallPhone } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
-const FILTERS = ['All', 'Events', 'Posts', 'Sports'] as const;
-type FeedFilter = (typeof FILTERS)[number];
-
-const INITIAL_ITEM_COUNT = 4;
-const PAGE_SIZE = 2;
+const INITIAL_ITEM_COUNT = 5;
+const PAGE_SIZE = 3;
 
 function matchesFilter(item: FeedItem, filter: FeedFilter) {
   if (filter === 'Events') return item.type === 'event';
   if (filter === 'Posts') return item.type === 'post';
-  if (filter === 'Sports') return item.society.toLowerCase().includes('sports');
+  if (filter !== 'All') return item.category === filter;
   return true;
 }
 
 function searchableText(item: FeedItem) {
-  if (item.type === 'event') return `${item.title} ${item.society} ${item.schedule}`;
-  return `${item.society} ${item.caption}`;
+  if (item.type === 'event') {
+    return `${item.title} ${item.society} ${item.schedule} ${item.category}`;
+  }
+  return `${item.society} ${item.caption} ${item.category}`;
+}
+
+function getActiveShortcutCategory(filter: FeedFilter): EventCategory | null {
+  return CATEGORY_SHORTCUTS.find((category) => category === filter) ?? null;
 }
 
 export default function HomeScreen() {
@@ -46,16 +67,17 @@ export default function HomeScreen() {
       }).format(new Date()),
     [],
   );
-  const todayEventCount = useMemo(
-    () =>
-      HOME_FEED.filter(
-        (item) => item.type === 'event' && item.schedule.toLowerCase().startsWith('today'),
-      ).length,
-    [],
-  );
+  const todayEventCount = useMemo(() => getTodayEventCount(), []);
+  const stats = useMemo(() => getDashboardStats(), []);
+  const deadlineReminder = useMemo(() => getDeadlineReminder(), []);
 
   const handleFilterChange = useCallback((filter: FeedFilter) => {
     setActiveFilter(filter);
+    setVisibleCount(INITIAL_ITEM_COUNT);
+  }, []);
+
+  const handleCategorySelect = useCallback((category: EventCategory) => {
+    setActiveFilter(category);
     setVisibleCount(INITIAL_ITEM_COUNT);
   }, []);
 
@@ -91,15 +113,79 @@ export default function HomeScreen() {
   }, [filteredFeed.length]);
 
   const renderFeedItem = useCallback(({ item }: { item: FeedItem }) => {
-    return item.type === 'event' ? (
-      <EventCard
-        item={item}
-        onPress={() => router.push({ pathname: '/event/[id]', params: { id: item.id } })}
-      />
-    ) : (
-      <SocietyPostCard item={item} />
+    return (
+      <View style={{ paddingHorizontal: HOME_HORIZONTAL_PADDING }}>
+        {item.type === 'event' ? (
+          <EventCard
+            item={item}
+            onPress={() => router.push({ pathname: '/event/[id]', params: { id: item.id } })}
+          />
+        ) : (
+          <SocietyPostCard item={item} />
+        )}
+      </View>
     );
   }, []);
+
+  const listHeader = (
+    <View>
+      <QuickStats stats={stats} />
+      <CategoryShortcuts
+        activeCategory={getActiveShortcutCategory(activeFilter)}
+        onSelect={handleCategorySelect}
+      />
+      <YourSocieties societies={FOLLOWED_SOCIETIES} onExplore={() => router.push('/societies')} />
+      {deadlineReminder ? (
+        <DeadlineBanner
+          onPress={() =>
+            router.push({ pathname: '/event/[id]', params: { id: deadlineReminder.eventId } })
+          }
+          reminder={deadlineReminder}
+        />
+      ) : null}
+
+      <View className="mt-6" style={{ paddingHorizontal: HOME_HORIZONTAL_PADDING }}>
+        <SectionHeading>Campus feed</SectionHeading>
+      </View>
+      <ScrollView
+        contentContainerStyle={{
+          alignItems: 'center',
+          columnGap: 8,
+          paddingHorizontal: HOME_HORIZONTAL_PADDING,
+          paddingVertical: 12,
+        }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        {FEED_FILTERS.map((filter) => {
+          const selected = filter === activeFilter;
+          return (
+            <GesturePressable
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              className={`min-h-8 shrink-0 items-center justify-center rounded-full px-4 py-1.5 active:opacity-75 ${
+                selected ? 'bg-home-ink' : 'bg-home-chip'
+              }`}
+              key={filter}
+              onPress={() => handleFilterChange(filter)}
+            >
+              <Typography
+                className={`text-[10px] leading-[14px] font-semibold ${
+                  selected ? 'text-white' : 'text-home-muted'
+                }`}
+                numberOfLines={1}
+                style={{
+                  color: selected ? numigosTheme.colors.surface : numigosTheme.colors.homeMuted,
+                }}
+              >
+                {filter}
+              </Typography>
+            </GesturePressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
 
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
@@ -152,50 +238,10 @@ export default function HomeScreen() {
       </View>
 
       <View className="bg-surface flex-1 pt-4">
-        <ScrollView
-          className="mb-3"
-          contentContainerStyle={{
-            alignItems: 'center',
-            columnGap: 8,
-            paddingHorizontal: HOME_HORIZONTAL_PADDING,
-          }}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0, flexShrink: 0 }}
-        >
-          {FILTERS.map((filter) => {
-            const selected = filter === activeFilter;
-            return (
-              <GesturePressable
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                className={`min-h-8 shrink-0 items-center justify-center rounded-full px-4 py-1.5 active:opacity-75 ${
-                  selected ? 'bg-home-ink' : 'bg-home-chip'
-                }`}
-                key={filter}
-                onPress={() => handleFilterChange(filter)}
-              >
-                <Typography
-                  className={`text-[10px] leading-[14px] font-semibold ${
-                    selected ? 'text-white' : 'text-home-muted'
-                  }`}
-                  numberOfLines={1}
-                  style={{
-                    color: selected ? numigosTheme.colors.surface : numigosTheme.colors.homeMuted,
-                  }}
-                >
-                  {filter}
-                </Typography>
-              </GesturePressable>
-            );
-          })}
-        </ScrollView>
-
         <FlatList
           className="flex-1"
           contentContainerStyle={{
-            paddingHorizontal: HOME_HORIZONTAL_PADDING,
-            paddingBottom: 12,
+            paddingBottom: 16,
             flexGrow: 1,
           }}
           data={visibleFeed}
@@ -203,7 +249,7 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center px-8 pb-20">
+            <View className="items-center justify-center px-8 py-12">
               <Typography className="text-ink text-sm font-semibold">
                 No campus updates found
               </Typography>
@@ -212,12 +258,14 @@ export default function HomeScreen() {
               </Typography>
             </View>
           }
+          ListHeaderComponent={listHeader}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.35}
           onRefresh={handleRefresh}
           refreshing={refreshing}
           renderItem={renderFeedItem}
           showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
         />
       </View>
     </SafeAreaView>
