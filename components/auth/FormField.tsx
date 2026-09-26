@@ -1,14 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Button, FieldError, Input, Label, Select, TextField, Typography } from 'heroui-native';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { numigosTheme } from '@/lib/theme';
+
+type FieldIcon = keyof typeof Ionicons.glyphMap;
 
 interface FormFieldProps {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
+  icon?: FieldIcon;
   error?: string;
   secureTextEntry?: boolean;
   onToggleSecure?: () => void;
@@ -22,6 +26,7 @@ export function FormField({
   value,
   onChangeText,
   placeholder,
+  icon,
   error,
   secureTextEntry,
   onToggleSecure,
@@ -29,18 +34,37 @@ export function FormField({
   autoCapitalize = 'none',
   textContentType,
 }: FormFieldProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <TextField className="gap-2" isInvalid={Boolean(error)}>
-      <Label className="text-field-label text-ink font-semibold">{label}</Label>
+      <Label className="text-field-label text-ink ml-1 font-semibold">{label}</Label>
       <View className="relative">
+        {icon ? (
+          <View className="h-auth-control absolute top-0 left-4 z-10 justify-center">
+            <Ionicons
+              color={
+                error
+                  ? numigosTheme.colors.error
+                  : isFocused
+                    ? numigosTheme.colors.brand
+                    : numigosTheme.colors.inkMuted
+              }
+              name={icon}
+              size={19}
+            />
+          </View>
+        ) : null}
         <Input
           autoCapitalize={autoCapitalize}
           autoCorrect={false}
-          className={`rounded-field bg-surface text-ink h-14 border px-4 pr-12 font-sans text-base ${
-            error ? 'border-error' : 'border-line'
-          }`}
+          className={`rounded-field bg-field text-ink h-auth-control border pr-12 font-sans text-base ${
+            icon ? 'pl-12' : 'pl-5'
+          } ${error ? 'border-error' : isFocused ? 'field-focus-shadow border-brand' : 'border-line'}`}
           keyboardType={keyboardType}
+          onBlur={() => setIsFocused(false)}
           onChangeText={onChangeText}
+          onFocus={() => setIsFocused(true)}
           placeholder={placeholder}
           placeholderColorClassName="text-ink-muted"
           secureTextEntry={secureTextEntry}
@@ -64,7 +88,7 @@ export function FormField({
           </Button>
         ) : null}
       </View>
-      <View className="min-h-5">
+      <View className="min-h-5 pl-1">
         {error ? <FieldError className="text-error font-sans text-sm">{error}</FieldError> : null}
       </View>
     </TextField>
@@ -90,14 +114,21 @@ export function SelectField({
 }: SelectFieldProps) {
   return (
     <View className="gap-2">
-      <Typography className="text-field-label text-ink font-semibold">{label}</Typography>
+      <Typography className="text-field-label text-ink ml-1 font-semibold">{label}</Typography>
       <Select onValueChange={onValueChange} value={value}>
         <Select.Trigger
-          className={`rounded-field bg-surface h-14 border px-4 ${
+          className={`rounded-field bg-field h-auth-control border pr-5 pl-4 ${
             error ? 'border-error' : 'border-line'
           }`}
         >
-          <Select.Value className="text-ink font-sans text-base" placeholder={placeholder} />
+          <View className="mr-3">
+            <Ionicons
+              color={error ? numigosTheme.colors.error : numigosTheme.colors.inkMuted}
+              name="school-outline"
+              size={19}
+            />
+          </View>
+          <Select.Value className="text-ink flex-1 font-sans text-base" placeholder={placeholder} />
           <Select.TriggerIndicator className="text-brand" />
         </Select.Trigger>
         <Select.Portal>
@@ -115,7 +146,7 @@ export function SelectField({
           </Select.Content>
         </Select.Portal>
       </Select>
-      <View className="min-h-5">
+      <View className="min-h-5 pl-1">
         {error ? <Typography className="text-error font-sans text-sm">{error}</Typography> : null}
       </View>
     </View>

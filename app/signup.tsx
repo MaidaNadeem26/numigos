@@ -71,6 +71,7 @@ export default function SignupScreen() {
 
   return (
     <AuthScaffold
+      compactHero
       onBack={() => router.back()}
       subtitle="Use your NUTECH email to join campus events and student societies."
       title="Create your account"
@@ -79,6 +80,7 @@ export default function SignupScreen() {
         <FormField
           autoCapitalize="words"
           error={errors.fullName}
+          icon="person-outline"
           label="Full name"
           onChangeText={(fullName) => updateSignupDraft({ fullName })}
           placeholder="Your full name"
@@ -87,6 +89,7 @@ export default function SignupScreen() {
         />
         <FormField
           error={errors.email}
+          icon="mail-outline"
           keyboardType="email-address"
           label="University email"
           onChangeText={(email) => updateSignupDraft({ email })}
@@ -96,6 +99,7 @@ export default function SignupScreen() {
         />
         <FormField
           error={errors.rollNumber}
+          icon="card-outline"
           label="Registration / roll number"
           onChangeText={(rollNumber) => updateSignupDraft({ rollNumber })}
           placeholder="e.g. F23-CS-001"
@@ -111,6 +115,7 @@ export default function SignupScreen() {
         />
         <FormField
           error={errors.password}
+          icon="lock-closed-outline"
           label="Password"
           onChangeText={(password) => updateSignupDraft({ password })}
           onToggleSecure={() => setShowPassword((current) => !current)}
@@ -121,6 +126,7 @@ export default function SignupScreen() {
         />
         <FormField
           error={errors.confirmPassword}
+          icon="shield-checkmark-outline"
           label="Confirm password"
           onChangeText={setConfirmPassword}
           onToggleSecure={() => setShowConfirmPassword((current) => !current)}

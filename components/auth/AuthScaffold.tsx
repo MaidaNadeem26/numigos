@@ -1,20 +1,26 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
-import { Button, Typography } from 'heroui-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Typography } from 'heroui-native';
 
+import { CampusHero } from '@/components/auth/CampusHero';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
-import { BrandMark } from '@/components/auth/BrandMark';
-import { numigosTheme } from '@/lib/theme';
 
 interface AuthScaffoldProps extends PropsWithChildren {
   title: string;
   subtitle: string;
   onBack?: () => void;
   footer?: ReactNode;
+  compactHero?: boolean;
 }
 
-export function AuthScaffold({ title, subtitle, onBack, children, footer }: AuthScaffoldProps) {
+export function AuthScaffold({
+  title,
+  subtitle,
+  onBack,
+  children,
+  footer,
+  compactHero = false,
+}: AuthScaffoldProps) {
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
@@ -23,40 +29,24 @@ export function AuthScaffold({ title, subtitle, onBack, children, footer }: Auth
       >
         <ScrollView
           bounces={false}
+          className="bg-canvas flex-1"
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
         >
-          <View className="px-6 pt-5 pb-10">
-            <View className="mb-7 h-11 justify-center">
-              {onBack ? (
-                <Button
-                  accessibilityLabel="Go back"
-                  className="size-11 self-start rounded-full border border-white/20 bg-white/10"
-                  isIconOnly
-                  onPress={onBack}
-                  variant="tertiary"
-                >
-                  <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={21} />
-                </Button>
-              ) : null}
+          <CampusHero compact={compactHero} onBack={onBack} />
+
+          <View className="auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap px-auth-screen pt-auth-section pb-safe-offset-8 flex-1">
+            <View className="mx-auto w-full max-w-[440px]">
+              <Typography className="font-display text-auth-title text-ink text-center leading-tight">
+                {title}
+              </Typography>
+              <Typography className="text-auth-subtitle text-ink-muted mx-auto mt-2 max-w-[340px] text-center font-sans leading-5">
+                {subtitle}
+              </Typography>
+              <View className="mt-auth-section">{children}</View>
             </View>
-
-            <View className="mb-7 flex-row items-center gap-4">
-              <BrandMark compact />
-              <Typography className="font-display text-[26px] text-white">Numigos</Typography>
-            </View>
-
-            <Typography className="font-display text-auth-title leading-tight text-white">
-              {title}
-            </Typography>
-            <Typography className="text-auth-subtitle text-brand-soft mt-2 max-w-[340px] font-sans leading-6">
-              {subtitle}
-            </Typography>
-          </View>
-
-          <View className="auth-panel-shadow rounded-t-auth-panel bg-canvas pb-safe-offset-8 flex-1 px-6 pt-8">
-            <View className="mx-auto w-full max-w-[440px]">{children}</View>
             {footer ? <View className="mx-auto mt-8 w-full max-w-[440px]">{footer}</View> : null}
           </View>
         </ScrollView>

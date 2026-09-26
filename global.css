@@ -4,7 +4,7 @@
 
 @source './node_modules/heroui-native/lib';
 
-/* Numigos design tokens: this is the single source of truth for the visual system. */
+/* Numigos visual tokens: the single source of truth for auth styling. */
 @theme {
   --font-sans: 'Inter_400Regular';
   --font-medium: 'Inter_500Medium';
@@ -14,30 +14,45 @@
   --font-display-semibold: 'Manrope_600SemiBold';
 
   --text-brand: 38px;
-  --text-auth-title: 30px;
-  --text-auth-subtitle: 15px;
-  --text-field-label: 14px;
+  --text-auth-title: 28px;
+  --text-auth-subtitle: 14px;
+  --text-field-label: 13px;
   --text-action: 16px;
   --text-otp: 24px;
+  --text-hero-mark: 22px;
 
-  --radius-auth-panel: 30px;
-  --radius-field: 15px;
-  --radius-action: 15px;
-  --radius-logo: 28px;
+  --spacing-auth-screen: 24px;
+  --spacing-auth-section: 24px;
+  --spacing-auth-field: 14px;
+  --spacing-auth-control: 56px;
+  --spacing-auth-hero: 280px;
+  --spacing-auth-hero-compact: 244px;
+  --spacing-auth-overlap: 32px;
+
+  --radius-auth-panel: 32px;
+  --radius-field: 28px;
+  --radius-action: 28px;
+  --radius-logo: 30px;
+  --radius-status: 16px;
 
   --color-brand: #1e5d4b;
-  --color-brand-strong: #16483a;
-  --color-brand-soft: #d9ebe4;
-  --color-brand-mist: #eef7f3;
-  --color-canvas: #f5f8f6;
+  --color-brand-strong: #123e34;
+  --color-brand-deep: #0b3029;
+  --color-brand-soft: #d6ebe3;
+  --color-brand-mist: #edf7f3;
+  --color-canvas: #f4f8f6;
   --color-surface: #ffffff;
-  --color-ink: #14231e;
-  --color-ink-muted: #66756f;
-  --color-line: #d9e2de;
-  --color-error: #c43d4d;
+  --color-field: #f6f8f7;
+  --color-ink: #12251f;
+  --color-ink-muted: #687872;
+  --color-line: #dbe4e0;
+  --color-error: #ba3f50;
   --color-error-soft: #fff0f2;
-  --color-success: #2f7d5a;
-  --color-success-soft: #e7f5ed;
+  --color-success: #267456;
+  --color-success-soft: #e5f5ec;
+  --color-event-coral: #f08b67;
+  --color-event-gold: #f5c76f;
+  --color-night: #14233d;
 }
 
 @layer theme {
@@ -54,12 +69,12 @@
       --default: oklch(100% 0 0);
       --default-foreground: oklch(22.7% 0.027 164);
       --border: oklch(89.5% 0.015 160);
-      --field: oklch(100% 0 0);
+      --field: oklch(97.5% 0.007 160);
       --field-foreground: oklch(22.7% 0.027 164);
       --field-placeholder: oklch(58.4% 0.018 163);
       --danger: oklch(55.6% 0.17 21.5);
       --danger-foreground: oklch(100% 0 0);
-      --success: oklch(53.8% 0.095 159);
+      --success: oklch(50.8% 0.095 159);
       --success-foreground: oklch(100% 0 0);
     }
     @variant dark {
@@ -74,25 +89,29 @@
       --default: oklch(100% 0 0);
       --default-foreground: oklch(22.7% 0.027 164);
       --border: oklch(89.5% 0.015 160);
-      --field: oklch(100% 0 0);
+      --field: oklch(97.5% 0.007 160);
       --field-foreground: oklch(22.7% 0.027 164);
       --field-placeholder: oklch(58.4% 0.018 163);
       --danger: oklch(55.6% 0.17 21.5);
       --danger-foreground: oklch(100% 0 0);
-      --success: oklch(53.8% 0.095 159);
+      --success: oklch(50.8% 0.095 159);
       --success-foreground: oklch(100% 0 0);
     }
   }
 }
 
 @utility auth-panel-shadow {
-  box-shadow: 0 -8px 32px rgba(20, 35, 30, 0.08);
+  box-shadow: 0 -10px 36px rgba(11, 48, 41, 0.12);
 }
 
 @utility logo-shadow {
-  box-shadow: 0 14px 30px rgba(8, 47, 38, 0.24);
+  box-shadow: 0 16px 34px rgba(7, 36, 30, 0.25);
 }
 
 @utility action-shadow {
-  box-shadow: 0 8px 20px rgba(30, 93, 75, 0.22);
+  box-shadow: 0 10px 22px rgba(30, 93, 75, 0.25);
+}
+
+@utility field-focus-shadow {
+  box-shadow: 0 0 0 3px rgba(30, 93, 75, 0.12);
 }

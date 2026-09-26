@@ -95,6 +95,7 @@ export default function LoginScreen() {
         <FormField
           autoCapitalize="none"
           error={errors.email}
+          icon="mail-outline"
           keyboardType="email-address"
           label="University email"
           onChangeText={setEmail}
@@ -106,6 +107,7 @@ export default function LoginScreen() {
         {!isRecoveryMode ? (
           <FormField
             error={errors.password}
+            icon="lock-closed-outline"
             label="Password"
             onChangeText={setPassword}
             onToggleSecure={() => setShowPassword((current) => !current)}

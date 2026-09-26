@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Typography } from 'heroui-native';
 import { router } from 'expo-router';
-import { FadeIn } from 'react-native-reanimated';
+import { ZoomIn } from 'react-native-reanimated';
 
 import { BrandMark } from '@/components/auth/BrandMark';
 import { AnimatedView } from '@/components/ui/primitives/AnimatedView';
@@ -45,12 +45,9 @@ export default function SplashScreen() {
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top', 'bottom', 'left', 'right']}>
       <View className="flex-1 items-center justify-center px-8">
-        <AnimatedView entering={FadeIn.duration(280)} className="items-center">
+        <AnimatedView entering={ZoomIn.duration(380)} className="items-center">
           <BrandMark />
           <Typography className="font-display text-brand mt-7 text-white">Numigos</Typography>
-          <Typography className="text-brand-soft mt-2 text-base font-medium">
-            Campus starts here.
-          </Typography>
         </AnimatedView>
       </View>
 

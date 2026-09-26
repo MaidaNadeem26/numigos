@@ -149,6 +149,7 @@ export default function VerificationScreen() {
         <View className="gap-1">
           <FormField
             error={error}
+            icon="lock-closed-outline"
             label="New password"
             onChangeText={setNewPassword}
             onToggleSecure={() => setShowPassword((current) => !current)}
