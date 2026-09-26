@@ -13,7 +13,9 @@ interface FormFieldProps {
   onChangeText: (value: string) => void;
   placeholder: string;
   icon?: FieldIcon;
+  compact?: boolean;
   error?: string;
+  preciseIconAlignment?: boolean;
   secureTextEntry?: boolean;
   onToggleSecure?: () => void;
   keyboardType?: 'default' | 'email-address';
@@ -27,7 +29,9 @@ export function FormField({
   onChangeText,
   placeholder,
   icon,
+  compact = false,
   error,
+  preciseIconAlignment = false,
   secureTextEntry,
   onToggleSecure,
   keyboardType = 'default',
@@ -37,11 +41,15 @@ export function FormField({
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <TextField className="gap-2" isInvalid={Boolean(error)}>
+    <TextField className={compact ? 'gap-1' : 'gap-2'} isInvalid={Boolean(error)}>
       <Label className="text-field-label text-ink ml-1 font-semibold">{label}</Label>
       <View className="relative">
         {icon ? (
-          <View className="h-auth-control absolute top-0 left-4 z-10 justify-center">
+          <View
+            className={`h-auth-control absolute top-0 left-4 z-10 justify-center ${
+              preciseIconAlignment ? 'w-5 items-center' : ''
+            }`}
+          >
             <Ionicons
               color={
                 error
@@ -75,7 +83,9 @@ export function FormField({
         {onToggleSecure ? (
           <Button
             accessibilityLabel={secureTextEntry ? 'Show password' : 'Hide password'}
-            className="absolute top-1.5 right-1.5 size-11 rounded-full"
+            className={`absolute top-1.5 right-1.5 size-11 rounded-full ${
+              preciseIconAlignment ? 'min-w-0 items-center justify-center px-0' : ''
+            }`}
             isIconOnly
             onPress={onToggleSecure}
             variant="tertiary"
@@ -88,7 +98,7 @@ export function FormField({
           </Button>
         ) : null}
       </View>
-      <View className="min-h-5 pl-1">
+      <View className={compact && !error ? 'h-1 pl-1' : 'min-h-5 pl-1'}>
         {error ? <FieldError className="text-error font-sans text-sm">{error}</FieldError> : null}
       </View>
     </TextField>

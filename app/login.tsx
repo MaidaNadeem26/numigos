@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, useWindowDimensions, View } from 'react-native';
 import { Button, Typography } from 'heroui-native';
 import { router } from 'expo-router';
 
@@ -11,6 +11,7 @@ import { getAuthenticatedProfile, supabase } from '@/lib/supabase';
 import { numigosTheme } from '@/lib/theme';
 
 export default function LoginScreen() {
+  const { height: viewportHeight } = useWindowDimensions();
   const { beginRecovery } = useAuthFlow();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,6 +85,10 @@ export default function LoginScreen() {
 
   return (
     <AuthScaffold
+      dense
+      heroHeight={Math.round(viewportHeight * 0.29)}
+      hideHeroBrand
+      singleViewport
       useHeroArtwork
       subtitle={
         isRecoveryMode
@@ -92,34 +97,38 @@ export default function LoginScreen() {
       }
       title={isRecoveryMode ? 'Reset your password' : 'Welcome back'}
     >
-      <View className="gap-1">
+      <View className="gap-0">
         <FormField
           autoCapitalize="none"
+          compact
           error={errors.email}
           icon="mail-outline"
           keyboardType="email-address"
           label="University email"
           onChangeText={setEmail}
           placeholder="you@nutech.edu.pk"
+          preciseIconAlignment
           textContentType="emailAddress"
           value={email}
         />
 
         {!isRecoveryMode ? (
           <FormField
+            compact
             error={errors.password}
             icon="lock-closed-outline"
             label="Password"
             onChangeText={setPassword}
             onToggleSecure={() => setShowPassword((current) => !current)}
             placeholder="Enter your password"
+            preciseIconAlignment
             secureTextEntry={!showPassword}
             textContentType="password"
             value={password}
           />
         ) : null}
 
-        <View className="min-h-12 justify-center">
+        <View className="min-h-8 justify-center">
           {errors.form ? (
             <View className="bg-error-soft rounded-xl px-4 py-3">
               <Typography className="text-error text-sm font-medium">{errors.form}</Typography>
@@ -132,7 +141,7 @@ export default function LoginScreen() {
         </View>
 
         <Button
-          className="action-shadow rounded-action bg-brand mt-2 h-14"
+          className="action-shadow rounded-action bg-brand mt-1 h-14"
           isDisabled={isSubmitting || isSendingRecovery}
           onPress={isRecoveryMode ? handleRecovery : handleLogin}
         >
@@ -146,7 +155,7 @@ export default function LoginScreen() {
         </Button>
 
         <Button
-          className="mt-2 h-11 self-center rounded-full px-4"
+          className="h-10 self-center rounded-full px-4"
           onPress={() => {
             setErrors({});
             setRecoveryStatus('');
@@ -160,7 +169,7 @@ export default function LoginScreen() {
         </Button>
 
         {!isRecoveryMode ? (
-          <View className="mt-5 flex-row items-center justify-center">
+          <View className="mt-1 flex-row items-center justify-center">
             <Typography className="text-ink-muted font-sans text-sm">
               Don’t have an account?{' '}
             </Typography>

@@ -8,12 +8,21 @@ const campusEventArtwork = require('@/assets/images/numigos-campus-event-hero.pn
 
 interface CampusHeroProps {
   compact?: boolean;
+  height?: number;
   onBack?: () => void;
+  showBrand?: boolean;
   useArtwork?: boolean;
 }
 
-export function CampusHero({ compact = false, onBack, useArtwork = false }: CampusHeroProps) {
-  const heroHeight = compact ? numigosTheme.spacing.heroCompact : numigosTheme.spacing.hero;
+export function CampusHero({
+  compact = false,
+  height,
+  onBack,
+  showBrand = true,
+  useArtwork = false,
+}: CampusHeroProps) {
+  const heroHeight =
+    height ?? (compact ? numigosTheme.spacing.heroCompact : numigosTheme.spacing.hero);
 
   if (useArtwork) {
     return (
@@ -24,21 +33,25 @@ export function CampusHero({ compact = false, onBack, useArtwork = false }: Camp
         source={campusEventArtwork}
         style={{ height: heroHeight, width: '100%' }}
       >
-        <View className="inset-x-auth-screen absolute top-5 flex-row items-center justify-between">
-          {onBack ? (
-            <Button
-              accessibilityLabel="Go back"
-              className="size-11 min-w-0 rounded-full border border-white/25 bg-black/20 px-0"
-              onPress={onBack}
-              variant="ghost"
-            >
-              <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={21} />
-            </Button>
-          ) : (
-            <View className="size-11" />
-          )}
-          <Typography className="font-display text-hero-mark text-white">Numigos</Typography>
-        </View>
+        {onBack || showBrand ? (
+          <View className="inset-x-auth-screen absolute top-5 flex-row items-center justify-between">
+            {onBack ? (
+              <Button
+                accessibilityLabel="Go back"
+                className="size-11 min-w-0 items-center justify-center rounded-full border border-white/25 bg-black/20 px-0"
+                onPress={onBack}
+                variant="ghost"
+              >
+                <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={21} />
+              </Button>
+            ) : (
+              <View className="size-11" />
+            )}
+            {showBrand ? (
+              <Typography className="font-display text-hero-mark text-white">Numigos</Typography>
+            ) : null}
+          </View>
+        ) : null}
       </ImageBackground>
     );
   }

@@ -11,6 +11,10 @@ interface AuthScaffoldProps extends PropsWithChildren {
   onBack?: () => void;
   footer?: ReactNode;
   compactHero?: boolean;
+  dense?: boolean;
+  heroHeight?: number;
+  hideHeroBrand?: boolean;
+  singleViewport?: boolean;
   useHeroArtwork?: boolean;
 }
 
@@ -21,6 +25,10 @@ export function AuthScaffold({
   children,
   footer,
   compactHero = false,
+  dense = false,
+  heroHeight,
+  hideHeroBrand = false,
+  singleViewport = false,
   useHeroArtwork = false,
 }: AuthScaffoldProps) {
   return (
@@ -34,20 +42,35 @@ export function AuthScaffold({
           className="bg-canvas flex-1"
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          scrollEnabled={!singleViewport}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
         >
-          <CampusHero compact={compactHero} onBack={onBack} useArtwork={useHeroArtwork} />
+          <CampusHero
+            compact={compactHero}
+            height={heroHeight}
+            onBack={onBack}
+            showBrand={!hideHeroBrand}
+            useArtwork={useHeroArtwork}
+          />
 
-          <View className="auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap px-auth-screen pt-auth-section pb-safe-offset-8 flex-1">
+          <View
+            className={`auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap px-auth-screen flex-1 ${
+              dense ? 'pb-safe-offset-3 pt-4' : 'pt-auth-section pb-safe-offset-8'
+            }`}
+          >
             <View className="mx-auto w-full max-w-[440px]">
               <Typography className="font-display text-auth-title text-ink text-center leading-tight">
                 {title}
               </Typography>
-              <Typography className="text-auth-subtitle text-ink-muted mx-auto mt-2 max-w-[340px] text-center font-sans leading-5">
+              <Typography
+                className={`text-auth-subtitle text-ink-muted mx-auto max-w-[340px] text-center font-sans leading-5 ${
+                  dense ? 'mt-1' : 'mt-2'
+                }`}
+              >
                 {subtitle}
               </Typography>
-              <View className="mt-auth-section">{children}</View>
+              <View className={dense ? 'mt-3' : 'mt-auth-section'}>{children}</View>
             </View>
             {footer ? <View className="mx-auto mt-8 w-full max-w-[440px]">{footer}</View> : null}
           </View>
