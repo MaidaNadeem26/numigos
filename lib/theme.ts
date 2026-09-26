@@ -17,6 +17,12 @@ export const numigosTheme = {
     successSoft: '#E5F5EC',
     eventCoral: '#F08B67',
     eventGold: '#F5C76F',
+    eventSage: '#82AC9D',
+    homeCardBorder: '#F0EFE9',
+    homeMuted: '#9A9A94',
+    homeInk: '#161613',
+    homeHighlight: '#F2CC8F',
+    homeChip: '#F5F3EE',
     night: '#14233D',
   },
   fonts: {

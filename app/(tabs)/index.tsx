@@ -43,7 +43,13 @@ export default function HomeScreen() {
       }).format(new Date()),
     [],
   );
-  const eventCount = useMemo(() => HOME_FEED.filter((item) => item.type === 'event').length, []);
+  const todayEventCount = useMemo(
+    () =>
+      HOME_FEED.filter(
+        (item) => item.type === 'event' && item.schedule.toLowerCase().startsWith('today'),
+      ).length,
+    [],
+  );
 
   const handleFilterChange = useCallback((filter: FeedFilter) => {
     setActiveFilter(filter);
@@ -99,14 +105,19 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top']}>
       <View className="bg-brand px-6 pt-2 pb-5">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Typography className="text-[10px] leading-4 font-medium text-white/65">
+        <View className="flex-row items-start justify-between">
+          <View className="min-w-0 flex-1 pr-4">
+            <Typography className="text-[11px] leading-4 font-medium text-white/65">
               {dateLabel}
             </Typography>
-            <Typography className="font-display text-[18px] leading-6 font-bold text-white">
-              {eventCount} events happening today
-            </Typography>
+            <View className="mt-0.5 flex-row flex-wrap items-baseline">
+              <Typography className="font-display text-home-highlight text-[20px] leading-7 font-bold">
+                {todayEventCount}
+              </Typography>
+              <Typography className="font-display ml-1.5 text-[20px] leading-7 font-bold text-white">
+                {todayEventCount === 1 ? 'event' : 'events'} happening today
+              </Typography>
+            </View>
           </View>
 
           <GesturePressable
@@ -114,19 +125,19 @@ export default function HomeScreen() {
             accessibilityRole="button"
             className="relative h-9 w-9 items-center justify-center rounded-full bg-white/20 active:opacity-75"
           >
-            <Bell color="#ffffff" size={17} strokeWidth={2} />
-            <View className="border-brand absolute top-[6px] right-[6px] h-2 w-2 rounded-full border bg-[#E9A44F]" />
+            <Bell color={numigosTheme.colors.surface} size={17} strokeWidth={2} />
+            <View className="border-brand bg-home-highlight absolute top-[6px] right-[6px] h-2 w-2 rounded-full border" />
           </GesturePressable>
         </View>
 
         <View className="mt-4 h-12 flex-row items-center rounded-full bg-white px-4">
-          <Search color={numigosTheme.colors.inkMuted} size={16} strokeWidth={2} />
+          <Search color={numigosTheme.colors.homeMuted} size={16} strokeWidth={2} />
           <TextInput
             accessibilityLabel="Search events and societies"
-            className="text-ink ml-2.5 h-12 flex-1 font-sans text-[11px]"
+            className="text-home-ink ml-2.5 h-12 flex-1 font-sans text-[11px]"
             onChangeText={handleSearchChange}
             placeholder="Search events & societies"
-            placeholderTextColor={numigosTheme.colors.inkMuted}
+            placeholderTextColor={numigosTheme.colors.homeMuted}
             returnKeyType="search"
             value={query}
           />
@@ -147,13 +158,13 @@ export default function HomeScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
                 className={`h-[30px] items-center justify-center rounded-full px-4 active:opacity-75 ${
-                  selected ? 'bg-brand' : 'bg-[#F5F3EE]'
+                  selected ? 'bg-home-ink' : 'bg-home-chip'
                 }`}
                 key={filter}
                 onPress={() => handleFilterChange(filter)}
               >
                 <Typography
-                  className={`text-[10px] font-semibold ${selected ? 'text-white' : 'text-ink-muted'}`}
+                  className={`text-[10px] font-semibold ${selected ? 'text-white' : 'text-home-muted'}`}
                 >
                   {filter}
                 </Typography>
