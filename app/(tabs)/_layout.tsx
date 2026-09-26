@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { numigosTheme } from '@/lib/theme';
 
-const TAB_ICON_SIZE = 19;
+const TAB_ICON_SIZE = 18;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -17,20 +17,20 @@ export default function TabLayout() {
         tabBarActiveTintColor: numigosTheme.colors.brand,
         tabBarInactiveTintColor: '#B3BBB8',
         tabBarStyle: {
-          height: 50 + insets.bottom,
-          paddingTop: 7,
-          paddingBottom: Math.max(insets.bottom, 7),
+          height: 38 + insets.bottom,
+          paddingTop: 5,
+          paddingBottom: Math.max(insets.bottom, 5),
           backgroundColor: numigosTheme.colors.surface,
           borderTopColor: numigosTheme.colors.line,
           borderTopWidth: 1,
           shadowColor: numigosTheme.colors.brandDeep,
           shadowOffset: { width: 0, height: -1 },
-          shadowOpacity: 0.04,
-          shadowRadius: 4,
-          elevation: 4,
+          shadowOpacity: 0.025,
+          shadowRadius: 3,
+          elevation: 2,
         },
         tabBarItemStyle: {
-          paddingVertical: 2,
+          paddingVertical: 0,
         },
       }}
     >

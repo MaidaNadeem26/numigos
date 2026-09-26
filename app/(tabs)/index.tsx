@@ -83,7 +83,7 @@ export default function HomeScreen() {
 
   const renderFeedItem = useCallback(({ item }: { item: FeedItem }) => {
     return (
-      <View className="mb-2.5 px-5">
+      <View className="mb-3 px-6">
         {item.type === 'event' ? (
           <EventCard
             item={item}
@@ -98,11 +98,13 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="bg-brand flex-1" edges={['top']}>
-      <View className="bg-brand px-5 pt-2 pb-4">
+      <View className="bg-brand px-6 pt-2 pb-5">
         <View className="flex-row items-center justify-between">
           <View>
-            <Typography className="text-[11px] font-medium text-white/70">{dateLabel}</Typography>
-            <Typography className="font-display mt-0.5 text-[20px] leading-6 font-bold text-white">
+            <Typography className="text-[10px] leading-4 font-medium text-white/65">
+              {dateLabel}
+            </Typography>
+            <Typography className="font-display text-[18px] leading-6 font-bold text-white">
               {eventCount} events happening today
             </Typography>
           </View>
@@ -110,18 +112,18 @@ export default function HomeScreen() {
           <GesturePressable
             accessibilityLabel="Open notifications"
             accessibilityRole="button"
-            className="relative h-9 w-9 items-center justify-center rounded-full bg-white/15 active:opacity-75"
+            className="relative h-9 w-9 items-center justify-center rounded-full bg-white/20 active:opacity-75"
           >
-            <Bell color="#ffffff" size={18} strokeWidth={2} />
-            <View className="border-brand absolute top-[7px] right-[7px] h-2 w-2 rounded-full border bg-[#E9A44F]" />
+            <Bell color="#ffffff" size={17} strokeWidth={2} />
+            <View className="border-brand absolute top-[6px] right-[6px] h-2 w-2 rounded-full border bg-[#E9A44F]" />
           </GesturePressable>
         </View>
 
-        <View className="mt-3 h-11 flex-row items-center rounded-full bg-white px-4">
-          <Search color={numigosTheme.colors.inkMuted} size={17} strokeWidth={2} />
+        <View className="mt-4 h-12 flex-row items-center rounded-full bg-white px-4">
+          <Search color={numigosTheme.colors.inkMuted} size={16} strokeWidth={2} />
           <TextInput
             accessibilityLabel="Search events and societies"
-            className="text-ink ml-2.5 h-11 flex-1 font-sans text-[12px]"
+            className="text-ink ml-2.5 h-12 flex-1 font-sans text-[11px]"
             onChangeText={handleSearchChange}
             placeholder="Search events & societies"
             placeholderTextColor={numigosTheme.colors.inkMuted}
@@ -131,10 +133,10 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View className="bg-canvas flex-1 pt-3">
+      <View className="bg-surface flex-1 pt-4">
         <ScrollView
-          className="mb-3 max-h-8"
-          contentContainerClassName="gap-2 px-5"
+          className="mb-3 max-h-[30px]"
+          contentContainerClassName="gap-2 px-6"
           horizontal
           showsHorizontalScrollIndicator={false}
         >
@@ -144,8 +146,8 @@ export default function HomeScreen() {
               <GesturePressable
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                className={`h-7 items-center justify-center rounded-full px-3.5 active:opacity-75 ${
-                  selected ? 'bg-brand' : 'border-line bg-surface border'
+                className={`h-[30px] items-center justify-center rounded-full px-4 active:opacity-75 ${
+                  selected ? 'bg-brand' : 'bg-[#F5F3EE]'
                 }`}
                 key={filter}
                 onPress={() => handleFilterChange(filter)}
