@@ -203,6 +203,7 @@ export default function HomeScreen() {
             accessibilityLabel="Open notifications"
             accessibilityRole="button"
             className="relative h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 active:opacity-75"
+            onPress={() => router.push('/reminders')}
           >
             <Bell color={numigosTheme.colors.surface} size={18} strokeWidth={2} />
             {HAS_UNREAD_NOTIFICATIONS ? (

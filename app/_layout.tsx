@@ -152,7 +152,12 @@ export default function RootLayout() {
             <Stack.Screen name="verify" />
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="event/[id]" />
+            <Stack.Screen name="events/registered" />
+            <Stack.Screen name="events/history" />
+            <Stack.Screen name="reminders" />
             <Stack.Screen name="societies" />
+            <Stack.Screen name="societies/[id]" />
+            <Stack.Screen name="societies/register" />
             <Stack.Screen name="home" />
           </Stack>
           <InstallPrompt />

@@ -25,6 +25,9 @@ export type EventFeedItem = {
   approved: boolean;
   discoveryOrder: number;
   registrationDeadline?: string;
+  description?: string;
+  location?: string;
+  attendees?: number;
 };
 
 export type PostFeedItem = {
@@ -56,6 +59,9 @@ export type Society = {
   fullName: string;
   category: DashboardCategory;
   logo: ImageSourcePropType;
+  description?: string;
+  members?: number;
+  founded?: string;
 };
 
 export type DeadlineReminder = {
@@ -240,6 +246,35 @@ export const FOLLOWED_SOCIETIES: Society[] = [
   },
 ];
 
+export const ALL_SOCIETIES: Society[] = [
+  ...FOLLOWED_SOCIETIES,
+  {
+    id: 'entrepreneurship-society',
+    shortName: 'Founders',
+    fullName: 'Entrepreneurship Society',
+    category: 'Business',
+    logo: getCategoryImage('Business'),
+    description: 'A student community for founders, builders, and future business leaders.',
+    members: 184,
+    founded: '2021',
+  },
+  {
+    id: 'drama-club',
+    shortName: 'Drama',
+    fullName: 'NUTECH Drama Club',
+    category: 'Arts',
+    logo: getCategoryImage('Arts'),
+    description: 'A creative home for theatre, performance, writing, and stage production.',
+    members: 96,
+    founded: '2020',
+  },
+];
+
+export function getSocietyById(id: string | undefined) {
+  if (!id) return undefined;
+  return ALL_SOCIETIES.find((society) => society.id === id);
+}
+
 export const STUDENT_REGISTRATION_IDS = [
   'event-innovation-night',
   'event-futsal-finals',
@@ -306,4 +341,112 @@ export function getFollowedSocietyPosts() {
   return HOME_FEED.filter(
     (item): item is PostFeedItem => item.type === 'post' && followedSocietyNames.has(item.society),
   );
+}
+
+export const PAST_EVENTS: EventFeedItem[] = [
+  {
+    id: 'event-ai-bootcamp',
+    type: 'event',
+    title: 'Applied AI Bootcamp',
+    society: 'NU Tech Society',
+    schedule: 'Aug 18 · 10:00 AM',
+    relativeDay: 'Past',
+    time: '10:00 AM',
+    category: 'Tech',
+    image: getCategoryImage('Tech'),
+    approved: true,
+    discoveryOrder: 20,
+    location: 'Computing Lab 2',
+    attendees: 84,
+    description: 'A practical introduction to building and evaluating student AI projects.',
+  },
+  {
+    id: 'event-independence-festival',
+    type: 'event',
+    title: 'Independence Festival',
+    society: 'Cultural Society',
+    schedule: 'Aug 14 · 4:00 PM',
+    relativeDay: 'Past',
+    time: '4:00 PM',
+    category: 'Cultural',
+    image: getCategoryImage('Cultural'),
+    approved: true,
+    discoveryOrder: 21,
+    location: 'Main Ground',
+    attendees: 320,
+    description: 'A campus celebration featuring performances, food stalls, and student showcases.',
+  },
+  {
+    id: 'event-basketball-friendly',
+    type: 'event',
+    title: 'Inter-University Basketball Friendly',
+    society: 'NUTECH Sports Club',
+    schedule: 'Jul 27 · 5:00 PM',
+    relativeDay: 'Past',
+    time: '5:00 PM',
+    category: 'Sports',
+    image: getCategoryImage('Sports'),
+    approved: true,
+    discoveryOrder: 22,
+    location: 'Sports Complex',
+    attendees: 146,
+    description:
+      'A friendly evening fixture bringing together student teams from across Islamabad.',
+  },
+];
+
+export type StudentNotification = {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  kind: 'event' | 'deadline' | 'society';
+  unread: boolean;
+  eventId?: string;
+};
+
+export const STUDENT_NOTIFICATIONS: StudentNotification[] = [
+  {
+    id: 'notification-1',
+    title: 'Event starts today',
+    message: 'Campus Innovation Night begins at 5:30 PM in the Main Auditorium.',
+    time: '20 min ago',
+    kind: 'event',
+    unread: true,
+    eventId: 'event-innovation-night',
+  },
+  {
+    id: 'notification-2',
+    title: 'Registration closing soon',
+    message: 'Registration for Campus Innovation Night closes in 2 days.',
+    time: '2h ago',
+    kind: 'deadline',
+    unread: true,
+    eventId: 'event-innovation-night',
+  },
+  {
+    id: 'notification-3',
+    title: 'New society update',
+    message: 'AWS Cloud Club posted details for the next study jam.',
+    time: 'Yesterday',
+    kind: 'society',
+    unread: false,
+  },
+];
+
+export function getAllEvents() {
+  return HOME_FEED.filter((item): item is EventFeedItem => item.type === 'event');
+}
+
+export function getEventById(id: string | undefined) {
+  if (!id) return undefined;
+  return [...getAllEvents(), ...PAST_EVENTS].find((event) => event.id === id);
+}
+
+export function getBookmarkedEvents() {
+  return getAllEvents().filter((event) => STUDENT_BOOKMARK_IDS.includes(event.id));
+}
+
+export function getRegisteredEvents() {
+  return getAllEvents().filter((event) => STUDENT_REGISTRATION_IDS.includes(event.id));
 }
