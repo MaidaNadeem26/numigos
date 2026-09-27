@@ -201,6 +201,12 @@ export function ExploreDashboard() {
   const toggleFollowClub = (clubId: string) => {
     setFollowedClubIds((prev) => prev.includes(clubId) ? prev.filter((id) => id !== clubId) : [...prev, clubId]);
   };
+  const [expandedPostIds, setExpandedPostIds] = useState<string[]>([]);
+  const toggleExpandPost = (postId: string) => {
+    setExpandedPostIds((prev) =>
+      prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId]
+    );
+  };
   const [posts, setPosts] = useState(INITIAL_POSTS);
   const [refreshing, setRefreshing] = useState(false);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -855,6 +861,11 @@ export function ExploreDashboard() {
             <View style={{ gap: 11, marginTop: 10 }}>
               {filteredPosts.map((post) => {
                 const isFollowing = followedClubIds.includes(post.societyId);
+                const isLongPost = post.body.length > 130 || post.body.includes("\n");
+                const isExpanded = expandedPostIds.includes(post.id);
+                const shortBody = isLongPost
+                  ? post.body.replace(/\n+/g, " ").slice(0, 128).trim() + "..."
+                  : post.body;
                 return (
                   <View
                     key={post.id}
@@ -955,6 +966,7 @@ export function ExploreDashboard() {
                         ) : null}
 
                         <Text
+                          numberOfLines={isExpanded ? undefined : 2}
                           style={{
                             color: "#36403C",
                             fontSize: 10,
@@ -962,8 +974,37 @@ export function ExploreDashboard() {
                             marginTop: post.title ? 4 : 6,
                           }}
                         >
-                          {post.body}
+                          {isExpanded ? post.body : shortBody}
                         </Text>
+
+                        {isLongPost ? (
+                          <Pressable
+                            onPress={() => toggleExpandPost(post.id)}
+                            hitSlop={6}
+                            style={{
+                              alignSelf: "flex-start",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 3,
+                              marginTop: 5,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 9.5,
+                                fontWeight: "700",
+                                color: "#144534",
+                              }}
+                            >
+                              {isExpanded ? "Show less" : "Read more"}
+                            </Text>
+                            <Ionicons
+                              name={isExpanded ? "chevron-up" : "chevron-down"}
+                              size={12}
+                              color="#144534"
+                            />
+                          </Pressable>
+                        ) : null}
 
                         {/* Clickable Registration / External Link for Non-Event Club Posts */}
                         {post.externalLink ? (
@@ -998,7 +1039,7 @@ export function ExploreDashboard() {
                           </Pressable>
                         ) : null}
 
-                        {post.secondaryLink ? (
+                        {post.secondaryLink && isExpanded ? (
                           <Pressable
                             onPress={() => void Linking.openURL(post.secondaryLink!.url)}
                             style={{
@@ -1040,8 +1081,8 @@ export function ExploreDashboard() {
                               source={post.imageSource}
                               style={{
                                 width: "100%",
-                                height: 220,
-                                borderRadius: 12,
+                                height: isExpanded ? 220 : 120,
+                                borderRadius: 11,
                               }}
                               resizeMode="cover"
                             />

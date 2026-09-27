@@ -29,6 +29,7 @@ export default function SocietyProfileScreen() {
   const [bookmarked, setBookmarked] = useState(false);
   const [joined, setJoined] = useState(true);
   const [rsvpIds, setRsvpIds] = useState<string[]>(["event-ieee-fest"]);
+  const [postExpanded, setPostExpanded] = useState(false);
 
   const society = (id && NUTECH_SOCIETIES[id]) || NUTECH_SOCIETIES["entrepreneurship-club"];
   const clubEvents = NUTECH_EVENTS_LIST.filter((ev) => ev.societyId === society.id);
@@ -531,6 +532,7 @@ export default function SocietyProfileScreen() {
                 </Text>
 
                 <Text
+                  numberOfLines={postExpanded ? undefined : 2}
                   style={{
                     marginTop: 5,
                     fontSize: 9.8,
@@ -544,13 +546,33 @@ Join NUTECH’s most premium tech community. After events at NASTP and 10Pearls,
 
 🎁 Get AWS swag, exam vouchers, and cloud credits. Build your skills. Connect with industry professionals.`}
                 </Text>
+                <Pressable
+                  onPress={() => setPostExpanded((prev) => !prev)}
+                  hitSlop={6}
+                  style={{
+                    alignSelf: "flex-start",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 3,
+                    marginTop: 5,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#144534" }}>
+                    {postExpanded ? "Show less" : "Read more"}
+                  </Text>
+                  <Ionicons
+                    name={postExpanded ? "chevron-up" : "chevron-down"}
+                    size={12}
+                    color="#144534"
+                  />
+                </Pressable>
 
                 <Image
                   source={AWS_BUILDER_IMAGE}
                   style={{
                     marginTop: 9,
                     width: "100%",
-                    height: 225,
+                    height: postExpanded ? 225 : 120,
                     borderRadius: 12,
                   }}
                   resizeMode="cover"
@@ -639,6 +661,7 @@ Join NUTECH’s most premium tech community. After events at NASTP and 10Pearls,
                 </Text>
 
                 <Text
+                  numberOfLines={postExpanded ? undefined : 2}
                   style={{
                     marginTop: 5,
                     fontSize: 9.8,
@@ -656,13 +679,33 @@ Open for all departments.
 
 Note: No startup needed to join the team.`}
                 </Text>
+                <Pressable
+                  onPress={() => setPostExpanded((prev) => !prev)}
+                  hitSlop={6}
+                  style={{
+                    alignSelf: "flex-start",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 3,
+                    marginTop: 5,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#144534" }}>
+                    {postExpanded ? "Show less" : "Read more"}
+                  </Text>
+                  <Ionicons
+                    name={postExpanded ? "chevron-up" : "chevron-down"}
+                    size={12}
+                    color="#144534"
+                  />
+                </Pressable>
 
                 <Image
                   source={ZINDIGI_PRIZE_IMAGE}
                   style={{
                     marginTop: 9,
                     width: "100%",
-                    height: 230,
+                    height: postExpanded ? 230 : 120,
                     borderRadius: 12,
                   }}
                   resizeMode="cover"
@@ -781,6 +824,7 @@ Note: No startup needed to join the team.`}
                 </Text>
 
                 <Text
+                  numberOfLines={postExpanded ? undefined : 2}
                   style={{
                     marginTop: 5,
                     fontSize: 9.8,
@@ -805,13 +849,33 @@ Don’t just attend. Be part of the team that makes it happen. ⚡
 
 ⏳ Registration Deadline: Wednesday 30 Sept, 2026`}
                 </Text>
+                <Pressable
+                  onPress={() => setPostExpanded((prev) => !prev)}
+                  hitSlop={6}
+                  style={{
+                    alignSelf: "flex-start",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 3,
+                    marginTop: 5,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#144534" }}>
+                    {postExpanded ? "Show less" : "Read more"}
+                  </Text>
+                  <Ionicons
+                    name={postExpanded ? "chevron-up" : "chevron-down"}
+                    size={12}
+                    color="#144534"
+                  />
+                </Pressable>
 
                 <Image
                   source={IEEE_NUTECH_IMAGE}
                   style={{
                     marginTop: 9,
                     width: "100%",
-                    height: 260,
+                    height: postExpanded ? 260 : 120,
                     borderRadius: 12,
                   }}
                   resizeMode="cover"
@@ -900,6 +964,7 @@ Don’t just attend. Be part of the team that makes it happen. ⚡
                 </Text>
 
                 <Text
+                  numberOfLines={postExpanded ? undefined : 2}
                   style={{
                     marginTop: 5,
                     fontSize: 9.8,
@@ -924,6 +989,26 @@ Join the team. Build the future. 🚀
 Regards,
 Huzaifa Khan`}
                 </Text>
+                <Pressable
+                  onPress={() => setPostExpanded((prev) => !prev)}
+                  hitSlop={6}
+                  style={{
+                    alignSelf: "flex-start",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 3,
+                    marginTop: 5,
+                  }}
+                >
+                  <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#144534" }}>
+                    {postExpanded ? "Show less" : "Read more"}
+                  </Text>
+                  <Ionicons
+                    name={postExpanded ? "chevron-up" : "chevron-down"}
+                    size={12}
+                    color="#144534"
+                  />
+                </Pressable>
 
                 <Pressable
                   onPress={() => void Linking.openURL("https://forms.gle/pAA2oZmuLwGPSybQ6")}
