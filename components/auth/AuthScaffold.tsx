@@ -3,10 +3,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
-import { Typography } from 'heroui-native';
 
 import { CampusHero } from '@/components/auth/CampusHero';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
@@ -14,8 +14,8 @@ import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { getScreenHorizontalPadding } from '@/lib/layout';
 
 interface AuthScaffoldProps extends PropsWithChildren {
-  title: string;
-  subtitle: string;
+  title?: string;
+  subtitle?: string;
   onBack?: () => void;
   footer?: ReactNode;
   header?: ReactNode;
@@ -25,6 +25,7 @@ interface AuthScaffoldProps extends PropsWithChildren {
   hideHeroBrand?: boolean;
   useHeroArtwork?: boolean;
   alignContentLeft?: boolean;
+  noScroll?: boolean;
 }
 
 export function AuthScaffold({
@@ -41,59 +42,113 @@ export function AuthScaffold({
   useHeroArtwork = false,
   alignContentLeft = false,
 }: AuthScaffoldProps) {
-  const { width: viewportWidth } = useWindowDimensions();
+  const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
+  const isCompactHeight = viewportHeight <= 660;
+  const horizontalPadding = Math.max(22, getScreenHorizontalPadding(viewportWidth));
 
   return (
-    <SafeAreaView className="bg-brand flex-1" edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+    <View style={{ backgroundColor: '#0B1813', flex: 1 }}>
+      <SafeAreaView
+        className="flex-1 overflow-hidden"
+        edges={['top', 'left', 'right']}
+        style={{
+          backgroundColor: '#FAF9F5',
+          borderRadius: Platform.OS === 'web' ? 28 : 0,
+          flex: 1,
+          overflow: 'hidden',
+        }}
       >
-        <ScrollView
-          bounces={false}
-          className="bg-canvas flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-          keyboardShouldPersistTaps="handled"
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
         >
-          <CampusHero
-            compact={compactHero}
-            height={heroHeight}
-            onBack={onBack}
-            showBrand={!hideHeroBrand}
-            useArtwork={useHeroArtwork}
-          />
-
-          <View
-            className={`auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap flex-1 ${
-              dense ? 'pb-safe-offset-3 pt-4' : 'pt-auth-section pb-safe-offset-8'
-            }`}
-            style={{ paddingHorizontal: getScreenHorizontalPadding(viewportWidth) }}
+          <ScrollView
+            bounces={false}
+            className="flex-1"
+            contentContainerStyle={{
+              backgroundColor: '#FAF9F5',
+              flexGrow: 1,
+            }}
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            keyboardShouldPersistTaps="handled"
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
           >
-            <View className="mx-auto w-full max-w-[440px]">
-              {header}
-              <Typography
-                className={`font-display text-auth-title text-ink leading-tight ${
-                  alignContentLeft ? 'text-left' : 'text-center'
-                }`}
-              >
-                {title}
-              </Typography>
-              <Typography
-                className={`text-auth-subtitle text-ink-muted max-w-[340px] font-sans leading-5 ${
-                  alignContentLeft ? 'mr-auto text-left' : 'mx-auto text-center'
-                } ${dense ? 'mt-1' : 'mt-2'}`}
-              >
-                {subtitle}
-              </Typography>
-              <View className={dense ? 'mt-3' : 'mt-auth-section'}>{children}</View>
+            <CampusHero
+              compact={compactHero}
+              height={heroHeight}
+              onBack={onBack}
+              showBrand={!hideHeroBrand}
+              useArtwork={useHeroArtwork}
+            />
+
+            <View
+              className={
+                useHeroArtwork
+                  ? ''
+                  : `auth-panel-shadow rounded-t-auth-panel bg-surface -mt-auth-overlap ${
+                      dense ? 'pb-safe-offset-3 pt-4' : 'pt-auth-section pb-safe-offset-8'
+                    }`
+              }
+              style={{
+                backgroundColor: '#FAF9F5',
+                borderTopLeftRadius: useHeroArtwork ? 0 : 32,
+                borderTopRightRadius: useHeroArtwork ? 0 : 32,
+                flexShrink: 0,
+                marginTop: useHeroArtwork ? -2 : undefined,
+                paddingBottom: isCompactHeight ? 14 : 18,
+                paddingHorizontal: horizontalPadding,
+                paddingTop: useHeroArtwork ? (isCompactHeight ? 4 : 6) : undefined,
+              }}
+            >
+              <View className="mx-auto w-full max-w-[440px]">
+                {header}
+                {title ? (
+                  <Text
+                    style={{
+                      color: '#162620',
+                      fontFamily: Platform.select({
+                        web: "Georgia, 'Times New Roman', serif",
+                        default: undefined,
+                      }),
+                      fontSize: isCompactHeight ? 21 : 24,
+                      fontWeight: '600',
+                      letterSpacing: -0.3,
+                      lineHeight: isCompactHeight ? 25 : 29,
+                      textAlign: alignContentLeft ? 'left' : 'center',
+                    }}
+                  >
+                    {title}
+                  </Text>
+                ) : null}
+                {subtitle ? (
+                  <Text
+                    style={{
+                      alignSelf: alignContentLeft ? 'flex-start' : 'center',
+                      color: '#66736E',
+                      fontSize: isCompactHeight ? 11.5 : 12.5,
+                      lineHeight: isCompactHeight ? 16 : 18,
+                      marginTop: isCompactHeight ? 3 : 5,
+                      maxWidth: 260,
+                      textAlign: alignContentLeft ? 'left' : 'center',
+                    }}
+                  >
+                    {subtitle}
+                  </Text>
+                ) : null}
+                <View
+                  style={{
+                    marginTop: title || subtitle ? (isCompactHeight ? 10 : 14) : 4,
+                  }}
+                >
+                  {children}
+                </View>
+              </View>
+              {footer ? <View className="mx-auto mt-4 w-full max-w-[440px]">{footer}</View> : null}
             </View>
-            {footer ? <View className="mx-auto mt-8 w-full max-w-[440px]">{footer}</View> : null}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }

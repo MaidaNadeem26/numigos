@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Button, Typography } from 'heroui-native';
-import { ImageBackground, View } from 'react-native';
+import { useState } from 'react';
+import { Image, useWindowDimensions, View } from 'react-native';
 
 import { numigosTheme } from '@/lib/theme';
 
 const campusEventArtwork = require('@/assets/images/numigos-campus-event-hero.png');
+const ARTWORK_ASPECT_RATIO = 640 / 359;
 
 interface CampusHeroProps {
   compact?: boolean;
@@ -21,45 +24,99 @@ export function CampusHero({
   showBrand = true,
   useArtwork = false,
 }: CampusHeroProps) {
-  const heroHeight =
+  const { width: viewportWidth } = useWindowDimensions();
+  const fallbackHeight =
     height ?? (compact ? numigosTheme.spacing.heroCompact : numigosTheme.spacing.hero);
+  const [layout, setLayout] = useState({ width: 0, height: 0 });
+
+  const activeWidth = layout.width > 0 ? layout.width : viewportWidth;
+  const activeHeight = layout.height > 0 ? layout.height : fallbackHeight;
 
   if (useArtwork) {
+    // True 359:640 aspect ratio (never squeezed) and centered vertically on the artwork
+    const renderedWidth = Math.round(activeWidth * 1.03);
+    const renderedHeight = Math.round(renderedWidth * ARTWORK_ASPECT_RATIO);
+    const renderedLeft = -Math.round(activeWidth * 0.015);
+    const renderedBottom = -Math.round(renderedHeight * 0.04);
+
     return (
-      <ImageBackground
-        className="bg-brand relative overflow-hidden"
-        imageStyle={{ height: '100%', width: '100%' }}
-        resizeMode="cover"
-        source={campusEventArtwork}
-        style={{ height: heroHeight, width: '100%' }}
+      <View
+        onLayout={(event) => {
+          const nextWidth = Math.round(event.nativeEvent.layout.width);
+          const nextHeight = Math.round(event.nativeEvent.layout.height);
+          if (
+            nextWidth > 0 &&
+            nextHeight > 0 &&
+            (nextWidth !== layout.width || nextHeight !== layout.height)
+          ) {
+            setLayout({ width: nextWidth, height: nextHeight });
+          }
+        }}
+        style={{
+          backgroundColor: '#123E34',
+          flex: 1,
+          minHeight: fallbackHeight,
+          overflow: 'hidden',
+          position: 'relative',
+          width: '100%',
+        }}
       >
+        <Image
+          resizeMode="cover"
+          source={campusEventArtwork}
+          style={{
+            bottom: renderedBottom,
+            height: renderedHeight,
+            left: renderedLeft,
+            position: 'absolute',
+            width: renderedWidth,
+          }}
+        />
+
         {onBack || showBrand ? (
-          <View className="inset-x-auth-screen absolute top-5 flex-row items-center justify-between">
+          <View className="inset-x-auth-screen absolute top-4 z-10 flex-row items-center justify-between">
             {onBack ? (
               <Button
                 accessibilityLabel="Go back"
-                className="size-11 min-w-0 items-center justify-center rounded-full border border-white/25 bg-black/20 px-0"
+                className="size-10 min-w-0 items-center justify-center rounded-full border border-white/25 bg-black/20 px-0"
                 onPress={onBack}
                 variant="ghost"
               >
-                <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={21} />
+                <Ionicons color={numigosTheme.colors.surface} name="chevron-back" size={20} />
               </Button>
             ) : (
-              <View className="size-11" />
+              <View className="size-10" />
             )}
             {showBrand ? (
               <Typography className="font-display text-hero-mark text-white">Numigos</Typography>
             ) : null}
           </View>
         ) : null}
-      </ImageBackground>
+
+        <LinearGradient
+          colors={[
+            'rgba(250, 249, 245, 0)',
+            'rgba(250, 249, 245, 0.32)',
+            'rgba(250, 249, 245, 0.85)',
+            '#FAF9F5',
+          ]}
+          locations={[0, 0.45, 0.8, 1]}
+          style={{
+            bottom: 0,
+            height: Math.round(activeHeight * 0.18),
+            left: 0,
+            position: 'absolute',
+            right: 0,
+          }}
+        />
+      </View>
     );
   }
 
   return (
     <View
       className="bg-brand px-auth-screen relative overflow-hidden"
-      style={{ height: heroHeight, width: '100%' }}
+      style={{ height: fallbackHeight, width: '100%' }}
     >
       <View className="bg-brand-strong absolute -top-24 -right-20 size-72 rounded-full opacity-70" />
       <View className="bg-brand-soft absolute -bottom-36 -left-20 size-72 rounded-full opacity-10" />

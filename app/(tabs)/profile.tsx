@@ -28,7 +28,7 @@ import { Alert, Image, ScrollView, View } from 'react-native';
 import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
 import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
 import { FOLLOWED_SOCIETIES } from '@/lib/home-feed';
-import { supabase } from '@/lib/supabase';
+import { setTestSessionEmail, supabase } from '@/lib/supabase';
 import { numigosTheme } from '@/lib/theme';
 
 const PROFILE = {
@@ -137,6 +137,7 @@ export default function ProfileScreen() {
 
   const signOut = async () => {
     try {
+      await setTestSessionEmail(null);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       router.replace('/login');

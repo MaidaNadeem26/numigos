@@ -12,9 +12,9 @@ export const responsiveBreakpoints = {
   desktop: 1024,
 } as const;
 
-const AUTH_HERO_MIN_HEIGHT = 144;
-const AUTH_HERO_MAX_HEIGHT = 244;
-const AUTH_HERO_SMALL_MAX_HEIGHT = 212;
+const AUTH_HERO_MIN_HEIGHT = 130;
+const AUTH_HERO_MAX_HEIGHT = 230;
+const AUTH_HERO_SMALL_MAX_HEIGHT = 200;
 const SHORT_VIEWPORT_HEIGHT = 640;
 
 export function isSmallPhone(width: number) {
@@ -26,14 +26,12 @@ export function isTablet(width: number) {
 }
 
 export function getAuthHeroHeight(viewportHeight: number, viewportWidth: number) {
-  const preferredHeight = Math.round(
-    viewportHeight * (viewportHeight <= SHORT_VIEWPORT_HEIGHT ? 0.24 : 0.29),
-  );
-  const maximumHeight = isSmallPhone(viewportWidth)
-    ? AUTH_HERO_SMALL_MAX_HEIGHT
-    : AUTH_HERO_MAX_HEIGHT;
+  const ratio = viewportHeight <= 640 ? 0.34 : 0.36;
+  const preferredHeight = Math.round(viewportHeight * ratio);
+  const minHeight = 195;
+  const maxHeight = isSmallPhone(viewportWidth) ? 245 : 270;
 
-  return Math.min(maximumHeight, Math.max(AUTH_HERO_MIN_HEIGHT, preferredHeight));
+  return Math.min(maxHeight, Math.max(minHeight, preferredHeight));
 }
 
 export function getScreenHorizontalPadding(viewportWidth: number) {

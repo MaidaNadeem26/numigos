@@ -50,18 +50,14 @@ Uniwind.setTheme('light');
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts(
-    Platform.OS === 'web'
-      ? {}
-      : {
-          Inter_400Regular,
-          Inter_500Medium,
-          Inter_600SemiBold,
-          Inter_700Bold,
-          Manrope_600SemiBold,
-          Manrope_700Bold,
-        },
-  );
+  const [loaded, error] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+  });
 
   // Report uncaught JS errors and unhandled promise rejections to parent (Bilt preview iframe)
   useEffect(() => {
@@ -91,8 +87,12 @@ export default function RootLayout() {
     const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
     if (__DEV__ && Platform.OS !== 'web' && !isExpoGo) {
       const timer = setTimeout(() => {
-        DevClient.closeMenu();
-        DevClient.hideMenu();
+        try {
+          DevClient.closeMenu?.();
+          DevClient.hideMenu?.();
+        } catch {
+          // Ignore when running inside Expo Go
+        }
       }, 1000);
       return () => clearTimeout(timer);
     }

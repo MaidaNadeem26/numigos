@@ -1,6 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, TextInput, useWindowDimensions, View } from 'react-native';
-import { Button, InputOTP, Typography } from 'heroui-native';
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { AuthScaffold } from '@/components/auth/AuthScaffold';
@@ -8,7 +16,7 @@ import { FormField } from '@/components/auth/FormField';
 import { useAuthFlow } from '@/lib/auth-flow';
 import { mapAuthError, validatePassword } from '@/lib/auth-validation';
 import { supabase } from '@/lib/supabase';
-import { isSmallPhone } from '@/lib/layout';
+import { getAuthHeroHeight } from '@/lib/layout';
 import { numigosTheme } from '@/lib/theme';
 
 const OTP_LENGTH = 6;
@@ -17,12 +25,12 @@ const RESEND_SECONDS = 45;
 type VerificationMode = 'signup' | 'recovery';
 
 export default function VerificationScreen() {
-  const { width: viewportWidth } = useWindowDimensions();
-  const compactWidth = isSmallPhone(viewportWidth);
+  const { height: viewportHeight, width: viewportWidth } = useWindowDimensions();
   const params = useLocalSearchParams<{ mode?: VerificationMode }>();
   const { verificationEmail, signupDraft } = useAuthFlow();
   const mode: VerificationMode = params.mode === 'recovery' ? 'recovery' : 'signup';
   const [code, setCode] = useState('');
+  const [isOtpFocused, setIsOtpFocused] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [cooldown, setCooldown] = useState(RESEND_SECONDS);
@@ -33,6 +41,7 @@ export default function VerificationScreen() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [recoveryVerified, setRecoveryVerified] = useState(false);
   const lastSubmittedCode = useRef('');
+  const otpInputRef = useRef<TextInput>(null);
 
   const maskedEmail = useMemo(() => {
     const [local, domain] = verificationEmail.split('@');
@@ -140,19 +149,26 @@ export default function VerificationScreen() {
 
   return (
     <AuthScaffold
-      onBack={handleBack}
+      alignContentLeft
+      dense
+      heroHeight={getAuthHeroHeight(viewportHeight, viewportWidth)}
+      hideHeroBrand
+      noScroll
       subtitle={
         recoveryVerified
           ? 'Create a strong password you haven’t used before.'
           : `Enter the six-digit code sent to ${maskedEmail}.`
       }
       title={recoveryVerified ? 'Choose a new password' : 'Check your inbox'}
+      useHeroArtwork
     >
       {recoveryVerified ? (
-        <View className="gap-1">
+        <View style={{ width: '100%' }}>
           <FormField
+            borderless
+            compact
             error={error}
-            icon="lock-closed-outline"
+            fieldTone="softNeutral"
             label="New password"
             onChangeText={setNewPassword}
             onToggleSecure={() => setShowPassword((current) => !current)}
@@ -161,108 +177,240 @@ export default function VerificationScreen() {
             textContentType="newPassword"
             value={newPassword}
           />
-          <Button
-            className="action-shadow rounded-action bg-brand mt-3 h-14"
-            isDisabled={isUpdatingPassword}
+          <Pressable
+            disabled={isUpdatingPassword}
             onPress={updatePassword}
+            style={{
+              alignItems: 'center',
+              backgroundColor: '#1B4336',
+              borderRadius: 999,
+              height: 37,
+              justifyContent: 'center',
+              marginTop: 12,
+              opacity: isUpdatingPassword ? 0.7 : 1,
+              width: '100%',
+            }}
           >
             {isUpdatingPassword ? (
-              <ActivityIndicator color={numigosTheme.colors.surface} />
+              <ActivityIndicator color={numigosTheme.colors.surface} size="small" />
             ) : (
-              <Button.Label className="text-action font-semibold text-white">
+              <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '600' }}>
                 Update password
-              </Button.Label>
+              </Text>
             )}
-          </Button>
+          </Pressable>
+
+          <Pressable
+            onPress={handleBack}
+            style={{
+              alignItems: 'center',
+              alignSelf: 'center',
+              flexDirection: 'row',
+              gap: 4,
+              marginTop: 10,
+              paddingVertical: 4,
+            }}
+          >
+            <Ionicons color="#66736E" name="chevron-back" size={14} />
+            <Text style={{ color: '#66736E', fontSize: 11.5, fontWeight: '500' }}>Back</Text>
+          </Pressable>
         </View>
       ) : (
-        <View>
-          <InputOTP
-            className="w-full"
-            inputMode="numeric"
-            isDisabled={isVerifying}
-            isInvalid={Boolean(error)}
-            maxLength={OTP_LENGTH}
-            onChange={(value) => {
-              setCode(value);
-              setError('');
-              setStatus('');
-              if (value.length < OTP_LENGTH) lastSubmittedCode.current = '';
+        <View style={{ width: '100%' }}>
+          <Text
+            style={{
+              color: '#1A2822',
+              fontSize: 11,
+              fontWeight: '600',
+              lineHeight: 14,
+              marginBottom: 4,
+              marginLeft: 2,
             }}
-            pattern="[0-9]*"
-            textInputProps={{
-              autoFocus: true,
-              keyboardType: 'number-pad',
-              textContentType: 'oneTimeCode',
-            }}
-            value={code}
           >
-            <InputOTP.Group
-              className="w-full flex-row justify-between"
-              style={{ columnGap: compactWidth ? 5 : 8 }}
-            >
-              {Array.from({ length: OTP_LENGTH }, (_, index) => (
-                <InputOTP.Slot
-                  className={`rounded-field border-line bg-surface min-w-0 flex-1 border ${
-                    compactWidth ? 'h-14' : 'h-16'
-                  }`}
-                  index={index}
+            Verification code
+          </Text>
+
+          <Pressable
+            onPress={() => otpInputRef.current?.focus()}
+            style={{
+              flexDirection: 'row',
+              gap: 8,
+              justifyContent: 'space-between',
+              position: 'relative',
+              width: '100%',
+            }}
+          >
+            {Array.from({ length: OTP_LENGTH }, (_, index) => {
+              const char = code[index] ?? '';
+              const isActiveSlot =
+                isOtpFocused &&
+                (index === code.length || (code.length === OTP_LENGTH && index === OTP_LENGTH - 1));
+
+              return (
+                <View
                   key={index}
+                  style={{
+                    alignItems: 'center',
+                    backgroundColor: '#EFECE6',
+                    borderColor: error
+                      ? numigosTheme.colors.error
+                      : isActiveSlot
+                        ? numigosTheme.colors.brand
+                        : 'transparent',
+                    borderRadius: 9,
+                    borderWidth: error || isActiveSlot ? 1.25 : 1,
+                    flex: 1,
+                    height: 38,
+                    justifyContent: 'center',
+                  }}
                 >
-                  <InputOTP.SlotPlaceholder
-                    className={`${compactWidth ? 'text-[21px]' : 'text-otp'} text-ink-muted`}
-                  />
-                  <InputOTP.SlotValue
-                    className={`font-display-semibold ${compactWidth ? 'text-[21px]' : 'text-otp'} text-ink`}
-                  />
-                  <InputOTP.SlotCaret className="bg-brand" />
-                </InputOTP.Slot>
-              ))}
-            </InputOTP.Group>
-            <TextInput className="hidden" />
-          </InputOTP>
+                  <Text
+                    style={{
+                      color: char ? '#162620' : '#8B9490',
+                      fontSize: 14,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {char}
+                  </Text>
+                </View>
+              );
+            })}
 
-          <View className="min-h-16 items-center justify-center">
+            <TextInput
+              autoFocus
+              caretHidden
+              keyboardType="number-pad"
+              maxLength={OTP_LENGTH}
+              onBlur={() => setIsOtpFocused(false)}
+              onChangeText={(value) => {
+                const digitsOnly = value.replace(/[^0-9]/g, '').slice(0, OTP_LENGTH);
+                setCode(digitsOnly);
+                setError('');
+                setStatus('');
+                if (digitsOnly.length < OTP_LENGTH) lastSubmittedCode.current = '';
+              }}
+              onFocus={() => setIsOtpFocused(true)}
+              ref={otpInputRef}
+              style={[
+                {
+                  bottom: 0,
+                  color: 'transparent',
+                  left: 0,
+                  opacity: 0.01,
+                  position: 'absolute',
+                  right: 0,
+                  top: 0,
+                  width: '100%',
+                },
+                Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null,
+              ]}
+              textContentType="oneTimeCode"
+              value={code}
+            />
+          </Pressable>
+
+          {error ? (
+            <View className="bg-error-soft mt-2 rounded-lg px-3 py-2">
+              <Text
+                style={{
+                  color: numigosTheme.colors.error,
+                  fontSize: 11,
+                  fontWeight: '500',
+                  textAlign: 'center',
+                }}
+              >
+                {error}
+              </Text>
+            </View>
+          ) : status ? (
+            <View className="bg-success-soft mt-2 rounded-lg px-3 py-2">
+              <Text
+                style={{
+                  color: numigosTheme.colors.success,
+                  fontSize: 11,
+                  fontWeight: '500',
+                  textAlign: 'center',
+                }}
+              >
+                {status}
+              </Text>
+            </View>
+          ) : null}
+
+          <Pressable
+            disabled={isVerifying}
+            onPress={() => {
+              if (code.length < OTP_LENGTH) {
+                setError('Enter the 6-digit verification code.');
+                return;
+              }
+              void verifyCode(code);
+            }}
+            style={{
+              alignItems: 'center',
+              backgroundColor: '#1B4336',
+              borderRadius: 999,
+              height: 37,
+              justifyContent: 'center',
+              marginTop: 12,
+              opacity: isVerifying ? 0.7 : 1,
+              width: '100%',
+            }}
+          >
             {isVerifying ? (
-              <View className="flex-row items-center gap-2">
-                <ActivityIndicator color={numigosTheme.colors.brand} size="small" />
-                <Typography className="text-ink-muted text-sm font-medium">
-                  Checking code…
-                </Typography>
-              </View>
-            ) : error ? (
-              <View className="bg-error-soft w-full rounded-xl px-4 py-3">
-                <Typography className="text-error text-center text-sm font-medium">
-                  {error}
-                </Typography>
-              </View>
-            ) : status ? (
-              <View className="bg-success-soft w-full rounded-xl px-4 py-3">
-                <Typography className="text-success text-center text-sm font-medium">
-                  {status}
-                </Typography>
-              </View>
-            ) : null}
-          </View>
+              <ActivityIndicator color={numigosTheme.colors.surface} size="small" />
+            ) : (
+              <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '600' }}>
+                Verify code
+              </Text>
+            )}
+          </Pressable>
 
-          <View className="mt-1 items-center">
-            <Typography className="text-ink-muted font-sans text-sm">
-              Didn’t receive the code?
-            </Typography>
-            <Button
-              className="mt-1 h-11 rounded-full px-5"
-              isDisabled={cooldown > 0 || isResending}
-              onPress={resendCode}
-              variant="tertiary"
+          <Pressable
+            disabled={isVerifying}
+            onPress={handleBack}
+            style={{
+              alignItems: 'center',
+              alignSelf: 'center',
+              flexDirection: 'row',
+              gap: 4,
+              marginTop: 10,
+              paddingVertical: 4,
+            }}
+          >
+            <Ionicons color="#66736E" name="chevron-back" size={14} />
+            <Text style={{ color: '#66736E', fontSize: 11.5, fontWeight: '500' }}>Back</Text>
+          </Pressable>
+
+          <View
+            style={{
+              alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              marginTop: 8,
+              paddingBottom: 4,
+            }}
+          >
+            <Text style={{ color: '#66736E', fontSize: 11 }}>Didn’t receive the code? </Text>
+            <Pressable
+              disabled={cooldown > 0 || isResending}
+              onPress={() => void resendCode()}
             >
               {isResending ? (
                 <ActivityIndicator color={numigosTheme.colors.brand} size="small" />
               ) : (
-                <Button.Label className="text-brand text-sm font-semibold">
+                <Text
+                  style={{
+                    color: cooldown > 0 ? '#8B9490' : '#9E5A24',
+                    fontSize: 11,
+                    fontWeight: '700',
+                  }}
+                >
                   {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
-                </Button.Label>
+                </Text>
               )}
-            </Button>
+            </Pressable>
           </View>
         </View>
       )}
