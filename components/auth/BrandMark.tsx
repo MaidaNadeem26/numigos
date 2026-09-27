@@ -1,31 +1,31 @@
-import { Image, View } from 'react-native';
+import { Image, View } from "react-native";
 
 interface BrandMarkProps {
   compact?: boolean;
 }
 
 export function BrandMark({ compact = false }: BrandMarkProps) {
+  const size = compact ? 58 : 88;
   return (
     <View
-      className={`bg-surface logo-shadow items-center justify-center overflow-hidden ${
-        compact ? 'size-16 rounded-[20px] p-1.5' : 'rounded-logo size-28 p-2.5'
-      }`}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: compact ? 16 : 24,
+        overflow: "hidden",
+        borderWidth: 1.5,
+        borderColor: "rgba(243, 208, 146, 0.45)",
+        backgroundColor: "#11382B",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
     >
-      {compact ? (
-        <Image
-          accessibilityLabel="NUTECH logo"
-          resizeMode="contain"
-          source={require('@/assets/images/nutech-logo.png')}
-          style={{ height: 52, width: 52 }}
-        />
-      ) : (
-        <Image
-          accessibilityLabel="NUTECH logo"
-          resizeMode="contain"
-          source={require('@/assets/images/nutech-logo.png')}
-          style={{ height: 92, width: 92 }}
-        />
-      )}
+      <Image
+        accessibilityLabel="Numigos logo"
+        resizeMode="cover"
+        source={require("@/assets/images/numigos-logo.jpg")}
+        style={{ width: size, height: size }}
+      />
     </View>
   );
 }

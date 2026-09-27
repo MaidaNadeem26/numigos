@@ -1,389 +1,462 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Bookmark,
-  BriefcaseBusiness,
-  CalendarDays,
-  Check,
-  ChevronRight,
-  Clock3,
-  GraduationCap,
-  Mail,
-  MapPin,
-  Share2,
-  ShieldCheck,
-  Star,
-  UserRound,
-} from 'lucide-react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import {
-  Alert,
   Image,
   ImageBackground,
-  Linking,
+  Platform,
+  Pressable,
   ScrollView,
-  Share,
   Text,
-  useWindowDimensions,
   View,
-} from 'react-native';
+} from "react-native";
 
-import { LinearGradient } from '@/components/ui/primitives/LinearGradient';
-import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
-import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
-import { HOME_FEED, type EventFeedItem } from '@/lib/home-feed';
-import { goBackOrReplace } from '@/lib/navigation';
-import { numigosTheme } from '@/lib/theme';
+import { LinearGradient } from "@/components/ui/primitives/LinearGradient";
+import { SafeAreaView } from "@/components/ui/primitives/SafeAreaView";
+import { goBackOrReplace } from "@/lib/navigation";
+import { MotionView, useResponsive } from "@/lib/responsive-motion";
+import { NUTECH_EVENTS } from "@/lib/nutech-data";
 
-const { colors } = numigosTheme;
-const HERO_IMAGE = require('@/assets/images/numigos-campus-event-hero.png');
+const SERIF_FONT = Platform.select({
+  web: "Georgia, 'Times New Roman', serif",
+  ios: "Georgia",
+  default: "serif",
+});
 
-const eventDetails = {
-  date: 'Saturday, Sep 26, 2024',
-  timing: '2:00 PM – 5:00 PM PKT',
-  duration: '3 Hours',
-  venue: 'Main Auditorium, Academic Block 2',
-  filled: 142,
-  capacity: 200,
-  description:
-    'Get hands-on experience training reinforcement learning models with AWS DeepRacer and explore foundational Generative AI tools on AWS Cloud. Free cloud credits and official participation certificates provided by AWS Academic Alliance. Bring your laptops!',
-  highlights: [
-    'Hands-on AWS Console access with preloaded credits',
-    'Live simulation races on the virtual DeepRacer track',
-    'Networking with student cloud ambassadors and senior peers',
-    'Refreshments provided by the student council',
-  ],
-};
-
-function IconButton({
-  accessibilityLabel,
-  children,
-  onPress,
-  selected,
-}: {
-  accessibilityLabel: string;
-  children: React.ReactNode;
-  onPress: () => void;
-  selected?: boolean;
-}) {
-  return (
-    <GesturePressable
-      accessibilityLabel={accessibilityLabel}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      className="h-11 w-11 items-center justify-center rounded-2xl bg-white"
-    >
-      {children}
-    </GesturePressable>
-  );
-}
-
-function DetailCard({
-  icon,
-  label,
-  children,
-  trailing,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-  trailing?: React.ReactNode;
-}) {
-  return (
-    <View className="border-border flex-row items-center rounded-[22px] border bg-white p-4">
-      <View className="bg-surface-secondary mr-4 h-14 w-14 items-center justify-center rounded-2xl">
-        {icon}
-      </View>
-      <View className="min-w-0 flex-1">
-        <Text className="text-muted text-xs font-semibold uppercase">{label}</Text>
-        {children}
-      </View>
-      {trailing}
-    </View>
-  );
-}
-
-export default function EventDetailsScreen() {
+export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const router = useRouter();
-  const { height, width } = useWindowDimensions();
-  const [registered, setRegistered] = useState(false);
+  const { hPad } = useResponsive();
   const [bookmarked, setBookmarked] = useState(false);
+  const [enrolled, setEnrolled] = useState(false);
 
-  const event = useMemo(
-    () => HOME_FEED.find((item): item is EventFeedItem => item.type === 'event' && item.id === id),
-    [id],
-  );
-
-  if (!event) {
-    return (
-      <SafeAreaView
-        className="bg-background flex-1 items-center justify-center px-6"
-        edges={['top', 'right', 'bottom', 'left']}
-      >
-        <Text className="text-foreground text-xl font-bold">Event not found</Text>
-        <GesturePressable
-          accessibilityLabel="Back to Explore"
-          accessibilityRole="button"
-          onPress={() => goBackOrReplace('/(tabs)/explore')}
-          className="bg-accent mt-5 rounded-full px-6 py-3"
-        >
-          <Text className="font-semibold text-white">Back to Explore</Text>
-        </GesturePressable>
-      </SafeAreaView>
-    );
-  }
-
-  const contentWidth = Math.min(width, 760);
-  const heroHeight = Math.min(
-    360,
-    Math.max(height < 700 ? 220 : 260, Math.min(width * 0.7, height * 0.46)),
-  );
-  const fillPercent = Math.round((eventDetails.filled / eventDetails.capacity) * 100);
+  const event =
+    (id && NUTECH_EVENTS[id]) ||
+    NUTECH_EVENTS["event-ieee-fest"];
 
   return (
-    <SafeAreaView className="bg-background flex-1" edges={['top', 'right', 'bottom', 'left']}>
-      <View className="flex-1 self-center" style={{ width: contentWidth }}>
-        <View className="flex-row items-center px-4 py-3">
-          <IconButton
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ backgroundColor: "#FAF9F5", flex: 1 }}
+    >
+      {/* Top Bar */}
+      <View
+        style={{
+          alignItems: "center",
+          backgroundColor: "#FAF9F5",
+          flexDirection: "row",
+          height: 44,
+          justifyContent: "space-between",
+          paddingHorizontal: hPad,
+        }}
+      >
+        <View style={{ alignItems: "center", flexDirection: "row", gap: 10 }}>
+          <Pressable
             accessibilityLabel="Go back"
-            onPress={() => goBackOrReplace('/(tabs)/explore')}
-          >
-            <ArrowLeft size={24} color={colors.ink} strokeWidth={2.2} />
-          </IconButton>
-          <Text className="text-foreground ml-3 flex-1 text-2xl font-bold">Event Details</Text>
-          <View className="bg-accent-soft h-11 w-11 items-center justify-center rounded-full border-2 border-white">
-            <UserRound size={22} color={colors.brand} />
-          </View>
-        </View>
-
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 108, gap: 14 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <ImageBackground
-            source={HERO_IMAGE}
-            resizeMode="cover"
-            imageStyle={{ borderRadius: 26 }}
-            style={{ width: '100%', height: heroHeight }}
-          >
-            <LinearGradient
-              colors={['rgba(3,49,41,0.03)', 'rgba(3,49,41,0.9)']}
-              className="flex-1 justify-between rounded-[26px] p-4"
-            >
-              <View className="flex-row flex-wrap justify-between gap-2">
-                <View className="flex-row items-center rounded-full bg-white px-3.5 py-2">
-                  <View className="bg-accent mr-2 h-2.5 w-2.5 rounded-full" />
-                  <Text className="text-foreground font-semibold">Technology & Cloud</Text>
-                </View>
-                <View className="flex-row items-center rounded-full bg-[#FFD39B] px-3.5 py-2">
-                  <Star size={17} color="#68421F" />
-                  <Text className="ml-2 font-semibold text-[#4A2D14]">Featured Event</Text>
-                </View>
-              </View>
-              <View>
-                <View className="mb-3 flex-row items-center self-start rounded-full bg-[#A8D8C9] px-3.5 py-2">
-                  <BriefcaseBusiness size={17} color={colors.brand} />
-                  <Text className="text-primary ml-2 font-semibold">Workshop & Hackathon</Text>
-                </View>
-                <Text className="text-[30px] leading-9 font-bold text-white">{event.title}</Text>
-              </View>
-            </LinearGradient>
-          </ImageBackground>
-
-          <GesturePressable
-            accessibilityLabel="Open AWS Cloud Club NUTECH"
             accessibilityRole="button"
-            onPress={() => router.push('/societies/aws-cloud-club')}
-            className="border-border flex-row items-center rounded-[22px] border bg-white p-4"
+            hitSlop={8}
+            onPress={() => goBackOrReplace("/(tabs)/explore")}
           >
-            <Image
-              source={event.image}
-              resizeMode="cover"
-              style={{ width: 58, height: 58, borderRadius: 29 }}
-            />
-            <View className="ml-3 min-w-0 flex-1">
-              <View className="flex-row items-center">
-                <Text className="text-foreground shrink text-lg font-bold" numberOfLines={1}>
-                  AWS Cloud Club NUTECH
-                </Text>
-                <ShieldCheck className="ml-1" size={19} color={colors.brand} />
-              </View>
-              <Text className="text-muted mt-0.5 text-sm">
-                Student Society Chapter · 480 Members
-              </Text>
-            </View>
-            <View className="bg-surface-secondary ml-2 flex-row items-center rounded-2xl px-3 py-2.5">
-              <Text className="text-primary text-xl">＋</Text>
-              <Text className="text-primary ml-1 font-semibold">Join</Text>
-            </View>
-          </GesturePressable>
-
-          <DetailCard
-            icon={<CalendarDays size={25} color={colors.brand} />}
-            label="Date & schedule"
-            trailing={
-              <View className="rounded-full bg-[#FFE0B3] px-3 py-1.5">
-                <Text className="text-xs font-bold text-[#704515]">This Week</Text>
-              </View>
-            }
-          >
-            <Text className="text-foreground mt-1 text-lg font-semibold">{eventDetails.date}</Text>
-          </DetailCard>
-
-          <DetailCard
-            icon={<Clock3 size={25} color="#875118" />}
-            label="Session timing"
-            trailing={<Text className="text-muted text-sm">{eventDetails.duration}</Text>}
-          >
-            <Text className="text-foreground mt-1 text-lg font-semibold">
-              {eventDetails.timing}
-            </Text>
-          </DetailCard>
-
-          <DetailCard
-            icon={<MapPin size={26} color="#972D36" />}
-            label="Campus venue"
-            trailing={<ChevronRight size={22} color={colors.inkMuted} />}
-          >
-            <Text className="text-foreground mt-1 text-lg font-semibold" numberOfLines={2}>
-              {eventDetails.venue}
-            </Text>
-          </DetailCard>
-
-          <View className="border-border rounded-[22px] border bg-white p-5">
-            <View className="flex-row flex-wrap items-baseline gap-x-2 gap-y-1">
-              <View className="bg-accent h-3 w-3 rounded-full" />
-              <Text className="text-foreground text-xl font-bold">Capacity Status</Text>
-              <Text className="text-primary text-base font-semibold">
-                {eventDetails.filled} / {eventDetails.capacity} seats filled ({fillPercent}%)
-              </Text>
-            </View>
-            <View className="bg-surface-secondary mt-4 h-3 overflow-hidden rounded-full">
-              <LinearGradient
-                colors={[colors.brand, '#39856E']}
-                className="h-full rounded-full"
-                style={{ width: `${fillPercent}%` }}
-              />
-            </View>
-            <View className="mt-5 flex-row items-center self-start rounded-xl bg-[#FDE2E3] px-3 py-2">
-              <Clock3 size={17} color="#922F39" />
-              <Text className="ml-2 font-semibold text-[#8C2C35]">
-                Registration closes in: 4 hours
-              </Text>
-            </View>
-            <View className="bg-surface-secondary mt-2 flex-row items-center self-start rounded-xl px-3 py-2">
-              <GraduationCap size={18} color={colors.inkMuted} />
-              <Text className="text-muted ml-2 text-sm">Open to all NUTECH Undergraduates</Text>
-            </View>
-          </View>
-
-          <View className="border-border rounded-[22px] border bg-white p-5">
-            <View className="flex-row items-center">
-              <BriefcaseBusiness size={24} color={colors.ink} />
-              <Text className="text-foreground ml-3 text-2xl font-bold">About Event</Text>
-            </View>
-            <Text className="text-foreground mt-5 text-base leading-7">
-              {eventDetails.description}
-            </Text>
-            <View className="bg-surface-secondary mt-5 rounded-2xl p-4">
-              <Text className="text-muted mb-3 text-xs font-bold uppercase">
-                Key highlights & perks
-              </Text>
-              {eventDetails.highlights.map((highlight) => (
-                <View key={highlight} className="mb-3 flex-row items-start last:mb-0">
-                  <View className="mt-0.5 mr-3 h-6 w-6 items-center justify-center rounded-full bg-white">
-                    <Check size={14} color={colors.brand} strokeWidth={3} />
-                  </View>
-                  <Text className="text-foreground min-w-0 flex-1 text-sm leading-6">
-                    {highlight}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View className="border-border rounded-[22px] border bg-white p-5">
-            <Text className="text-muted text-xs font-bold uppercase">Organized by</Text>
-            <View className="mt-4 flex-row items-center">
-              <View className="bg-accent-soft h-12 w-12 items-center justify-center rounded-full">
-                <UserRound size={23} color={colors.brand} />
-              </View>
-              <View className="ml-3 flex-1">
-                <Text className="text-foreground text-base font-bold">Usman Tariq</Text>
-                <Text className="text-muted text-sm">
-                  President, BS Computer Science ’25 · Student Lead
-                </Text>
-              </View>
-            </View>
-            <View className="mt-4 flex-row items-center">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-[#FFF1DF]">
-                <GraduationCap size={24} color="#875118" />
-              </View>
-              <View className="ml-3 flex-1">
-                <Text className="text-foreground text-base font-bold">Dr. Kamran Ahsan</Text>
-                <Text className="text-muted text-sm">Faculty Advisor, Dept. of Computing</Text>
-              </View>
-            </View>
-            <GesturePressable
-              accessibilityLabel="Contact organizer by email"
-              accessibilityRole="button"
-              className="bg-surface-secondary mt-5 min-h-11 flex-row items-center justify-center rounded-2xl py-3.5"
-              onPress={() => {
-                void Linking.openURL('mailto:studentaffairs@nutech.edu.pk').catch(() => {
-                  Alert.alert(
-                    'Email unavailable',
-                    'Please contact Student Affairs through the NUTECH portal.',
-                  );
-                });
-              }}
-            >
-              <Mail size={20} color={colors.inkMuted} />
-              <Text className="text-foreground ml-2 font-semibold">Contact Organizer</Text>
-            </GesturePressable>
-          </View>
-        </ScrollView>
-
-        <View className="border-border flex-row gap-3 border-t bg-white px-4 py-3">
-          <IconButton
-            accessibilityLabel={bookmarked ? 'Remove saved event' : 'Save event'}
-            onPress={() => setBookmarked((value) => !value)}
-            selected={bookmarked}
-          >
-            <Bookmark
-              size={23}
-              color={bookmarked ? colors.brand : colors.ink}
-              fill={bookmarked ? colors.brand : 'transparent'}
-            />
-          </IconButton>
-          <IconButton
-            accessibilityLabel="Share event"
-            onPress={() => {
-              void Share.share({ message: `${event.title} at NUTECH — ${eventDetails.date}` });
+            <Ionicons color="#12221C" name="arrow-back" size={17} />
+          </Pressable>
+          <Text
+            style={{
+              color: "#12221C",
+              fontFamily: SERIF_FONT,
+              fontSize: 13.5,
+              fontWeight: "700",
             }}
           >
-            <Share2 size={23} color={colors.ink} />
-          </IconButton>
-          <GesturePressable
-            accessibilityLabel={registered ? 'Cancel event registration' : 'Register for event'}
-            accessibilityRole="button"
-            accessibilityState={{ selected: registered }}
-            onPress={() => setRegistered((value) => !value)}
-            className="bg-accent min-h-11 flex-1 flex-row items-center justify-center rounded-2xl px-4"
-          >
-            <Text className="text-base font-bold text-white">
-              {registered ? 'Registration Confirmed' : 'Register for Event'}
-            </Text>
-            {registered ? (
-              <Check className="ml-2" size={20} color="white" />
-            ) : (
-              <ArrowRight className="ml-2" size={20} color="white" />
-            )}
-          </GesturePressable>
+            Event Details
+          </Text>
         </View>
+
+        <Pressable
+          accessibilityLabel="Bookmark event"
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={() => setBookmarked((prev) => !prev)}
+        >
+          <Ionicons
+            color="#2C3A34"
+            name={bookmarked ? "bookmark" : "bookmark-outline"}
+            size={15.5}
+          />
+        </Pressable>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{
+          paddingBottom: 20,
+          paddingHorizontal: hPad,
+          paddingTop: 4,
+          maxWidth: 520,
+          width: "100%",
+          alignSelf: "center",
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <MotionView delay={25} distance={8}>
+          {/* Hero Banner Image */}
+          <View
+            style={{
+              borderRadius: 16,
+              height: 164,
+              overflow: "hidden",
+              width: "100%",
+            }}
+          >
+            <ImageBackground
+              resizeMode="cover"
+              source={{ uri: event.image }}
+              style={{ flex: 1 }}
+            >
+              <LinearGradient
+                colors={[
+                  "rgba(10, 26, 20, 0.05)",
+                  "rgba(11, 30, 23, 0.25)",
+                  "rgba(11, 31, 24, 0.45)",
+                ]}
+                end={{ x: 0.5, y: 1 }}
+                start={{ x: 0.5, y: 0 }}
+                style={{ flex: 1 }}
+              />
+            </ImageBackground>
+          </View>
+
+          {/* Event Title */}
+          <Text
+            style={{
+              color: "#12221C",
+              fontFamily: SERIF_FONT,
+              fontSize: 18,
+              fontWeight: "700",
+              letterSpacing: -0.2,
+              lineHeight: 23,
+              marginTop: 12,
+            }}
+          >
+            {event.title}
+          </Text>
+
+          {/* NUTECH Club Organizer Card with Real Club Image */}
+          <Pressable
+            onPress={() => router.push(`/societies/${event.societyId}` as any)}
+            style={{
+              alignItems: "center",
+              backgroundColor: "#FFFFFF",
+              borderColor: "#EAE8E1",
+              borderRadius: 13,
+              borderWidth: 1,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 11,
+              paddingHorizontal: 11,
+              paddingVertical: 9.5,
+            }}
+          >
+            <View style={{ alignItems: "center", flexDirection: "row", flex: 1 }}>
+              <Image
+                source={{ uri: event.clubLogo }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "#D5E8DF",
+                }}
+              />
+              <View style={{ marginLeft: 10, flex: 1 }}>
+                <View style={{ alignItems: "center", flexDirection: "row", gap: 4 }}>
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      color: "#12221C",
+                      fontSize: 11,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {event.societyName}
+                  </Text>
+                  <Ionicons color="#1E5D4B" name="checkmark-circle" size={11} />
+                </View>
+                <Text
+                  style={{
+                    color: "#7A8580",
+                    fontSize: 8.5,
+                    marginTop: 1,
+                  }}
+                >
+                  NUTECH Official Student Society
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={{
+                backgroundColor: "#CBEAD9",
+                borderRadius: 999,
+                paddingHorizontal: 9,
+                paddingVertical: 4,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#144534",
+                  fontSize: 8.5,
+                  fontWeight: "700",
+                }}
+              >
+                View Club
+              </Text>
+            </View>
+          </Pressable>
+
+          {/* Date & Time Card */}
+          <View
+            style={{
+              alignItems: "center",
+              backgroundColor: "#FFFFFF",
+              borderColor: "#EAE8E1",
+              borderRadius: 13,
+              borderWidth: 1,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 8,
+              paddingHorizontal: 11,
+              paddingVertical: 9.5,
+            }}
+          >
+            <View style={{ alignItems: "center", flexDirection: "row", flex: 1 }}>
+              <View
+                style={{
+                  alignItems: "center",
+                  backgroundColor: "#E4F2EC",
+                  borderRadius: 9,
+                  height: 32,
+                  justifyContent: "center",
+                  width: 32,
+                }}
+              >
+                <Ionicons color="#184D3C" name="calendar-outline" size={14} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 9 }}>
+                <Text
+                  style={{
+                    color: "#7A8580",
+                    fontSize: 7.5,
+                    fontWeight: "700",
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  DATE & TIME
+                </Text>
+                <Text
+                  style={{
+                    color: "#12221C",
+                    fontSize: 10,
+                    fontWeight: "700",
+                    marginTop: 1.5,
+                  }}
+                >
+                  {event.dateTimeFull}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Location Card */}
+          <View
+            style={{
+              alignItems: "center",
+              backgroundColor: "#FFFFFF",
+              borderColor: "#EAE8E1",
+              borderRadius: 13,
+              borderWidth: 1,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginTop: 8,
+              paddingHorizontal: 11,
+              paddingVertical: 9.5,
+            }}
+          >
+            <View style={{ alignItems: "center", flexDirection: "row", flex: 1 }}>
+              <View
+                style={{
+                  alignItems: "center",
+                  backgroundColor: "#E4F2EC",
+                  borderRadius: 9,
+                  height: 32,
+                  justifyContent: "center",
+                  width: 32,
+                }}
+              >
+                <Ionicons color="#184D3C" name="location-outline" size={14} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 9 }}>
+                <Text
+                  style={{
+                    color: "#7A8580",
+                    fontSize: 7.5,
+                    fontWeight: "700",
+                    letterSpacing: 0.4,
+                  }}
+                >
+                  NUTECH VENUE
+                </Text>
+                <Text
+                  style={{
+                    color: "#12221C",
+                    fontSize: 10,
+                    fontWeight: "700",
+                    marginTop: 1.5,
+                  }}
+                >
+                  {event.venue}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={{
+                backgroundColor: "#E4F2EC",
+                borderRadius: 7,
+                paddingHorizontal: 8,
+                paddingVertical: 3.5,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#184D3C",
+                  fontSize: 8.5,
+                  fontWeight: "700",
+                }}
+              >
+                {event.wing}
+              </Text>
+            </View>
+          </View>
+
+          {/* About the Event Description Card */}
+          <View
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderColor: "#EAE8E1",
+              borderRadius: 14,
+              borderWidth: 1,
+              marginTop: 10,
+              padding: 12,
+            }}
+          >
+            <Text
+              style={{
+                color: "#12221C",
+                fontFamily: SERIF_FONT,
+                fontSize: 13,
+                fontWeight: "700",
+              }}
+            >
+              About the Event
+            </Text>
+            <Text
+              style={{
+                color: "#4A5450",
+                fontSize: 10,
+                lineHeight: 15.5,
+                marginTop: 6,
+              }}
+            >
+              {event.description}
+            </Text>
+          </View>
+        </MotionView>
+      </ScrollView>
+
+      {/* Bottom Sticky Registration Bar */}
+      <View
+        style={{
+          alignItems: "center",
+          backgroundColor: "#FAF9F5",
+          borderTopColor: "#EAE7DF",
+          borderTopWidth: 1,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingHorizontal: hPad,
+          paddingVertical: 9,
+        }}
+      >
+        <View>
+          <View style={{ alignItems: "center", flexDirection: "row", gap: 5 }}>
+            <Text
+              style={{
+                color: "#12221C",
+                fontFamily: SERIF_FONT,
+                fontSize: 15,
+                fontWeight: "700",
+              }}
+            >
+              Free
+            </Text>
+            <View
+              style={{
+                backgroundColor: "#CBEAD9",
+                borderRadius: 4,
+                paddingHorizontal: 5,
+                paddingVertical: 1.5,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#144534",
+                  fontSize: 7,
+                  fontWeight: "700",
+                }}
+              >
+                {enrolled ? "ENROLLED" : "NUTECH ID"}
+              </Text>
+            </View>
+          </View>
+          <Text
+            style={{
+              color: "#7A8580",
+              fontSize: 8.5,
+              marginTop: 0.5,
+            }}
+          >
+            {enrolled ? "Registered · See you there" : "Open to all NUTECH students"}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={() => {
+            setEnrolled(true);
+            router.push(`/events/registered?id=${event.id}` as any);
+          }}
+          style={{
+            alignItems: "center",
+            backgroundColor: enrolled ? "#E4F2EC" : "#123F30",
+            borderRadius: 999,
+            flexDirection: "row",
+            gap: 5,
+            height: 36,
+            justifyContent: "center",
+            paddingHorizontal: 18,
+          }}
+        >
+          <Ionicons
+            color={enrolled ? "#144534" : "#FFFFFF"}
+            name={enrolled ? "checkmark-circle" : "ticket-outline"}
+            size={13}
+          />
+          <Text
+            style={{
+              color: enrolled ? "#144534" : "#FFFFFF",
+              fontSize: 10.5,
+              fontWeight: "700",
+            }}
+          >
+            {enrolled ? "Registered" : "Register Now"}
+          </Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );

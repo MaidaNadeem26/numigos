@@ -1,455 +1,699 @@
-import type { LucideIcon } from 'lucide-react-native';
-import {
-  Bell,
-  BellRing,
-  Bookmark,
-  CalendarCheck,
-  CheckCircle2,
-  ChevronRight,
-  CircleHelp,
-  Clock3,
-  Download,
-  FileBadge,
-  GraduationCap,
-  IdCard,
-  Lightbulb,
-  LogOut,
-  Mail,
-  PlusCircle,
-  ShieldCheck,
-  TicketCheck,
-  UserRound,
-  UsersRound,
-} from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { Typography } from 'heroui-native';
-import { Alert, Image, ScrollView, View } from 'react-native';
+import React from "react";
+import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { setTestSessionEmail, supabase } from "@/lib/supabase";
+import { MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
+import { NUTECH_EVENTS_LIST, NUTECH_SOCIETIES_LIST, resolveClubLogoSource } from "@/lib/nutech-data";
 
-import { GesturePressable } from '@/components/ui/primitives/GesturePressable';
-import { SafeAreaView } from '@/components/ui/primitives/SafeAreaView';
-import { FOLLOWED_SOCIETIES } from '@/lib/home-feed';
-import { setTestSessionEmail, supabase } from '@/lib/supabase';
-import { numigosTheme } from '@/lib/theme';
+const SERIF_FONT = Platform.select({
+  web: "Georgia, 'Times New Roman', serif",
+  ios: "Georgia",
+  default: "serif",
+});
 
-const PROFILE = {
-  name: 'Bilal Ahmad',
-  email: 'bilal.ahmad@nutech.edu.pk',
-  registration: 'NUTECH-21-CS-084',
-  department: 'Department of Computer Science (Batch of 2025)',
-  semester: 'Semester 7',
-};
+const MY_NUTECH_CLUBS = NUTECH_SOCIETIES_LIST.slice(0, 4);
+const SAVED_NUTECH_EVENTS = NUTECH_EVENTS_LIST.slice(0, 2);
 
-const ICON_COLORS = {
-  emerald: '#005F49',
-  gold: '#8B641D',
-  ink: '#17231F',
-  muted: '#747B78',
-  red: '#D63A3A',
-};
-
-function showPortalNotice(title: string) {
-  Alert.alert(title, 'This option is managed through the NUTECH student portal.');
-}
-
-type StatCardProps = {
-  value: number;
-  label: string;
-  icon: LucideIcon;
-  tone?: 'emerald' | 'gold';
-};
-
-function StatCard({ value, label, icon: Icon, tone = 'emerald' }: StatCardProps) {
-  const color = tone === 'gold' ? ICON_COLORS.gold : ICON_COLORS.emerald;
-  const backgroundColor = tone === 'gold' ? '#FFF8EE' : '#F1F8F5';
-
-  return (
-    <View className="border-home-card-border bg-surface min-w-0 flex-1 flex-row items-center justify-between rounded-xl border px-3 py-3">
-      <View className="min-w-0 flex-1">
-        <Typography className="text-home-ink text-[20px] leading-6 font-bold">{value}</Typography>
-        <Typography className="text-home-muted mt-1 text-xs font-semibold" numberOfLines={1}>
-          {label}
-        </Typography>
-      </View>
-      <View
-        className="h-10 w-10 items-center justify-center rounded-lg"
-        style={{ backgroundColor }}
-      >
-        <Icon color={color} size={18} strokeWidth={1.7} />
-      </View>
-    </View>
-  );
-}
-
-type SettingRowProps = {
-  icon: LucideIcon;
-  label: string;
-  detail: string;
-  onPress: () => void;
-  destructive?: boolean;
-  last?: boolean;
-};
-
-function SettingRow({
-  icon: Icon,
-  label,
-  detail,
-  onPress,
-  destructive = false,
-  last = false,
-}: SettingRowProps) {
-  const color = destructive ? ICON_COLORS.red : ICON_COLORS.ink;
-
-  return (
-    <GesturePressable
-      accessibilityRole="button"
-      className={`mx-3 min-h-16 flex-row items-center py-3 active:opacity-65 ${last ? '' : 'border-home-card-border border-b'}`}
-      onPress={onPress}
-    >
-      <View
-        className="h-9 w-9 items-center justify-center rounded-lg"
-        style={{ backgroundColor: destructive ? '#FFF3F3' : '#F3F2EF' }}
-      >
-        <Icon color={color} size={17} strokeWidth={1.7} />
-      </View>
-      <View className="min-w-0 flex-1 px-3">
-        <Typography
-          className={`text-[12px] font-semibold ${destructive ? 'text-error' : 'text-home-ink'}`}
-          numberOfLines={1}
-        >
-          {label}
-        </Typography>
-        <Typography className="text-home-muted mt-0.5 text-xs" numberOfLines={1}>
-          {detail}
-        </Typography>
-      </View>
-      {destructive ? (
-        <LogOut color={ICON_COLORS.red} size={17} strokeWidth={1.7} />
-      ) : (
-        <ChevronRight color={ICON_COLORS.muted} size={16} strokeWidth={1.7} />
-      )}
-    </GesturePressable>
-  );
-}
-
-export default function ProfileScreen() {
+export default function ProfileTabScreen() {
   const router = useRouter();
-  const societies = FOLLOWED_SOCIETIES.slice(0, 4);
+  const { hPad } = useResponsive();
 
   const signOut = async () => {
-    try {
-      await setTestSessionEmail(null);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      router.replace('/login');
-    } catch {
-      Alert.alert("Couldn't sign out", 'Check your connection and try again.');
-    }
+    await setTestSessionEmail(null);
+    await supabase.auth.signOut();
+    router.replace("/login");
   };
 
   return (
-    <SafeAreaView className="bg-background flex-1" edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
+      {/* Top Header Bar */}
+      <View
+        style={{
+          height: 48,
+          paddingHorizontal: hPad,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          backgroundColor: "#FAF9F5",
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+          <View
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              backgroundColor: "#134635",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="school-outline" size={14} color="#E9C48C" />
+          </View>
+          <View>
+            <Text
+              style={{
+                fontSize: 7.5,
+                fontWeight: "700",
+                letterSpacing: 0.8,
+                color: "#2A6350",
+                textTransform: "uppercase",
+              }}
+            >
+              NUTECH ISLAMABAD
+            </Text>
+            <Text
+              style={{
+                fontFamily: SERIF_FONT,
+                fontSize: 16,
+                fontWeight: "700",
+                color: "#12221C",
+                marginTop: -1,
+              }}
+            >
+              Profile
+            </Text>
+          </View>
+        </View>
+
+        <Pressable
+          onPress={() => router.push("/reminders")}
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: "#FFFFFF",
+            borderWidth: 1,
+            borderColor: "#E8E6DF",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+          }}
+        >
+          <Ionicons name="notifications-outline" size={16} color="#12221C" />
+          <View
+            style={{
+              position: "absolute",
+              top: 6,
+              right: 7,
+              width: 5.5,
+              height: 5.5,
+              borderRadius: 3,
+              backgroundColor: "#C93B3B",
+            }}
+          />
+        </Pressable>
+      </View>
+
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="pb-safe-offset-8"
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: hPad,
+          paddingTop: 4,
+          paddingBottom: 28,
+          maxWidth: 520,
+          width: "100%",
+          alignSelf: "center",
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mx-auto w-full max-w-[680px]">
-          <View className="h-12 flex-row items-center justify-between px-4">
-            <View className="flex-row items-center">
-              <Image
-                accessibilityLabel="NUTECH logo"
-                resizeMode="contain"
-                source={require('@/assets/images/nutech-logo.png')}
-                style={{ height: 16, width: 30 }}
-              />
-              <Typography className="font-display text-home-ink ml-2 text-[18px] font-bold">
-                Profile
-              </Typography>
-            </View>
-            <View className="flex-row items-center gap-3">
-              <GesturePressable
-                accessibilityLabel="Notification preferences"
-                accessibilityRole="button"
-                className="relative h-11 w-11 items-center justify-center rounded-full active:bg-black/5"
-                onPress={() => router.push('/reminders')}
-              >
-                <Bell color={ICON_COLORS.ink} size={19} strokeWidth={1.7} />
-                <View className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#8B641D]" />
-              </GesturePressable>
-              <View className="border-brand h-11 w-11 items-center justify-center rounded-full border bg-[#EEF4F1]">
-                <UserRound color={numigosTheme.colors.brand} size={20} strokeWidth={1.7} />
-              </View>
-            </View>
-          </View>
-
-          <View className="border-home-card-border bg-surface mx-4 mt-1 items-center rounded-xl border px-4 py-5">
-            <View className="border-brand h-[76px] w-[76px] items-center justify-center rounded-full border-2 bg-[#E4F0EB]">
-              <UserRound color={numigosTheme.colors.brand} size={38} strokeWidth={1.5} />
-            </View>
-            <View className="bg-brand -mt-2 flex-row items-center rounded-full px-2.5 py-1">
-              <GraduationCap color="white" size={11} strokeWidth={2} />
-              <Typography className="ml-1 text-[11px] font-bold text-white">STUDENT</Typography>
-            </View>
-            <Typography className="font-display text-home-ink mt-2 text-[20px] leading-6 font-bold">
-              {PROFILE.name}
-            </Typography>
-            <View className="mt-2 flex-row items-center rounded-full bg-[#EDF5F2] px-3 py-1">
-              <ShieldCheck color={ICON_COLORS.emerald} size={12} strokeWidth={1.8} />
-              <Typography className="text-home-ink ml-1.5 text-xs" numberOfLines={1}>
-                {PROFILE.email}
-              </Typography>
-            </View>
-            <View className="mt-2 flex-row items-center rounded-sm bg-[#F3F1ED] px-2.5 py-1">
-              <IdCard color={ICON_COLORS.ink} size={12} strokeWidth={1.7} />
-              <Typography className="text-home-ink ml-1.5 text-xs font-medium">
-                Reg No: {PROFILE.registration}
-              </Typography>
-            </View>
-            <Typography className="text-home-muted mt-2 text-center text-xs leading-4">
-              {PROFILE.department}
-            </Typography>
-            <View className="mt-1.5 flex-row items-center">
-              <View className="bg-brand mr-1.5 h-1.5 w-1.5 rounded-full" />
-              <Typography className="text-brand text-[11px] font-semibold">
-                Active Enrolled · {PROFILE.semester}
-              </Typography>
-            </View>
-          </View>
-
-          <View className="mt-4 gap-2 px-4">
-            <View className="flex-row gap-2">
-              <StatCard icon={CalendarCheck} label="Registered" value={3} />
-              <StatCard icon={UsersRound} label="Societies" tone="gold" value={4} />
-            </View>
-            <View className="flex-row gap-2">
-              <StatCard icon={Bookmark} label="Bookmarked" value={8} />
-              <StatCard icon={CheckCircle2} label="Attended" value={12} />
-            </View>
-          </View>
-
-          <View className="mt-4 flex-row items-center justify-between px-4">
-            <Typography className="font-display text-home-ink text-[17px] font-bold">
-              Campus Activity
-            </Typography>
-            <Typography className="text-brand text-[11px] font-semibold">
-              Fall Semester 2024
-            </Typography>
-          </View>
-
-          <View className="border-home-card-border bg-surface mx-4 mt-3 rounded-xl border p-3">
-            <GesturePressable
-              accessibilityRole="button"
-              className="flex-row items-center active:opacity-65"
-              onPress={() => router.push('/events/registered')}
+        {/* Active Semester Pill */}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 5,
+              backgroundColor: "#E3F2EC",
+              borderRadius: 999,
+              paddingHorizontal: 10,
+              paddingVertical: 4.5,
+            }}
+          >
+            <PulseDot size={5.5} color="#144534" />
+            <Text
+              style={{
+                fontSize: 8,
+                fontWeight: "700",
+                letterSpacing: 0.5,
+                color: "#144534",
+              }}
             >
-              <View className="bg-brand h-9 w-9 items-center justify-center rounded-lg">
-                <CalendarCheck color="white" size={18} strokeWidth={1.8} />
-              </View>
-              <View className="min-w-0 flex-1 px-3">
-                <Typography className="text-home-ink text-[12px] font-semibold">
-                  My Registered Events
-                </Typography>
-                <Typography className="text-home-muted mt-0.5 text-xs">
-                  1 event scheduled for today
-                </Typography>
-              </View>
-              <ChevronRight color={ICON_COLORS.muted} size={16} />
-            </GesturePressable>
+              SPRING 2025 · NUTECH STUDENT PORTAL
+            </Text>
+          </View>
+        </View>
 
-            <View className="mt-3 flex-row items-center rounded-lg bg-[#F3F2F0] p-2.5">
-              <View className="min-w-0 flex-1">
-                <View className="flex-row items-center">
-                  <View className="mr-1.5 h-1.5 w-1.5 rounded-full bg-[#8B641D]" />
-                  <Typography className="text-[11px] font-semibold text-[#75561D]">
-                    UPCOMING TODAY
-                  </Typography>
-                </View>
-                <Typography className="text-home-ink mt-0.5 text-[15px] font-semibold">
-                  Cloud Study Jam
-                </Typography>
-                <View className="mt-1 flex-row items-center">
-                  <Clock3 color={ICON_COLORS.muted} size={11} />
-                  <Typography className="text-home-muted ml-1 text-[11px]">
-                    2:00 PM · NUTECH Auditorium 2
-                  </Typography>
-                </View>
+        {/* Dark Green Student ID Card (v0 clean: 2 stats, no NFC/Badges) */}
+        <MotionView delay={35}>
+          <LinearGradient
+            colors={["#1D5442", "#12382C", "#0E2C22"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              marginTop: 10,
+              borderRadius: 16,
+              padding: 13,
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Image
+                source={{
+                  uri: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=240&q=80",
+                }}
+                style={{
+                  width: 58,
+                  height: 58,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  borderColor: "rgba(255,255,255,0.25)",
+                }}
+                resizeMode="cover"
+              />
+
+              <View style={{ flex: 1, marginLeft: 11 }}>
+                <Text
+                  style={{
+                    fontFamily: SERIF_FONT,
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Zainab Ahmed
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 9.5,
+                    color: "#8FD1B8",
+                    fontWeight: "500",
+                    marginTop: 2,
+                  }}
+                >
+                  zainab.cs21@nutech.edu.pk
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 9.5,
+                    color: "rgba(255,255,255,0.9)",
+                    fontWeight: "500",
+                    marginTop: 3,
+                  }}
+                >
+                  Roll No: 2021-CS-084 · Dept of Computer Science
+                </Text>
               </View>
-              <GesturePressable
-                accessibilityRole="button"
-                className="bg-brand rounded-sm px-3 py-2 active:opacity-75"
-                onPress={() => router.push('/event/event-cloud-study-jam')}
-              >
-                <Typography className="text-xs font-bold text-white">View Ticket</Typography>
-              </GesturePressable>
             </View>
+
+            {/* 2-Column v0 Stats Box: Registered Events & Joined Clubs */}
+            <View
+              style={{
+                marginTop: 12,
+                backgroundColor: "rgba(9, 27, 20, 0.42)",
+                borderRadius: 11,
+                paddingVertical: 8.5,
+                flexDirection: "row",
+                alignItems: "center",
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.07)",
+              }}
+            >
+              <Pressable
+                onPress={() => router.push("/events/registered")}
+                style={{ flex: 1, alignItems: "center" }}
+              >
+                <Text
+                  style={{
+                    fontFamily: SERIF_FONT,
+                    fontSize: 14.5,
+                    fontWeight: "700",
+                    color: "#F3D092",
+                  }}
+                >
+                  3
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 7.5,
+                    fontWeight: "700",
+                    letterSpacing: 0.6,
+                    color: "#9EC5B5",
+                    marginTop: 1.5,
+                  }}
+                >
+                  REGISTERED EVENTS
+                </Text>
+              </Pressable>
+
+              <View
+                style={{
+                  width: 1,
+                  height: 22,
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                }}
+              />
+
+              <Pressable
+                onPress={() => router.push("/societies")}
+                style={{ flex: 1, alignItems: "center" }}
+              >
+                <Text
+                  style={{
+                    fontFamily: SERIF_FONT,
+                    fontSize: 14.5,
+                    fontWeight: "700",
+                    color: "#F3D092",
+                  }}
+                >
+                  4
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 7.5,
+                    fontWeight: "700",
+                    letterSpacing: 0.6,
+                    color: "#9EC5B5",
+                    marginTop: 1.5,
+                  }}
+                >
+                  NUTECH CLUBS
+                </Text>
+              </Pressable>
+            </View>
+          </LinearGradient>
+        </MotionView>
+
+        {/* Campus Activity Hub Section */}
+        <MotionView delay={75}>
+          <View
+            style={{
+              marginTop: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: SERIF_FONT,
+                fontSize: 13.5,
+                fontWeight: "700",
+                color: "#12221C",
+              }}
+            >
+              My NUTECH Clubs & Events
+            </Text>
+            <Pressable onPress={() => router.push("/societies")}>
+              <Text
+                style={{
+                  fontSize: 8.5,
+                  fontWeight: "700",
+                  letterSpacing: 0.4,
+                  color: "#1E5D4B",
+                }}
+              >
+                EXPLORE ALL
+              </Text>
+            </Pressable>
           </View>
 
-          <View className="border-home-card-border bg-surface mx-4 mt-3 rounded-xl border p-3">
-            <View className="flex-row items-center">
-              <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#FFF8EE]">
-                <UsersRound color={ICON_COLORS.gold} size={18} strokeWidth={1.7} />
-              </View>
-              <View className="min-w-0 flex-1 px-3">
-                <Typography className="text-home-ink text-[12px] font-semibold">
-                  My Societies
-                </Typography>
-                <Typography className="text-home-muted mt-0.5 text-xs">
-                  4 active memberships
-                </Typography>
-              </View>
-              <GesturePressable
-                accessibilityRole="button"
-                className="min-h-11 items-center justify-center px-3 active:opacity-60"
-                onPress={() => router.push('/societies')}
-              >
-                <Typography className="text-brand text-xs font-semibold">Explore All</Typography>
-              </GesturePressable>
-            </View>
-            <View className="mt-4 flex-row justify-between">
-              {societies.map((society) => (
-                <GesturePressable
-                  key={society.id}
-                  accessibilityLabel={society.fullName}
-                  accessibilityRole="button"
-                  className="min-h-11 min-w-[22%] flex-1 items-center justify-center active:opacity-65"
-                  onPress={() => router.push(`/societies/${society.id}`)}
+          {/* Card 1: My NUTECH Societies with Real Club Images */}
+          <View
+            style={{
+              marginTop: 8,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: "#EAE8E1",
+              padding: 12,
+            }}
+          >
+            <Pressable
+              onPress={() => router.push("/societies")}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+                <View
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 9,
+                    backgroundColor: "#E4F2EC",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <View className="border-home-card-border h-11 w-11 items-center justify-center overflow-hidden rounded-full border bg-[#F3F7F5]">
-                    <Image
-                      resizeMode="cover"
-                      source={society.logo}
-                      style={{ height: 44, width: 44 }}
-                    />
-                  </View>
-                  <Typography
-                    className="text-home-ink mt-1.5 text-center text-[11px] font-medium"
-                    numberOfLines={1}
+                  <Ionicons name="people-outline" size={14} color="#144534" />
+                </View>
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: "700",
+                      color: "#12221C",
+                    }}
                   >
-                    {society.shortName}
-                  </Typography>
-                </GesturePressable>
+                    My NUTECH Societies
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 8.5,
+                      color: "#7A8580",
+                      marginTop: 0.5,
+                    }}
+                  >
+                    4 active club memberships
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={14} color="#8E9893" />
+            </Pressable>
+
+            <View style={{ marginTop: 9, gap: 6 }}>
+              {MY_NUTECH_CLUBS.map((soc) => (
+                <Pressable
+                  key={soc.id}
+                  onPress={() => router.push(`/societies/${soc.id}` as any)}
+                  style={{
+                    backgroundColor: "#F6F5F0",
+                    borderRadius: 10,
+                    paddingHorizontal: 9,
+                    paddingVertical: 7.5,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
+                    <Image
+                      source={resolveClubLogoSource(soc.logo)}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: "#D5E8DF",
+                      }}
+                    />
+                    <View style={{ flex: 1, marginLeft: 9 }}>
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          fontSize: 9.5,
+                          fontWeight: "700",
+                          color: "#12221C",
+                        }}
+                      >
+                        {soc.name}
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          fontSize: 8.5,
+                          color: "#7A8580",
+                          marginTop: 1,
+                        }}
+                      >
+                        {soc.roleInProfile ?? soc.dept}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      backgroundColor: soc.badgeInProfile === "Core" ? "#CBEAD9" : "#E6E4DD",
+                      borderRadius: 999,
+                      paddingHorizontal: 8,
+                      paddingVertical: 2.5,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 8,
+                        fontWeight: "700",
+                        color: soc.badgeInProfile === "Core" ? "#144534" : "#4A5450",
+                      }}
+                    >
+                      {soc.badgeInProfile ?? "Member"}
+                    </Text>
+                  </View>
+                </Pressable>
               ))}
             </View>
           </View>
 
-          <GesturePressable
-            accessibilityRole="button"
-            className="border-home-card-border bg-surface mx-4 mt-3 min-h-16 flex-row items-center rounded-xl border px-3 py-3 active:opacity-65"
-            onPress={() => router.push('/bookmarks')}
+          {/* Card 2: Bookmarked Events */}
+          <View
+            style={{
+              marginTop: 9,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: "#EAE8E1",
+              padding: 12,
+            }}
           >
-            <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F1F8F5]">
-              <Bookmark color={ICON_COLORS.emerald} size={17} strokeWidth={1.7} />
-            </View>
-            <View className="min-w-0 flex-1 px-3">
-              <Typography className="text-home-ink text-[12px] font-semibold">
-                Saved &amp; Bookmarked Events
-              </Typography>
-              <Typography className="text-home-muted mt-0.5 text-xs">
-                8 sessions saved for later review
-              </Typography>
-            </View>
-            <ChevronRight color={ICON_COLORS.muted} size={16} />
-          </GesturePressable>
-
-          <View className="border-home-card-border bg-surface mx-4 mt-3 rounded-xl border p-3">
-            <GesturePressable
-              accessibilityRole="button"
-              className="flex-row items-center active:opacity-65"
-              onPress={() => router.push('/events/history')}
+            <Pressable
+              onPress={() => router.push("/(tabs)/bookmarks")}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
-              <View className="h-9 w-9 items-center justify-center rounded-lg bg-[#F1F8F5]">
-                <TicketCheck color={ICON_COLORS.emerald} size={17} strokeWidth={1.7} />
-              </View>
-              <View className="min-w-0 flex-1 px-3">
-                <Typography className="text-home-ink text-[12px] font-semibold">
-                  Event Attendance History
-                </Typography>
-                <Typography className="text-home-muted mt-0.5 text-xs">
-                  12 verified attendance records
-                </Typography>
-              </View>
-              <ChevronRight color={ICON_COLORS.muted} size={16} />
-            </GesturePressable>
-            <GesturePressable
-              accessibilityRole="button"
-              className="mt-3 min-h-11 flex-row items-center justify-center rounded-md bg-[#F0F1EF] active:opacity-65"
-              onPress={() => showPortalNotice('Co-Curricular Transcript')}
-            >
-              <Download color={ICON_COLORS.emerald} size={13} strokeWidth={1.8} />
-              <Typography className="text-home-ink ml-2 text-xs font-medium">
-                Download Co-Curricular Transcript (PDF)
-              </Typography>
-            </GesturePressable>
-          </View>
-
-          <View className="bg-brand mx-4 mt-4 rounded-xl p-4">
-            <View className="flex-row items-start justify-between">
-              <View className="min-w-0 flex-1 pr-3">
-                <View className="self-start rounded-sm bg-white/15 px-2 py-1">
-                  <Typography className="text-[11px] font-bold text-white">
-                    OSA INITIATIVE HUB
-                  </Typography>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+                <View
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 9,
+                    backgroundColor: "#E4F2EC",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name="bookmark-outline" size={14} color="#144534" />
                 </View>
-                <Typography className="font-display mt-2 text-[16px] leading-5 font-bold text-white">
-                  Register a New Student Society
-                </Typography>
-                <Typography className="mt-1.5 text-xs leading-4 text-white/75">
-                  Have an idea for a new club? Submit a formal charter proposal to the Office of
-                  Student Affairs (OSA).
-                </Typography>
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: "700",
+                      color: "#12221C",
+                    }}
+                  >
+                    Saved NUTECH Events
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 8.5,
+                      color: "#7A8580",
+                      marginTop: 0.5,
+                    }}
+                  >
+                    Events bookmarked for this week
+                  </Text>
+                </View>
               </View>
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-white/15">
-                <Lightbulb color="white" size={19} strokeWidth={1.6} />
+              <Ionicons name="chevron-forward" size={14} color="#8E9893" />
+            </Pressable>
+
+            <View style={{ marginTop: 9, gap: 6 }}>
+              {SAVED_NUTECH_EVENTS.map((ev) => (
+                <Pressable
+                  key={ev.id}
+                  onPress={() => router.push(`/event/${ev.id}` as any)}
+                  style={{
+                    backgroundColor: "#F6F5F0",
+                    borderRadius: 10,
+                    paddingHorizontal: 9,
+                    paddingVertical: 7.5,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
+                    <Image
+                      source={{ uri: ev.image }}
+                      style={{ width: 32, height: 32, borderRadius: 8 }}
+                    />
+                    <View style={{ flex: 1, marginLeft: 9 }}>
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          fontSize: 9.5,
+                          fontWeight: "700",
+                          color: "#12221C",
+                        }}
+                      >
+                        {ev.shortTitle}
+                      </Text>
+                      <Text
+                        numberOfLines={1}
+                        style={{
+                          fontSize: 8.5,
+                          color: "#7A8580",
+                          marginTop: 1,
+                        }}
+                      >
+                        {ev.dateLabel} · {ev.wing}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      backgroundColor: "#0E3A2B",
+                      borderRadius: 999,
+                      paddingHorizontal: 9,
+                      paddingVertical: 3.5,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 8,
+                        fontWeight: "700",
+                        color: "#FFFFFF",
+                      }}
+                    >
+                      View
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </MotionView>
+
+        {/* Simplified v0 Request New Society Card */}
+        <MotionView delay={110}>
+          <View
+            style={{
+              marginTop: 10,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: "#EAE8E1",
+              padding: 12,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text
+                style={{
+                  fontFamily: SERIF_FONT,
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color: "#12221C",
+                }}
+              >
+                Want to start a new NUTECH club?
+              </Text>
+              <View
+                style={{
+                  backgroundColor: "#F5DFB8",
+                  borderRadius: 999,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2.5,
+                }}
+              >
+                <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#5D3B14" }}>
+                  OSA / DSL
+                </Text>
               </View>
             </View>
-            <GesturePressable
-              accessibilityRole="button"
-              className="mt-4 min-h-11 flex-row items-center justify-center rounded-md bg-white active:opacity-80"
-              onPress={() => router.push('/societies/register')}
+
+            <Text
+              style={{
+                marginTop: 4,
+                fontSize: 9.5,
+                lineHeight: 14,
+                color: "#6E7773",
+              }}
             >
-              <PlusCircle color={ICON_COLORS.emerald} size={15} strokeWidth={1.8} />
-              <Typography className="text-home-ink ml-2 text-xs font-medium">
-                Register New Society
-              </Typography>
-            </GesturePressable>
+              Submit a society registration request to the NUTECH Office of Student Affairs (OSA).
+            </Text>
+
+            <Pressable
+              onPress={() => router.push("/societies/register")}
+              style={{
+                marginTop: 10,
+                backgroundColor: "#0E3A2B",
+                borderRadius: 999,
+                height: 34,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+              }}
+            >
+              <Ionicons name="add-circle-outline" size={13.5} color="#FFFFFF" />
+              <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#FFFFFF" }}>
+                Request New Society
+              </Text>
+            </Pressable>
           </View>
 
-          <View className="border-home-card-border bg-surface mx-4 mt-4 overflow-hidden rounded-xl border">
-            <SettingRow
-              detail="Event reminders & announcements"
-              icon={BellRing}
-              label="Notification Preferences"
-              onPress={() => router.push('/reminders')}
-            />
-            <SettingRow
-              detail="NUTECH Portal SSO managed"
-              icon={FileBadge}
-              label="University Credentials & Password"
-              onPress={() => showPortalNotice('University Credentials')}
-            />
-            <SettingRow
-              detail="Office of Student Affairs guidance"
-              icon={CircleHelp}
-              label="Help & OSA Contact"
-              onPress={() => showPortalNotice('Help & OSA Contact')}
-            />
-            <SettingRow
-              destructive
-              detail="Sign out from NUTECH Portal"
-              icon={LogOut}
-              label="Logout"
-              last
+          {/* Simplified v0 Account Section */}
+          <View
+            style={{
+              marginTop: 12,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: "#EAE8E1",
+              overflow: "hidden",
+            }}
+          >
+            <Pressable
+              onPress={() => router.push("/reminders")}
+              style={{
+                paddingHorizontal: 13,
+                paddingVertical: 11,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottomWidth: 1,
+                borderBottomColor: "#F2F0EA",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Ionicons name="notifications-outline" size={14} color="#58635E" />
+                <Text style={{ fontSize: 10, fontWeight: "500", color: "#12221C" }}>
+                  Reminders & Notifications
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={13.5} color="#9BA39F" />
+            </Pressable>
+
+            <Pressable
               onPress={() => void signOut()}
-            />
+              style={{
+                paddingHorizontal: 13,
+                paddingVertical: 11,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Ionicons name="log-out-outline" size={14} color="#B83B3B" />
+                <Text style={{ fontSize: 10, fontWeight: "600", color: "#B83B3B" }}>
+                  Sign Out
+                </Text>
+              </View>
+            </Pressable>
           </View>
-
-          <View className="mt-6 flex-row items-center justify-center px-4">
-            <Mail color={ICON_COLORS.muted} size={10} strokeWidth={1.6} />
-            <Typography className="text-home-muted ml-1.5 text-center text-[11px] font-semibold">
-              National University of Technology · Student Portal v2.4.1
-            </Typography>
-          </View>
-        </View>
+        </MotionView>
       </ScrollView>
     </SafeAreaView>
   );
