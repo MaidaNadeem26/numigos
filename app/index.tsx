@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { getAuthenticatedProfile, getTestSessionEmail, supabase } from "@/lib/supabase";
+import { getAuthenticatedProfile, getTestSessionEmail, supabase, TEST_ACCOUNTS } from "@/lib/supabase";
 
 const SERIF_FONT = FONT_SANS;
 
@@ -13,28 +13,35 @@ export default function SplashScreen() {
   const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
-    const spinnerTimer = setTimeout(() => setShowSpinner(true), 450);
     let isMounted = true;
     let didNavigate = false;
 
-    const navigateSafely = (target: "/home" | "/login") => {
+    const navigateSafely = (target: string) => {
       if (!isMounted || didNavigate) return;
       didNavigate = true;
-      router.replace(target);
+      router.replace(target as any);
     };
 
+    // Safety fallback in case of complete network lockup
     const fallbackTimer = setTimeout(() => {
       navigateSafely("/login");
-    }, 3200);
+    }, 1500);
 
     const resolveSession = async () => {
       try {
+        // 1. Check for active test session first
         const testEmail = await getTestSessionEmail();
-        if (testEmail) {
-          setTimeout(() => navigateSafely("/home"), 900);
+        if (testEmail && TEST_ACCOUNTS[testEmail]) {
+          const account = TEST_ACCOUNTS[testEmail];
+          if (account.role === "society_admin") {
+            navigateSafely("/society-admin/dashboard");
+          } else {
+            navigateSafely("/home");
+          }
           return;
         }
 
+        // 2. Initialize real Supabase session
         const {
           data: { session },
         } = await supabase.auth.getSession();
@@ -42,14 +49,26 @@ export default function SplashScreen() {
         if (!isMounted) return;
 
         if (!session) {
-          setTimeout(() => navigateSafely("/login"), 900);
+          navigateSafely("/login");
           return;
         }
 
+        // 3. Determine authorized role from Supabase profile
         const { profile } = await getAuthenticatedProfile(session.user.id);
-        setTimeout(() => navigateSafely(profile?.is_verified ? "/home" : "/login"), 900);
+        if (!isMounted) return;
+
+        if (profile && !profile.is_verified) {
+          navigateSafely("/verify");
+          return;
+        }
+
+        if (profile?.role === "society_admin") {
+          navigateSafely("/society-admin/dashboard");
+        } else {
+          navigateSafely("/home");
+        }
       } catch {
-        setTimeout(() => navigateSafely("/login"), 900);
+        navigateSafely("/login");
       }
     };
 
@@ -57,7 +76,6 @@ export default function SplashScreen() {
 
     return () => {
       isMounted = false;
-      clearTimeout(spinnerTimer);
       clearTimeout(fallbackTimer);
     };
   }, []);

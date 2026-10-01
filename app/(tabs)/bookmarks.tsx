@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { MotionView, useResponsive } from "@/lib/responsive-motion";
-import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
-import { NUTECH_EVENTS_LIST } from "@/lib/nutech-data";
+import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
+import { NutechEvent, resolveClubLogoSource } from "@/lib/nutech-data";
+import { dbService } from "@/lib/supabase";
+import { useStudentData } from "@/lib/student-data";
 
 const SERIF_FONT = FONT_SANS;
 
@@ -14,18 +15,29 @@ const FILTERS = ["All Saved", "Hackathons", "Workshops", "Clubs", "Cultural"] as
 export default function BookmarksScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
+  const { bookmarkedEventIds, toggleBookmark } = useStudentData();
   const [selectedFilter, setSelectedFilter] = useState<(typeof FILTERS)[number]>("All Saved");
-  const [savedIds, setSavedIds] = useState<string[]>(() => NUTECH_EVENTS_LIST.map((e) => e.id));
+  const [events, setEvents] = useState<NutechEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    dbService.getEvents().then((evs) => {
+      if (isMounted) {
+        setEvents(evs);
+        setLoading(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const visibleEvents = useMemo(() => {
-    const base = NUTECH_EVENTS_LIST.filter((item) => savedIds.includes(item.id));
+    const base = events.filter((item) => bookmarkedEventIds.includes(item.id));
     if (selectedFilter === "All Saved") return base;
     return base.filter((item) => item.category === selectedFilter);
-  }, [savedIds, selectedFilter]);
-
-  const toggleBookmark = (id: string) => {
-    setSavedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
-  };
+  }, [events, bookmarkedEventIds, selectedFilter]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
@@ -107,7 +119,6 @@ export default function BookmarksScreen() {
         showsVerticalScrollIndicator={false}
       >
         <MotionView delay={25} distance={8}>
-
           {/* Saved Events List */}
           {visibleEvents.length === 0 ? (
             <View
@@ -121,7 +132,7 @@ export default function BookmarksScreen() {
                 alignItems: "center",
               }}
             >
-              <Ionicons name="bookmark-outline" size={22} color="#144534" />
+              <Ionicons name="bookmark-outline" size={24} color="#144534" />
               <Text
                 style={{
                   marginTop: 8,
@@ -133,21 +144,30 @@ export default function BookmarksScreen() {
               >
                 No saved NUTECH events
               </Text>
-              <Pressable
-                onPress={() => {
-                  setSavedIds(NUTECH_EVENTS_LIST.map((e) => e.id));
-                  setSelectedFilter("All Saved");
-                }}
+              <Text
                 style={{
-                  marginTop: 10,
+                  marginTop: 4,
+                  fontSize: 10,
+                  color: "#6E7773",
+                  textAlign: "center",
+                  lineHeight: 14,
+                  maxWidth: 260,
+                }}
+              >
+                Explore events across campus and bookmark them to keep track of schedules and deadlines.
+              </Text>
+              <Pressable
+                onPress={() => router.push("/(tabs)/explore")}
+                style={{
+                  marginTop: 12,
                   backgroundColor: "#0E3A2B",
                   borderRadius: 999,
-                  paddingHorizontal: 14,
-                  paddingVertical: 7,
+                  paddingHorizontal: 16,
+                  paddingVertical: 7.5,
                 }}
               >
                 <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#FFFFFF" }}>
-                  Show All Events
+                  Browse Events
                 </Text>
               </Pressable>
             </View>
@@ -166,11 +186,26 @@ export default function BookmarksScreen() {
                   }}
                 >
                   <View style={{ flexDirection: "row", padding: 11 }}>
-                    <Image
-                      source={{ uri: ev.image }}
-                      style={{ width: 74, height: 74, borderRadius: 11 }}
-                      resizeMode="cover"
-                    />
+                    {ev.image ? (
+                      <Image
+                        source={{ uri: ev.image }}
+                        style={{ width: 74, height: 74, borderRadius: 11 }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 74,
+                          height: 74,
+                          borderRadius: 11,
+                          backgroundColor: "#134635",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Ionicons name="calendar-outline" size={26} color="#8FD1B8" />
+                      </View>
+                    )}
 
                     <View style={{ flex: 1, marginLeft: 11 }}>
                       <View
@@ -202,7 +237,7 @@ export default function BookmarksScreen() {
                         <Pressable
                           onPress={(e) => {
                             e.stopPropagation();
-                            toggleBookmark(ev.id);
+                            void toggleBookmark(ev.id);
                           }}
                           hitSlop={8}
                         >
@@ -220,14 +255,16 @@ export default function BookmarksScreen() {
                         }}
                         numberOfLines={1}
                       >
-                        {ev.shortTitle}
+                        {ev.shortTitle || ev.title}
                       </Text>
 
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 }}>
-                        <Image
-                          source={{ uri: ev.clubLogo }}
-                          style={{ width: 14, height: 14, borderRadius: 4 }}
-                        />
+                        {ev.clubLogo ? (
+                          <Image
+                            source={resolveClubLogoSource(ev.clubLogo)}
+                            style={{ width: 14, height: 14, borderRadius: 4 }}
+                          />
+                        ) : null}
                         <Text
                           numberOfLines={1}
                           style={{ fontSize: 8.5, fontWeight: "600", color: "#1E5D4B", flex: 1 }}
@@ -258,3 +295,4 @@ export default function BookmarksScreen() {
     </SafeAreaView>
   );
 }
+

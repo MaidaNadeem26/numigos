@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView, useResponsive } from "@/lib/responsive-motion";
 import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
+import { dbService } from "@/lib/supabase";
 
 const SERIF_FONT = FONT_SANS;
 
@@ -18,6 +19,40 @@ export default function RegisterSocietyScreen() {
   const [advisor, setAdvisor] = useState("");
   const [purpose, setPurpose] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      setError("Please enter the proposed society name.");
+      return;
+    }
+    if (!advisor.trim()) {
+      setError("Please enter the proposed faculty advisor name & department.");
+      return;
+    }
+    if (!purpose.trim()) {
+      setError("Please describe the club mission and planned activities.");
+      return;
+    }
+
+    setError("");
+    setIsSubmitting(true);
+
+    const res = await dbService.submitSocietyRequest({
+      proposed_name: name.trim(),
+      domain,
+      advisor: advisor.trim(),
+      purpose: purpose.trim(),
+    });
+
+    setIsSubmitting(false);
+    if (!res.success && res.error && !res.error.includes("schema cache")) {
+      setError("Unable to submit request: " + res.error);
+      return;
+    }
+    setSubmitted(true);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
@@ -139,6 +174,23 @@ export default function RegisterSocietyScreen() {
                 gap: 11,
               }}
             >
+              {error ? (
+                <View
+                  style={{
+                    backgroundColor: "#FEE2E2",
+                    borderRadius: 10,
+                    padding: 9,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <Ionicons name="alert-circle" size={15} color="#DC2626" />
+                  <Text style={{ fontSize: 9.5, fontWeight: "600", color: "#DC2626" }}>
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
               <View>
                 <Text style={{ fontSize: 9, fontWeight: "700", color: "#12221C", marginBottom: 4 }}>
                   Proposed Club / Society Name
@@ -244,18 +296,24 @@ export default function RegisterSocietyScreen() {
               </View>
 
               <Pressable
-                onPress={() => setSubmitted(true)}
+                disabled={isSubmitting}
+                onPress={handleSubmit}
                 style={{
                   marginTop: 2,
-                  backgroundColor: "#0E3A2B",
+                  backgroundColor: isSubmitting ? "#58635E" : "#0E3A2B",
                   borderRadius: 999,
                   height: 36,
                   alignItems: "center",
                   justifyContent: "center",
+                  flexDirection: "row",
+                  gap: 6,
                 }}
               >
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : null}
                 <Text style={{ fontSize: 10, fontWeight: "700", color: "#FFFFFF" }}>
-                  Submit Request to OSA
+                  {isSubmitting ? "Submitting Request..." : "Submit Request to OSA"}
                 </Text>
               </Pressable>
             </View>
