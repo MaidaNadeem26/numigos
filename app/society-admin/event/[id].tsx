@@ -15,7 +15,63 @@ export default function SocietyAdminEventDetailScreen() {
   const { events, society, cancelEvent, setDraftEvent } = useSocietyAdminData();
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
 
-  const event = events.find((e) => e.id === id) || events[0];
+  const event = events.find((e) => e.id === id);
+
+  if (!event) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
+        <View
+          style={{
+            height: 52,
+            paddingHorizontal: hPad,
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: "#FAF9F5",
+          }}
+        >
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.push("/society-admin/events"))}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: "#EFECE6",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="arrow-back" size={16} color="#12221C" />
+          </Pressable>
+          <Text style={{ fontFamily: FONT_SANS, fontSize: 16, fontWeight: "700", color: "#12221C", marginLeft: 12 }}>
+            Event Details
+          </Text>
+        </View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <Ionicons name="alert-circle-outline" size={48} color="#8D9692" style={{ marginBottom: 12 }} />
+          <Text style={{ fontFamily: FONT_SANS, fontSize: 16, fontWeight: "700", color: "#12221C" }}>
+            Event Not Found
+          </Text>
+          <Text style={{ fontFamily: FONT_SANS, fontSize: 12, color: "#58635E", marginTop: 4, textAlign: "center" }}>
+            The requested event could not be found or has been removed.
+          </Text>
+          <Pressable
+            onPress={() => router.push("/society-admin/events")}
+            style={{
+              marginTop: 16,
+              backgroundColor: "#1E5D4B",
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 999,
+            }}
+          >
+            <Text style={{ fontFamily: FONT_SANS, fontSize: 12, fontWeight: "700", color: "#FFFFFF" }}>
+              Back to Events
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const getStatusDisplay = (status: SocietyAdminEvent["status"]) => {
     switch (status) {
@@ -180,7 +236,16 @@ export default function SocietyAdminEventDetailScreen() {
         <MotionView delay={20} distance={8}>
           {/* Hero Banner */}
           <View style={{ borderRadius: 16, overflow: "hidden", height: 160, borderWidth: 1, borderColor: "#E5E2DA", marginBottom: 12 }}>
-            <Image source={{ uri: event.image }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+            {event.image ? (
+              <Image source={{ uri: event.image }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+            ) : (
+              <LinearGradient
+                colors={["#1E5D4B", "#134635"]}
+                style={{ width: "100%", height: "100%", alignItems: "center", justifyContent: "center" }}
+              >
+                <Ionicons name="calendar" size={48} color="#F2CC8F" />
+              </LinearGradient>
+            )}
           </View>
 
           {/* Admin Status Card */}

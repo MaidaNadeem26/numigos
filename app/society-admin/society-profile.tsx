@@ -11,9 +11,12 @@ import { resolveClubLogoSource, resolveClubBannerSource } from "@/lib/nutech-dat
 export default function SocietyProfileScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
-  const { society, events } = useSocietyAdminData();
+  const { society, events, members } = useSocietyAdminData();
 
   const societyEvents = events.filter((e) => e.status === "Approved");
+  const displayLeaders = members.filter((m) => m.group === "Leadership").length > 0
+    ? members.filter((m) => m.group === "Leadership")
+    : (society.leaders || []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
@@ -312,19 +315,51 @@ export default function SocietyProfileScreen() {
             </View>
 
             <View style={{ gap: 8 }}>
-              {society.leaders.map((lead) => (
-                <View key={lead.name} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <Image source={{ uri: lead.avatar }} style={{ width: 34, height: 34, borderRadius: 17 }} />
-                  <View>
-                    <Text style={{ fontFamily: FONT_SANS, fontSize: 11.5, fontWeight: "700", color: "#12221C" }}>
-                      {lead.name}
-                    </Text>
-                    <Text style={{ fontFamily: FONT_SANS, fontSize: 9.5, color: "#58635E" }}>
-                      {lead.role}
-                    </Text>
+              {displayLeaders.length > 0 ? (
+                displayLeaders.map((lead: any) => (
+                  <View key={lead.id || lead.name} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    {lead.avatar ? (
+                      <Image source={{ uri: lead.avatar }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+                    ) : (
+                      <View
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 17,
+                          backgroundColor: "#1E5D4B",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ fontFamily: FONT_SANS, fontSize: 11, fontWeight: "700", color: "#FAF9F5" }}>
+                          {lead.name
+                            ? lead.name
+                                .split(" ")
+                                .map((p: string) => p[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase()
+                            : "L"}
+                        </Text>
+                      </View>
+                    )}
+                    <View>
+                      <Text style={{ fontFamily: FONT_SANS, fontSize: 11.5, fontWeight: "700", color: "#12221C" }}>
+                        {lead.name}
+                      </Text>
+                      <Text style={{ fontFamily: FONT_SANS, fontSize: 9.5, color: "#58635E" }}>
+                        {lead.role}
+                      </Text>
+                    </View>
                   </View>
+                ))
+              ) : (
+                <View style={{ paddingVertical: 8 }}>
+                  <Text style={{ fontFamily: FONT_SANS, fontSize: 10, color: "#8D9692" }}>
+                    No leadership assigned yet. Use Manage Team to assign roles.
+                  </Text>
                 </View>
-              ))}
+              )}
             </View>
           </View>
 

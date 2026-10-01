@@ -26,12 +26,7 @@ export default function SocietyChatScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Interactive thumbs-up reaction counters
-  const [thumbsReactions, setThumbsReactions] = useState<Record<string, number>>({
-    "msg-1": 4,
-    "msg-2": 5,
-    "msg-3": 3,
-    "msg-4": 6,
-  });
+  const [thumbsReactions, setThumbsReactions] = useState<Record<string, number>>({});
 
   const toggleThumbs = (msgId: string) => {
     setThumbsReactions((prev) => ({
@@ -180,7 +175,7 @@ export default function SocietyChatScreen() {
                     marginTop: 2,
                   }}
                 >
-                  Cloud Study Jam dry-run is Wednesday at 3:30 PM in CS Lab 3. All leads please review slide decks!
+                  {`Official communication channel for ${society.name}. Coordinate society activities, announcements, and team discussions here.`}
                 </Text>
               </View>
             </View>
@@ -213,148 +208,196 @@ export default function SocietyChatScreen() {
               }}
             >
               <Text style={{ fontFamily: FONT_SANS, fontSize: 8.5, fontWeight: "700", color: "#58635E", letterSpacing: 0.4 }}>
-                TODAY · OFFICIAL CHANNEL
+                OFFICIAL CHANNEL
               </Text>
             </View>
           </View>
 
           {/* Messages Feed */}
-          {chatMessages.map((msg) => {
-            const isMe = msg.isCurrentUser;
-            const thumbsCount = thumbsReactions[msg.id] ?? 1;
+          {chatMessages.length > 0 ? (
+            chatMessages.map((msg) => {
+              const isMe = msg.isCurrentUser;
+              const thumbsCount = thumbsReactions[msg.id] ?? 0;
 
-            return (
-              <View
-                key={msg.id}
-                style={{
-                  flexDirection: isMe ? "row-reverse" : "row",
-                  alignItems: "flex-end",
-                  gap: 8,
-                  maxWidth: "86%",
-                  alignSelf: isMe ? "flex-end" : "flex-start",
-                }}
-              >
-                {!isMe && (
-                  <Image
-                    source={{ uri: msg.senderAvatar }}
-                    style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: "#E2DFD6" }}
-                  />
-                )}
-
-                <View style={{ alignItems: isMe ? "flex-end" : "flex-start", flexShrink: 1 }}>
-                  {/* Sender Name & Role */}
+              return (
+                <View
+                  key={msg.id}
+                  style={{
+                    flexDirection: isMe ? "row-reverse" : "row",
+                    alignItems: "flex-end",
+                    gap: 8,
+                    maxWidth: "86%",
+                    alignSelf: isMe ? "flex-end" : "flex-start",
+                  }}
+                >
                   {!isMe && (
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 3, marginLeft: 2 }}>
-                      <Text style={{ fontFamily: FONT_SANS, fontSize: 10, fontWeight: "700", color: "#12221C" }}>
-                        {msg.senderName}
-                      </Text>
+                    msg.senderAvatar ? (
+                      <Image
+                        source={{ uri: msg.senderAvatar }}
+                        style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: "#E2DFD6" }}
+                      />
+                    ) : (
                       <View
                         style={{
-                          backgroundColor:
-                            msg.senderRole.includes("President")
-                              ? "#FEF7EC"
-                              : msg.senderRole.includes("Lead")
-                              ? "#E8F4EE"
-                              : "#F3F4F6",
-                          paddingHorizontal: 5,
-                          paddingVertical: 1,
-                          borderRadius: 4,
+                          width: 30,
+                          height: 30,
+                          borderRadius: 15,
+                          backgroundColor: "#1E5D4B",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        <Text
-                          style={{
-                            fontFamily: FONT_SANS,
-                            fontSize: 7.5,
-                            color: msg.senderRole.includes("President")
-                              ? "#C47D15"
-                              : msg.senderRole.includes("Lead")
-                              ? "#1E5D4B"
-                              : "#58635E",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {msg.senderRole}
+                        <Text style={{ fontFamily: FONT_SANS, fontSize: 10, fontWeight: "700", color: "#FAF9F5" }}>
+                          {msg.senderName
+                            ? msg.senderName
+                                .split(" ")
+                                .map((p) => p[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase()
+                            : "U"}
                         </Text>
                       </View>
-                    </View>
+                    )
                   )}
 
-                  {/* Message Bubble */}
-                  <View
-                    style={{
-                      backgroundColor: isMe ? "#1E5D4B" : "#FFFFFF",
-                      borderRadius: 16,
-                      borderTopRightRadius: isMe ? 4 : 16,
-                      borderTopLeftRadius: isMe ? 16 : 4,
-                      borderWidth: isMe ? 0 : 1,
-                      borderColor: "#EAE7DF",
-                      paddingHorizontal: 12,
-                      paddingVertical: 8.5,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: isMe ? 0.08 : 0.03,
-                      shadowRadius: 3,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: FONT_SANS,
-                        fontSize: 12,
-                        color: isMe ? "#FFFFFF" : "#12221C",
-                        lineHeight: 17,
-                      }}
-                    >
-                      {msg.text}
-                    </Text>
+                  <View style={{ alignItems: isMe ? "flex-end" : "flex-start", flexShrink: 1 }}>
+                    {/* Sender Name & Role */}
+                    {!isMe && (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 3, marginLeft: 2 }}>
+                        <Text style={{ fontFamily: FONT_SANS, fontSize: 10, fontWeight: "700", color: "#12221C" }}>
+                          {msg.senderName}
+                        </Text>
+                        <View
+                          style={{
+                            backgroundColor:
+                              msg.senderRole.includes("President")
+                                ? "#FEF7EC"
+                                : msg.senderRole.includes("Lead")
+                                ? "#E8F4EE"
+                                : "#F3F4F6",
+                            paddingHorizontal: 5,
+                            paddingVertical: 1,
+                            borderRadius: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontFamily: FONT_SANS,
+                              fontSize: 7.5,
+                              color: msg.senderRole.includes("President")
+                                ? "#C47D15"
+                                : msg.senderRole.includes("Lead")
+                                ? "#1E5D4B"
+                                : "#58635E",
+                              fontWeight: "700",
+                            }}
+                          >
+                            {msg.senderRole}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
 
+                    {/* Message Bubble */}
                     <View
                       style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        gap: 4,
-                        marginTop: 4,
+                        backgroundColor: isMe ? "#1E5D4B" : "#FFFFFF",
+                        borderRadius: 16,
+                        borderTopRightRadius: isMe ? 4 : 16,
+                        borderTopLeftRadius: isMe ? 16 : 4,
+                        borderWidth: isMe ? 0 : 1,
+                        borderColor: "#EAE7DF",
+                        paddingHorizontal: 12,
+                        paddingVertical: 8.5,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: isMe ? 0.08 : 0.03,
+                        shadowRadius: 3,
                       }}
                     >
                       <Text
                         style={{
-                          fontFamily: FONT_MONO,
-                          fontSize: 8,
-                          color: isMe ? "rgba(255,255,255,0.7)" : "#8D9692",
+                          fontFamily: FONT_SANS,
+                          fontSize: 12,
+                          color: isMe ? "#FFFFFF" : "#12221C",
+                          lineHeight: 17,
                         }}
                       >
-                        {msg.timestamp}
+                        {msg.text}
                       </Text>
-                      {isMe && <Ionicons name="checkmark-done" size={12} color="#CBEAD9" />}
-                    </View>
-                  </View>
 
-                  {/* Interactive Thumbs Up Reaction Only */}
-                  <Pressable
-                    onPress={() => toggleThumbs(msg.id)}
-                    style={{
-                      backgroundColor: "#FFFFFF",
-                      borderWidth: 1,
-                      borderColor: "#E2DFD6",
-                      paddingHorizontal: 7,
-                      paddingVertical: 2,
-                      borderRadius: 999,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 4,
-                      marginTop: 3,
-                      alignSelf: isMe ? "flex-end" : "flex-start",
-                    }}
-                  >
-                    <Text style={{ fontSize: 10 }}>👍</Text>
-                    <Text style={{ fontFamily: FONT_MONO, fontSize: 8.5, color: "#12221C", fontWeight: "700" }}>
-                      {thumbsCount}
-                    </Text>
-                  </Pressable>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          gap: 4,
+                          marginTop: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONT_MONO,
+                            fontSize: 8,
+                            color: isMe ? "rgba(255,255,255,0.7)" : "#8D9692",
+                          }}
+                        >
+                          {msg.timestamp}
+                        </Text>
+                        {isMe && <Ionicons name="checkmark-done" size={12} color="#CBEAD9" />}
+                      </View>
+                    </View>
+
+                    {/* Interactive Thumbs Up Reaction Only */}
+                    <Pressable
+                      onPress={() => toggleThumbs(msg.id)}
+                      style={{
+                        backgroundColor: thumbsCount > 0 ? "#E8F4EE" : "#FFFFFF",
+                        borderWidth: 1,
+                        borderColor: thumbsCount > 0 ? "#1E5D4B" : "#E2DFD6",
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 999,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 3,
+                        alignSelf: isMe ? "flex-end" : "flex-start",
+                      }}
+                    >
+                      <Text style={{ fontSize: 10 }}>👍</Text>
+                      {thumbsCount > 0 && (
+                        <Text style={{ fontFamily: FONT_MONO, fontSize: 8.5, color: "#12221C", fontWeight: "700" }}>
+                          {thumbsCount}
+                        </Text>
+                      )}
+                    </Pressable>
+                  </View>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })
+          ) : (
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: "#EAE7DF",
+                padding: 24,
+                alignItems: "center",
+                marginVertical: 20,
+              }}
+            >
+              <Ionicons name="chatbubbles-outline" size={28} color="#8D9692" style={{ marginBottom: 6 }} />
+              <Text style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: "700", color: "#12221C" }}>
+                No messages yet
+              </Text>
+              <Text style={{ fontFamily: FONT_SANS, fontSize: 10, color: "#58635E", marginTop: 4, textAlign: "center" }}>
+                Start the conversation with your society team below.
+              </Text>
+            </View>
+          )}
         </ScrollView>
 
         {/* Bottom Message Input Composer */}

@@ -154,112 +154,116 @@ export default function SocietyMembersScreen() {
 
           {/* Members List */}
           <View style={{ gap: 10 }}>
-            {filteredMembers.map((m) => {
-              const isLeadership = m.group === "Leadership";
-              const isCore = m.group === "Core Team";
-              return (
-                <View
-                  key={m.id}
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: "#EAE7DF",
-                    padding: 12,
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, paddingRight: 6 }}>
-                      <Image source={{ uri: m.avatar }} style={{ width: 40, height: 40, borderRadius: 20 }} />
-                      <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <Text style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: "700", color: "#12221C" }}>
-                            {m.name}
-                          </Text>
-                          <Text
+            {filteredMembers.length > 0 ? (
+              filteredMembers.map((m) => {
+                const isLeadership = m.group === "Leadership";
+                const isCore = m.group === "Core Team";
+                return (
+                  <View
+                    key={m.id}
+                    style={{
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      borderColor: "#EAE7DF",
+                      padding: 12,
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, paddingRight: 6 }}>
+                        {m.avatar ? (
+                          <Image source={{ uri: m.avatar }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                        ) : (
+                          <View
                             style={{
-                              fontFamily: FONT_MONO,
-                              fontSize: 9,
-                              fontWeight: "600",
-                              color: "#1E5D4B",
-                              backgroundColor: "#E8F4EE",
-                              paddingHorizontal: 5,
-                              paddingVertical: 1,
-                              borderRadius: 4,
+                              width: 40,
+                              height: 40,
+                              borderRadius: 20,
+                              backgroundColor: "#1E5D4B",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            {m.rollNumber}
+                            <Text style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: "700", color: "#FAF9F5" }}>
+                              {m.name
+                                .split(" ")
+                                .map((p) => p[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase() || "M"}
+                            </Text>
+                          </View>
+                        )}
+                        <View style={{ flex: 1 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <Text style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: "700", color: "#12221C" }}>
+                              {m.name}
+                            </Text>
+                            <Text
+                              style={{
+                                fontFamily: FONT_MONO,
+                                fontSize: 9,
+                                fontWeight: "600",
+                                color: "#1E5D4B",
+                                backgroundColor: "#E8F4EE",
+                                paddingHorizontal: 5,
+                                paddingVertical: 1,
+                                borderRadius: 4,
+                              }}
+                            >
+                              {m.rollNumber}
+                            </Text>
+                          </View>
+
+                          <Text style={{ fontFamily: FONT_SANS, fontSize: 9.5, color: "#58635E", marginTop: 1 }}>
+                            {m.department} · {m.joinedDate}
                           </Text>
                         </View>
+                      </View>
 
-                        <Text style={{ fontFamily: FONT_SANS, fontSize: 9.5, color: "#58635E", marginTop: 1 }}>
-                          {m.department} · {m.joinedDate}
+                      {/* Role Pill */}
+                      <View
+                        style={{
+                          backgroundColor: isLeadership ? "#FEF7EC" : isCore ? "#E8F4EE" : "#F3F4F6",
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 999,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: FONT_SANS,
+                            fontSize: 9,
+                            fontWeight: "700",
+                            color: isLeadership ? "#C47D15" : isCore ? "#1E5D4B" : "#4B5563",
+                          }}
+                        >
+                          {m.role}
                         </Text>
                       </View>
                     </View>
 
-                    {/* Role Pill */}
+                    {/* Actions Row */}
                     <View
                       style={{
-                        backgroundColor: isLeadership ? "#FEF7EC" : isCore ? "#E8F4EE" : "#F3F4F6",
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        borderRadius: 999,
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: 10,
+                        paddingTop: 8,
+                        borderTopWidth: 1,
+                        borderTopColor: "#F6F5F0",
                       }}
                     >
-                      <Text
-                        style={{
-                          fontFamily: FONT_SANS,
-                          fontSize: 9,
-                          fontWeight: "700",
-                          color: isLeadership ? "#C47D15" : isCore ? "#1E5D4B" : "#4B5563",
-                        }}
-                      >
-                        {m.role}
+                      <Text style={{ fontFamily: FONT_SANS, fontSize: 9, color: "#8D9692" }}>
+                        {m.email}
                       </Text>
-                    </View>
-                  </View>
 
-                  {/* Actions Row */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginTop: 10,
-                      paddingTop: 8,
-                      borderTopWidth: 1,
-                      borderTopColor: "#F6F5F0",
-                    }}
-                  >
-                    <Text style={{ fontFamily: FONT_SANS, fontSize: 9, color: "#8D9692" }}>
-                      {m.email}
-                    </Text>
-
-                    <View style={{ flexDirection: "row", gap: 6 }}>
-                      <Pressable
-                        onPress={() => handleOpenEdit(m)}
-                        style={{
-                          backgroundColor: "#F2EFE9",
-                          paddingHorizontal: 8,
-                          paddingVertical: 4,
-                          borderRadius: 6,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 3,
-                        }}
-                      >
-                        <Ionicons name="create-outline" size={11} color="#12221C" />
-                        <Text style={{ fontFamily: FONT_SANS, fontSize: 9, fontWeight: "600", color: "#12221C" }}>
-                          Change Role
-                        </Text>
-                      </Pressable>
-
-                      {m.role !== "President" && (
+                      <View style={{ flexDirection: "row", gap: 6 }}>
                         <Pressable
-                          onPress={() => handleRemove(m)}
+                          onPress={() => handleOpenEdit(m)}
                           style={{
-                            backgroundColor: "#FFF0EB",
+                            backgroundColor: "#F2EFE9",
                             paddingHorizontal: 8,
                             paddingVertical: 4,
                             borderRadius: 6,
@@ -268,17 +272,56 @@ export default function SocietyMembersScreen() {
                             gap: 3,
                           }}
                         >
-                          <Ionicons name="trash-outline" size={11} color="#C44D2D" />
-                          <Text style={{ fontFamily: FONT_SANS, fontSize: 9, fontWeight: "600", color: "#C44D2D" }}>
-                            Remove
+                          <Ionicons name="create-outline" size={11} color="#12221C" />
+                          <Text style={{ fontFamily: FONT_SANS, fontSize: 9, fontWeight: "600", color: "#12221C" }}>
+                            Change Role
                           </Text>
                         </Pressable>
-                      )}
+
+                        {m.role !== "President" && (
+                          <Pressable
+                            onPress={() => handleRemove(m)}
+                            style={{
+                              backgroundColor: "#FFF0EB",
+                              paddingHorizontal: 8,
+                              paddingVertical: 4,
+                              borderRadius: 6,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 3,
+                            }}
+                          >
+                            <Ionicons name="trash-outline" size={11} color="#C44D2D" />
+                            <Text style={{ fontFamily: FONT_SANS, fontSize: 9, fontWeight: "600", color: "#C44D2D" }}>
+                              Remove
+                            </Text>
+                          </Pressable>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-              );
-            })}
+                );
+              })
+            ) : (
+              <View
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: "#EAE7DF",
+                  padding: 24,
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="people-outline" size={28} color="#8D9692" style={{ marginBottom: 6 }} />
+                <Text style={{ fontFamily: FONT_SANS, fontSize: 13, fontWeight: "700", color: "#12221C" }}>
+                  No members found
+                </Text>
+                <Text style={{ fontFamily: FONT_SANS, fontSize: 10, color: "#58635E", marginTop: 4, textAlign: "center" }}>
+                  {searchQuery ? "No members match your search criteria." : "No members have been added to this society yet."}
+                </Text>
+              </View>
+            )}
           </View>
         </MotionView>
       </ScrollView>

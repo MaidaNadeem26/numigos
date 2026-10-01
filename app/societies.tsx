@@ -3,9 +3,9 @@ import { Image, Platform, Pressable, ScrollView, Text, TextInput, View } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { MotionView, useResponsive } from "@/lib/responsive-motion";
-import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
+import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { NUTECH_SOCIETIES_LIST, resolveClubBannerSource, resolveClubLogoSource } from "@/lib/nutech-data";
+import { useStudentData } from "@/lib/student-data";
 
 const SERIF_FONT = FONT_SANS;
 
@@ -14,16 +14,9 @@ const CATEGORIES = ["All", "Technical", "Creative", "Community", "Outdoor & Spor
 export default function SocietiesScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
+  const { followedSocietyIds, toggleFollow } = useStudentData();
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<(typeof CATEGORIES)[number]>("All");
-  const [joinedIds, setJoinedIds] = useState<string[]>([
-    "zindigi-prize-nutech",
-    "entrepreneurship-club",
-    "ieee-nutech",
-    "media-publicity",
-    "fine-arts",
-    "adventure-club",
-  ]);
 
   const filteredSocieties = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -37,10 +30,6 @@ export default function SocietiesScreen() {
       return matchesCat && matchesQuery;
     });
   }, [query, selectedCategory]);
-
-  const toggleJoin = (id: string) => {
-    setJoinedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
-  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
@@ -162,10 +151,45 @@ export default function SocietiesScreen() {
           </View>
           <View style={{ height: 10 }} />
 
+          {/* Categories Pill Selector */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 6, paddingBottom: 11 }}
+          >
+            {CATEGORIES.map((cat) => {
+              const active = selectedCategory === cat;
+              return (
+                <Pressable
+                  key={cat}
+                  onPress={() => setSelectedCategory(cat)}
+                  style={{
+                    paddingHorizontal: 11,
+                    paddingVertical: 4.5,
+                    borderRadius: 999,
+                    backgroundColor: active ? "#134635" : "#FFFFFF",
+                    borderColor: active ? "#134635" : "#E5E2DA",
+                    borderWidth: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 9.5,
+                      fontWeight: "700",
+                      color: active ? "#FFFFFF" : "#4A5450",
+                    }}
+                  >
+                    {cat}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
           {/* NUTECH Society Cards with Banner & Logo Images */}
           <View style={{ gap: 11 }}>
             {filteredSocieties.map((soc) => {
-              const isJoined = joinedIds.includes(soc.id);
+              const isJoined = followedSocietyIds.includes(soc.id);
               return (
                 <Pressable
                   key={soc.id}
@@ -235,7 +259,7 @@ export default function SocietiesScreen() {
                       <Pressable
                         onPress={(e) => {
                           e.stopPropagation();
-                          toggleJoin(soc.id);
+                          void toggleFollow(soc.id);
                         }}
                         style={{
                           backgroundColor: isJoined ? "#CBEAD9" : "#0E3A2B",

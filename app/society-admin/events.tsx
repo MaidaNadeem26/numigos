@@ -3,6 +3,7 @@ import { Image, Platform, Pressable, ScrollView, Text, TextInput, View } from "r
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { useSocietyAdminData, SocietyAdminEvent } from "@/lib/society-admin-data";
 
@@ -283,7 +284,16 @@ export default function MySocietyEventsScreen() {
                       },
                     ]}
                   >
-                    <Image source={{ uri: ev.image }} style={{ width: "100%", height: 120 }} resizeMode="cover" />
+                    {ev.image ? (
+                      <Image source={{ uri: ev.image }} style={{ width: "100%", height: 120 }} resizeMode="cover" />
+                    ) : (
+                      <LinearGradient
+                        colors={["#1E5D4B", "#134635"]}
+                        style={{ width: "100%", height: 120, alignItems: "center", justifyContent: "center" }}
+                      >
+                        <Ionicons name="calendar" size={32} color="#F2CC8F" />
+                      </LinearGradient>
+                    )}
 
                     <View style={{ padding: 13 }}>
                       {/* Status Row */}

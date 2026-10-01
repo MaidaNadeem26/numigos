@@ -123,9 +123,25 @@ export default function SocietyAdminProfileScreen() {
                   overflow: "hidden",
                   borderWidth: 2,
                   borderColor: "#F2CC8F",
+                  backgroundColor: "#12221C",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                <Image source={{ uri: profile.avatar }} style={{ width: "100%", height: "100%" }} />
+                {profile.avatar ? (
+                  <Image source={{ uri: profile.avatar }} style={{ width: "100%", height: "100%" }} />
+                ) : (
+                  <Text style={{ fontFamily: FONT_SANS, fontSize: 18, fontWeight: "700", color: "#F2CC8F" }}>
+                    {profile.name
+                      ? profile.name
+                          .split(" ")
+                          .map((p) => p[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()
+                      : "SA"}
+                  </Text>
+                )}
               </View>
 
               <View style={{ flex: 1 }}>

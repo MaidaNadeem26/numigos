@@ -1,61 +1,50 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { MotionView, useResponsive } from "@/lib/responsive-motion";
-import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
+import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { dbService, RegistrationRecord } from "@/lib/supabase";
+import { useStudentData } from "@/lib/student-data";
 
 const SERIF_FONT = FONT_SANS;
-
-const ATTENDED_HISTORY = [
-  {
-    id: "event-cloud-study-jam",
-    title: "DevCon 2024 — Multi-Cloud & Serverless Systems",
-    society: "AWS Cloud Club NUTECH",
-    dateLabel: "Dec 14, 2024",
-    role: "Verified Attendee",
-    certificateId: "NUTECH-DC24-084",
-    credits: "2.0SDP Credits",
-    hasCertificate: true,
-  },
-  {
-    id: "event-speed-programming",
-    title: "Intra-University Speed Programming '24",
-    society: "ACM Student Chapter",
-    dateLabel: "Nov 28, 2024",
-    role: "Runner-Up Merit Award",
-    certificateId: "NUTECH-ACM24-019",
-    credits: "3.0 SDP Credits",
-    hasCertificate: true,
-  },
-  {
-    id: "event-innovation-night",
-    title: "Autonomous Rover & Embedded Systems Lab",
-    society: "Robotics & Automation (RAS)",
-    dateLabel: "Oct 19, 2024",
-    role: "Workshop Participant",
-    certificateId: "NUTECH-RAS24-112",
-    credits: "1.5 SDP Credits",
-    hasCertificate: true,
-  },
-  {
-    id: "event-ui-ux-bootcamp",
-    title: "Figma & Design Systems Open Bootcamp",
-    society: "NUTECH Arts & Design Guild",
-    dateLabel: "Sep 22, 2024",
-    role: "Attendance Verified",
-    certificateId: "NUTECH-ADG24-051",
-    credits: "1.5 SDP Credits",
-    hasCertificate: false,
-  },
-];
 
 export default function EventHistoryScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
-  const [downloadedId, setDownloadedId] = useState<string | null>(null);
+  const { profile } = useStudentData();
+
+  const [records, setRecords] = useState<RegistrationRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHistory() {
+      const allRegs = await dbService.getRegistrations();
+      if (isMounted) {
+        // Filter to registrations belonging to this student (or attended registrations)
+        const myAttended = (allRegs || []).filter(
+          (r) =>
+            r.status === "Attended" ||
+            (profile?.email && r.email?.toLowerCase() === profile.email.toLowerCase()) ||
+            (profile?.name && r.name?.toLowerCase() === profile.name.toLowerCase())
+        );
+        setRecords(myAttended);
+        setLoading(false);
+      }
+    }
+    void loadHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, [profile]);
+
+  const studentName = profile?.name || "Student";
+  const studentRoll = profile?.roll_number || "NUTECH";
+  const eventsCount = records.length;
+  const certificatesCount = records.filter((r) => r.certificate_id).length;
+  const sdpCredits = (eventsCount * 1.5).toFixed(1);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
@@ -93,7 +82,7 @@ export default function EventHistoryScreen() {
                 color: "#2A6350",
               }}
             >
-              VERIFIED CREDENTIALS
+              STUDENT AFFAIRS PORTAL
             </Text>
             <Text
               style={{
@@ -104,16 +93,16 @@ export default function EventHistoryScreen() {
                 marginTop: -1,
               }}
             >
-              Event History & Certificates
+              Event History
             </Text>
           </View>
         </View>
 
         <View
           style={{
-            backgroundColor: "#E3F2EC",
+            backgroundColor: "#E8F4EE",
             borderRadius: 999,
-            paddingHorizontal: 8.5,
+            paddingHorizontal: 8,
             paddingVertical: 3.5,
           }}
         >
@@ -125,208 +114,256 @@ export default function EventHistoryScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: hPad, paddingTop: 6, paddingBottom: 28, maxWidth: 520, width: "100%", alignSelf: "center" }}
+        contentContainerStyle={{
+          paddingHorizontal: hPad,
+          paddingTop: 6,
+          paddingBottom: 28,
+          maxWidth: 520,
+          width: "100%",
+          alignSelf: "center",
+        }}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <MotionView delay={25} distance={8}>
-        {/* Co-Curricular Transcript Card */}
-        <LinearGradient
-          colors={["#1D5442", "#11382B"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            borderRadius: 16,
-            padding: 13,
-          }}
-        >
-          <Text style={{ fontSize: 8, fontWeight: "700", letterSpacing: 0.7, color: "#9EC5B5" }}>
-            OFFICIAL CO-CURRICULAR TRANSCRIPT
-          </Text>
-          <Text
+          {/* Co-Curricular Transcript Card */}
+          <LinearGradient
+            colors={["#1D5442", "#11382B"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
-              marginTop: 4,
-              fontFamily: SERIF_FONT,
-              fontSize: 15,
-              fontWeight: "700",
-              color: "#FFFFFF",
+              borderRadius: 16,
+              padding: 13,
             }}
           >
-            Zainab Ahmed · 2021-CS-084
-          </Text>
+            <Text style={{ fontSize: 8, fontWeight: "700", letterSpacing: 0.7, color: "#9EC5B5" }}>
+              OFFICIAL CO-CURRICULAR TRANSCRIPT
+            </Text>
+            <Text
+              style={{
+                marginTop: 4,
+                fontFamily: SERIF_FONT,
+                fontSize: 15,
+                fontWeight: "700",
+                color: "#FFFFFF",
+              }}
+            >
+              {studentName} · {studentRoll}
+            </Text>
 
-          <View
-            style={{
-              marginTop: 10,
-              backgroundColor: "rgba(9, 27, 20, 0.4)",
-              borderRadius: 11,
-              paddingVertical: 8.5,
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Text style={{ fontFamily: SERIF_FONT, fontSize: 14, fontWeight: "700", color: "#F3D092" }}>
-                4
-              </Text>
-              <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#9EC5B5", marginTop: 1 }}>
-                ATTENDED
-              </Text>
+            <View
+              style={{
+                marginTop: 10,
+                backgroundColor: "rgba(9, 27, 20, 0.4)",
+                borderRadius: 11,
+                paddingVertical: 9,
+                paddingHorizontal: 8,
+                flexDirection: "row",
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.06)",
+              }}
+            >
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text style={{ fontSize: 7.5, color: "#A7C6B9", fontWeight: "700" }}>ATTENDED</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#FFFFFF",
+                    fontFamily: FONT_MONO,
+                    marginTop: 1,
+                  }}
+                >
+                  {eventsCount}
+                </Text>
+              </View>
+
+              <View style={{ width: 1, backgroundColor: "rgba(255,255,255,0.15)" }} />
+
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text style={{ fontSize: 7.5, color: "#A7C6B9", fontWeight: "700" }}>CERTIFICATES</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#FFFFFF",
+                    fontFamily: FONT_MONO,
+                    marginTop: 1,
+                  }}
+                >
+                  {certificatesCount}
+                </Text>
+              </View>
+
+              <View style={{ width: 1, backgroundColor: "rgba(255,255,255,0.15)" }} />
+
+              <View style={{ flex: 1, alignItems: "center" }}>
+                <Text style={{ fontSize: 7.5, color: "#A7C6B9", fontWeight: "700" }}>SDP CREDITS</Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "700",
+                    color: "#F3D092",
+                    fontFamily: FONT_MONO,
+                    marginTop: 1,
+                  }}
+                >
+                  {sdpCredits}
+                </Text>
+              </View>
             </View>
-            <View style={{ width: 1, height: 20, backgroundColor: "rgba(255,255,255,0.1)" }} />
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Text style={{ fontFamily: SERIF_FONT, fontSize: 14, fontWeight: "700", color: "#F3D092" }}>
-                3
-              </Text>
-              <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#9EC5B5", marginTop: 1 }}>
-                CERTIFICATES
-              </Text>
-            </View>
-            <View style={{ width: 1, height: 20, backgroundColor: "rgba(255,255,255,0.1)" }} />
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <Text style={{ fontFamily: SERIF_FONT, fontSize: 14, fontWeight: "700", color: "#F3D092" }}>
-                8.0
-              </Text>
-              <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#9EC5B5", marginTop: 1 }}>
-                SDP CREDITS
-              </Text>
-            </View>
+          </LinearGradient>
+
+          {/* Section Heading */}
+          <View style={{ marginTop: 14, marginBottom: 8 }}>
+            <Text
+              style={{
+                fontFamily: SERIF_FONT,
+                fontSize: 13,
+                fontWeight: "700",
+                color: "#12221C",
+              }}
+            >
+              Completed Sessions & Credentials
+            </Text>
           </View>
-        </LinearGradient>
 
-        {/* History Items */}
-        <View style={{ marginTop: 12, gap: 9 }}>
-          {ATTENDED_HISTORY.map((item) => {
-            const isDownloaded = downloadedId === item.id;
-            return (
-              <View
-                key={item.id}
+          {/* Past Attended Events List */}
+          {records.length === 0 ? (
+            <View
+              style={{
+                backgroundColor: "#FFFFFF",
+                borderRadius: 15,
+                borderWidth: 1,
+                borderColor: "#EAE8E1",
+                padding: 24,
+                alignItems: "center",
+              }}
+            >
+              <Ionicons name="ribbon-outline" size={26} color="#144534" />
+              <Text
                 style={{
-                  backgroundColor: "#FFFFFF",
-                  borderRadius: 15,
-                  borderWidth: 1,
-                  borderColor: "#EAE8E1",
-                  padding: 12,
+                  fontFamily: SERIF_FONT,
+                  fontSize: 13.5,
+                  fontWeight: "700",
+                  color: "#12221C",
+                  marginTop: 8,
                 }}
               >
-                <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 9, flex: 1 }}>
+                No Attendance History Yet
+              </Text>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: "#6E7773",
+                  marginTop: 4,
+                  textAlign: "center",
+                  lineHeight: 14,
+                  maxWidth: 270,
+                }}
+              >
+                Your verified attendance, SDP credits, and digital certificates from campus events will be recorded here.
+              </Text>
+              <Pressable
+                onPress={() => router.push("/(tabs)/explore")}
+                style={{
+                  marginTop: 12,
+                  backgroundColor: "#0E3A2B",
+                  borderRadius: 999,
+                  paddingHorizontal: 14,
+                  paddingVertical: 6.5,
+                }}
+              >
+                <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#FFFFFF" }}>
+                  Browse Events
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ gap: 9 }}>
+              {records.map((item) => (
+                <View
+                  key={item.id}
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: "#EAE8E1",
+                    padding: 12,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <View
                       style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        backgroundColor: "#CBEAD9",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        backgroundColor: "#E4F2EC",
+                        borderRadius: 999,
+                        paddingHorizontal: 7.5,
+                        paddingVertical: 2,
                       }}
                     >
-                      <Ionicons
-                        name={item.hasCertificate ? "ribbon-outline" : "checkmark-done-outline"}
-                        size={15}
-                        color="#144534"
-                      />
-                    </View>
-                    <View style={{ flex: 1, paddingRight: 6 }}>
-                      <Text
-                        style={{
-                          fontFamily: SERIF_FONT,
-                          fontSize: 11.5,
-                          fontWeight: "700",
-                          color: "#12221C",
-                        }}
-                      >
-                        {item.title}
-                      </Text>
-                      <Text style={{ marginTop: 1.5, fontSize: 8.5, fontWeight: "600", color: "#1E5D4B" }}>
-                        {item.society} · {item.dateLabel}
+                      <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#144534" }}>
+                        VERIFIED ATTENDANCE
                       </Text>
                     </View>
+                    <Text style={{ fontSize: 8.5, color: "#6E7773", fontWeight: "600" }}>
+                      {item.registered_at ? new Date(item.registered_at).toLocaleDateString() : "Attended"}
+                    </Text>
                   </View>
+
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      fontFamily: SERIF_FONT,
+                      fontSize: 12.5,
+                      fontWeight: "700",
+                      color: "#12221C",
+                    }}
+                  >
+                    {item.event_id}
+                  </Text>
+                  <Text style={{ marginTop: 2, fontSize: 9, color: "#1E5D4B", fontWeight: "600" }}>
+                    {item.department || "Student Affairs"}
+                  </Text>
 
                   <View
                     style={{
-                      backgroundColor: "#F5DFB8",
-                      borderRadius: 999,
-                      paddingHorizontal: 7.5,
-                      paddingVertical: 2.5,
+                      marginTop: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      backgroundColor: "#F7F6F1",
+                      borderRadius: 9,
+                      paddingHorizontal: 8.5,
+                      paddingVertical: 6,
                     }}
                   >
-                    <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#5D3B14" }}>
-                      {item.credits}
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                      <Ionicons name="checkmark-circle" size={13} color="#1E5D4B" />
+                      <Text style={{ fontSize: 8.5, fontWeight: "700", color: "#12221C" }}>
+                        {item.status || "Attended"}
+                      </Text>
+                    </View>
+
+                    {item.certificate_id && (
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                        <Ionicons name="ribbon-outline" size={12} color="#8A5A2B" />
+                        <Text style={{ fontSize: 8.5, fontWeight: "700", color: "#8A5A2B" }}>
+                          Certificate Issued
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </View>
-
-                <View
-                  style={{
-                    marginTop: 9,
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    paddingHorizontal: 10,
-                    paddingVertical: 8,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View>
-                    <Text style={{ fontSize: 8.5, fontWeight: "700", color: "#12221C" }}>
-                      {item.role}
-                    </Text>
-                    <Text style={{ fontSize: 8, color: "#6E7773", marginTop: 1 }}>
-                      Credential ID: {item.certificateId}
-                    </Text>
-                  </View>
-
-                  {item.hasCertificate ? (
-                    <Pressable
-                      onPress={() => setDownloadedId(item.id)}
-                      style={{
-                        backgroundColor: isDownloaded ? "#CBEAD9" : "#0E3A2B",
-                        borderRadius: 999,
-                        paddingHorizontal: 10,
-                        paddingVertical: 4.5,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <Ionicons
-                        name={isDownloaded ? "checkmark-circle" : "download-outline"}
-                        size={11}
-                        color={isDownloaded ? "#144534" : "#FFFFFF"}
-                      />
-                      <Text
-                        style={{
-                          fontSize: 8,
-                          fontWeight: "700",
-                          color: isDownloaded ? "#144534" : "#FFFFFF",
-                        }}
-                      >
-                        {isDownloaded ? "Saved PDF" : "Certificate"}
-                      </Text>
-                    </Pressable>
-                  ) : (
-                    <Pressable
-                      onPress={() => router.push(`/event/${item.id}` as any)}
-                      style={{
-                        backgroundColor: "#E6E4DD",
-                        borderRadius: 999,
-                        paddingHorizontal: 9,
-                        paddingVertical: 4,
-                      }}
-                    >
-                      <Text style={{ fontSize: 8, fontWeight: "700", color: "#4A5450" }}>
-                        View Recap
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-              </View>
-            );
-          })}
-        </View>
-              </MotionView>
+              ))}
+            </View>
+          )}
+        </MotionView>
       </ScrollView>
     </SafeAreaView>
   );

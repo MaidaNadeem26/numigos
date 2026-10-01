@@ -1,28 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { setTestSessionEmail, supabase } from "@/lib/supabase";
+import { dbService, setTestSessionEmail, supabase } from "@/lib/supabase";
 import { MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
 import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
-import { NUTECH_EVENTS_LIST, NUTECH_SOCIETIES_LIST, resolveClubLogoSource } from "@/lib/nutech-data";
+import { NutechEvent, NUTECH_SOCIETIES_LIST, resolveClubLogoSource } from "@/lib/nutech-data";
+import { useStudentData } from "@/lib/student-data";
 
 const SERIF_FONT = FONT_SANS;
-
-const MY_NUTECH_CLUBS = NUTECH_SOCIETIES_LIST.slice(0, 4);
-const SAVED_NUTECH_EVENTS = NUTECH_EVENTS_LIST.slice(0, 2);
 
 export default function ProfileTabScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
+  const { profile, registeredEventIds, followedSocietyIds, bookmarkedEventIds } = useStudentData();
+  const [allEvents, setAllEvents] = useState<NutechEvent[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    dbService.getEvents().then((evs) => {
+      if (isMounted) setAllEvents(evs);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const myClubs = NUTECH_SOCIETIES_LIST.filter((s) => followedSocietyIds.includes(s.id));
+  const savedEvents = allEvents.filter((e) => bookmarkedEventIds.includes(e.id));
 
   const signOut = async () => {
     await setTestSessionEmail(null);
     await supabase.auth.signOut();
     router.replace("/login");
   };
+
+  const studentName = profile?.name || "Student";
+  const studentEmail = profile?.email || "student@nutech.edu.pk";
+  const studentRoll = profile?.roll_number || "NUTECH";
+  const studentDept = profile?.department || "NUTECH Islamabad";
+  const studentInitials = studentName
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF9F5" }} edges={["top"]}>
@@ -57,7 +81,6 @@ export default function ProfileTabScreen() {
                 fontWeight: "700",
                 letterSpacing: 0.8,
                 color: "#2A6350",
-                textTransform: "uppercase",
               }}
             >
               NUTECH ISLAMABAD
@@ -71,12 +94,13 @@ export default function ProfileTabScreen() {
                 marginTop: -1,
               }}
             >
-              Profile
+              Student Profile
             </Text>
           </View>
         </View>
 
         <Pressable
+          accessibilityLabel="Notifications"
           onPress={() => router.push("/reminders")}
           style={{
             width: 32,
@@ -91,17 +115,6 @@ export default function ProfileTabScreen() {
           }}
         >
           <Ionicons name="notifications-outline" size={16} color="#12221C" />
-          <View
-            style={{
-              position: "absolute",
-              top: 6,
-              right: 7,
-              width: 5.5,
-              height: 5.5,
-              borderRadius: 3,
-              backgroundColor: "#C93B3B",
-            }}
-          />
         </Pressable>
       </View>
 
@@ -139,12 +152,12 @@ export default function ProfileTabScreen() {
                 color: "#144534",
               }}
             >
-              SPRING 2025 · NUTECH STUDENT PORTAL
+              ACTIVE STUDENT PORTAL
             </Text>
           </View>
         </View>
 
-        {/* Dark Green Student ID Card (v0 clean: 2 stats, no NFC/Badges) */}
+        {/* Dark Green Student ID Card */}
         <MotionView delay={35}>
           <LinearGradient
             colors={["#1D5442", "#12382C", "#0E2C22"]}
@@ -159,19 +172,36 @@ export default function ProfileTabScreen() {
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=240&q=80",
-                }}
-                style={{
-                  width: 58,
-                  height: 58,
-                  borderRadius: 12,
-                  borderWidth: 1.5,
-                  borderColor: "rgba(255,255,255,0.25)",
-                }}
-                resizeMode="cover"
-              />
+              {profile?.avatar_url ? (
+                <Image
+                  source={{ uri: profile.avatar_url }}
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: 12,
+                    borderWidth: 1.5,
+                    borderColor: "rgba(255,255,255,0.25)",
+                  }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: 12,
+                    backgroundColor: "#CBEAD9",
+                    borderWidth: 1.5,
+                    borderColor: "rgba(255,255,255,0.25)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ fontSize: 18, fontWeight: "700", color: "#144534" }}>
+                    {studentInitials}
+                  </Text>
+                </View>
+              )}
 
               <View style={{ flex: 1, marginLeft: 11 }}>
                 <Text
@@ -182,7 +212,7 @@ export default function ProfileTabScreen() {
                     color: "#FFFFFF",
                   }}
                 >
-                  Zainab Ahmed
+                  {studentName}
                 </Text>
                 <Text
                   style={{
@@ -192,7 +222,7 @@ export default function ProfileTabScreen() {
                     marginTop: 2,
                   }}
                 >
-                  zainab.cs21@nutech.edu.pk
+                  {studentEmail}
                 </Text>
                 <Text
                   style={{
@@ -202,12 +232,12 @@ export default function ProfileTabScreen() {
                     marginTop: 3,
                   }}
                 >
-                  Roll No: 2021-CS-084 · Dept of Computer Science
+                  Roll No: {studentRoll} · {studentDept}
                 </Text>
               </View>
             </View>
 
-            {/* 2-Column v0 Stats Box: Registered Events & Joined Clubs */}
+            {/* 2-Column Stats Box: Registered Events & Joined Clubs */}
             <View
               style={{
                 marginTop: 12,
@@ -224,355 +254,316 @@ export default function ProfileTabScreen() {
                 onPress={() => router.push("/events/registered")}
                 style={{ flex: 1, alignItems: "center" }}
               >
-                <Text
-                  style={{
-                    fontFamily: SERIF_FONT,
-                    fontSize: 14.5,
-                    fontWeight: "700",
-                    color: "#F3D092",
-                  }}
-                >
-                  3
+                <Text style={{ fontSize: 7.5, color: "#8FD1B8", fontWeight: "700" }}>
+                  REGISTERED EVENTS
                 </Text>
                 <Text
                   style={{
-                    fontSize: 7.5,
+                    fontSize: 15,
                     fontWeight: "700",
-                    letterSpacing: 0.6,
-                    color: "#9EC5B5",
-                    marginTop: 1.5,
+                    color: "#FFFFFF",
+                    fontFamily: FONT_MONO,
+                    marginTop: 1,
                   }}
                 >
-                  REGISTERED EVENTS
+                  {registeredEventIds.length}
                 </Text>
               </Pressable>
 
-              <View
-                style={{
-                  width: 1,
-                  height: 22,
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                }}
-              />
+              <View style={{ width: 1, height: 20, backgroundColor: "rgba(255,255,255,0.14)" }} />
 
               <Pressable
                 onPress={() => router.push("/societies")}
                 style={{ flex: 1, alignItems: "center" }}
               >
-                <Text
-                  style={{
-                    fontFamily: SERIF_FONT,
-                    fontSize: 14.5,
-                    fontWeight: "700",
-                    color: "#F3D092",
-                  }}
-                >
-                  4
+                <Text style={{ fontSize: 7.5, color: "#8FD1B8", fontWeight: "700" }}>
+                  FOLLOWED CLUBS
                 </Text>
                 <Text
                   style={{
-                    fontSize: 7.5,
+                    fontSize: 15,
                     fontWeight: "700",
-                    letterSpacing: 0.6,
-                    color: "#9EC5B5",
-                    marginTop: 1.5,
+                    color: "#FFFFFF",
+                    fontFamily: FONT_MONO,
+                    marginTop: 1,
                   }}
                 >
-                  NUTECH CLUBS
+                  {followedSocietyIds.length}
                 </Text>
               </Pressable>
             </View>
+
+            {/* Active Pass Row */}
+            <Pressable
+              onPress={() => router.push("/events/registered")}
+              style={{
+                marginTop: 10,
+                backgroundColor: "rgba(255,255,255,0.1)",
+                borderRadius: 10,
+                paddingHorizontal: 10,
+                paddingVertical: 7.5,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.12)",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+                <Ionicons name="ticket-outline" size={13.5} color="#F2CC8F" />
+                <Text style={{ fontSize: 9, fontWeight: "600", color: "#FFFFFF" }}>
+                  View Entry Pass & Attendance History
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={12.5} color="#8FD1B8" />
+            </Pressable>
           </LinearGradient>
         </MotionView>
 
-        {/* Campus Activity Hub Section */}
-        <MotionView delay={75}>
+        {/* My Societies Section */}
+        <MotionView delay={70}>
           <View
             style={{
-              marginTop: 14,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
+              marginTop: 12,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: "#EAE8E1",
+              padding: 12,
             }}
           >
-            <Text
+            <View
               style={{
-                fontFamily: SERIF_FONT,
-                fontSize: 13.5,
-                fontWeight: "700",
-                color: "#12221C",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 9,
               }}
             >
-              My NUTECH Clubs & Events
-            </Text>
-            <Pressable onPress={() => router.push("/societies")}>
               <Text
                 style={{
-                  fontSize: 8.5,
+                  fontFamily: SERIF_FONT,
+                  fontSize: 13,
                   fontWeight: "700",
-                  letterSpacing: 0.4,
-                  color: "#1E5D4B",
+                  color: "#12221C",
                 }}
               >
-                EXPLORE ALL
+                Followed Societies ({myClubs.length})
               </Text>
-            </Pressable>
-          </View>
 
-          {/* Card 1: My NUTECH Societies with Real Club Images */}
-          <View
-            style={{
-              marginTop: 8,
-              backgroundColor: "#FFFFFF",
-              borderRadius: 15,
-              borderWidth: 1,
-              borderColor: "#EAE8E1",
-              padding: 12,
-            }}
-          >
-            <Pressable
-              onPress={() => router.push("/societies")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-                <View
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 9,
-                    backgroundColor: "#E4F2EC",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="people-outline" size={14} color="#144534" />
-                </View>
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: "700",
-                      color: "#12221C",
-                    }}
-                  >
-                    My NUTECH Societies
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 8.5,
-                      color: "#7A8580",
-                      marginTop: 0.5,
-                    }}
-                  >
-                    4 active club memberships
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={14} color="#8E9893" />
-            </Pressable>
-
-            <View style={{ marginTop: 9, gap: 6 }}>
-              {MY_NUTECH_CLUBS.map((soc) => (
-                <Pressable
-                  key={soc.id}
-                  onPress={() => router.push(`/societies/${soc.id}` as any)}
-                  style={{
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    paddingHorizontal: 9,
-                    paddingVertical: 7.5,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
-                    <Image
-                      source={resolveClubLogoSource(soc.logo)}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 8,
-                        borderWidth: 1,
-                        borderColor: "#D5E8DF",
-                      }}
-                    />
-                    <View style={{ flex: 1, marginLeft: 9 }}>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          fontSize: 9.5,
-                          fontWeight: "700",
-                          color: "#12221C",
-                        }}
-                      >
-                        {soc.name}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          fontSize: 8.5,
-                          color: "#7A8580",
-                          marginTop: 1,
-                        }}
-                      >
-                        {soc.roleInProfile ?? soc.dept}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View
-                    style={{
-                      backgroundColor: soc.badgeInProfile === "Core" ? "#CBEAD9" : "#E6E4DD",
-                      borderRadius: 999,
-                      paddingHorizontal: 8,
-                      paddingVertical: 2.5,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 8,
-                        fontWeight: "700",
-                        color: soc.badgeInProfile === "Core" ? "#144534" : "#4A5450",
-                      }}
-                    >
-                      {soc.badgeInProfile ?? "Member"}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
+              <Pressable onPress={() => router.push("/societies")}>
+                <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#144534" }}>
+                  Explore All →
+                </Text>
+              </Pressable>
             </View>
-          </View>
 
-          {/* Card 2: Bookmarked Events */}
-          <View
-            style={{
-              marginTop: 9,
-              backgroundColor: "#FFFFFF",
-              borderRadius: 15,
-              borderWidth: 1,
-              borderColor: "#EAE8E1",
-              padding: 12,
-            }}
-          >
-            <Pressable
-              onPress={() => router.push("/(tabs)/bookmarks")}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-                <View
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 9,
-                    backgroundColor: "#E4F2EC",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="bookmark-outline" size={14} color="#144534" />
-                </View>
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: "700",
-                      color: "#12221C",
-                    }}
-                  >
-                    Saved NUTECH Events
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 8.5,
-                      color: "#7A8580",
-                      marginTop: 0.5,
-                    }}
-                  >
-                    Events bookmarked for this week
+            <View style={{ gap: 7 }}>
+              {myClubs.length === 0 ? (
+                <View style={{ paddingVertical: 14, alignItems: "center" }}>
+                  <Text style={{ fontSize: 9.5, color: "#8E9893" }}>
+                    You haven&apos;t followed any societies yet.
                   </Text>
                 </View>
-              </View>
-              <Ionicons name="chevron-forward" size={14} color="#8E9893" />
-            </Pressable>
-
-            <View style={{ marginTop: 9, gap: 6 }}>
-              {SAVED_NUTECH_EVENTS.map((ev) => (
-                <Pressable
-                  key={ev.id}
-                  onPress={() => router.push(`/event/${ev.id}` as any)}
-                  style={{
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    paddingHorizontal: 9,
-                    paddingVertical: 7.5,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
-                    <Image
-                      source={{ uri: ev.image }}
-                      style={{ width: 32, height: 32, borderRadius: 8 }}
-                    />
-                    <View style={{ flex: 1, marginLeft: 9 }}>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          fontSize: 9.5,
-                          fontWeight: "700",
-                          color: "#12221C",
-                        }}
-                      >
-                        {ev.shortTitle}
-                      </Text>
-                      <Text
-                        numberOfLines={1}
-                        style={{
-                          fontSize: 8.5,
-                          color: "#7A8580",
-                          marginTop: 1,
-                        }}
-                      >
-                        {ev.dateLabel} · {ev.wing}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View
+              ) : (
+                myClubs.map((club) => (
+                  <Pressable
+                    key={club.id}
+                    onPress={() => router.push(`/societies/${club.id}` as any)}
                     style={{
-                      backgroundColor: "#0E3A2B",
-                      borderRadius: 999,
+                      backgroundColor: "#F6F5F0",
+                      borderRadius: 10,
                       paddingHorizontal: 9,
-                      paddingVertical: 3.5,
+                      paddingVertical: 7.5,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                     }}
                   >
-                    <Text
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
+                      <Image
+                        source={resolveClubLogoSource(club.logo)}
+                        style={{ width: 28, height: 28, borderRadius: 7 }}
+                      />
+                      <View style={{ flex: 1, marginLeft: 8.5 }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 9.5,
+                            fontWeight: "700",
+                            color: "#12221C",
+                          }}
+                        >
+                          {club.name}
+                        </Text>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 8,
+                            color: "#7A8580",
+                            marginTop: 1,
+                          }}
+                        >
+                          {club.dept}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View
                       style={{
-                        fontSize: 8,
-                        fontWeight: "700",
-                        color: "#FFFFFF",
+                        backgroundColor: "#E4F2EC",
+                        borderRadius: 999,
+                        paddingHorizontal: 7.5,
+                        paddingVertical: 2.5,
                       }}
                     >
-                      View
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
+                      <Text
+                        style={{
+                          fontSize: 7.5,
+                          fontWeight: "700",
+                          color: "#144534",
+                        }}
+                      >
+                        Following
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))
+              )}
             </View>
           </View>
         </MotionView>
 
-        {/* Simplified v0 Request New Society Card */}
+        {/* Saved Events Section */}
+        <MotionView delay={90}>
+          <View
+            style={{
+              marginTop: 10,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 15,
+              borderWidth: 1,
+              borderColor: "#EAE8E1",
+              padding: 12,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 9,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: SERIF_FONT,
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color: "#12221C",
+                }}
+              >
+                Saved Events ({savedEvents.length})
+              </Text>
+
+              <Pressable onPress={() => router.push("/(tabs)/bookmarks")}>
+                <Text style={{ fontSize: 9.5, fontWeight: "700", color: "#144534" }}>
+                  View All →
+                </Text>
+              </Pressable>
+            </View>
+
+            <View style={{ gap: 7 }}>
+              {savedEvents.length === 0 ? (
+                <View style={{ paddingVertical: 14, alignItems: "center" }}>
+                  <Text style={{ fontSize: 9.5, color: "#8E9893" }}>
+                    No bookmarked events yet.
+                  </Text>
+                </View>
+              ) : (
+                savedEvents.map((ev) => (
+                  <Pressable
+                    key={ev.id}
+                    onPress={() => router.push(`/event/${ev.id}` as any)}
+                    style={{
+                      backgroundColor: "#F6F5F0",
+                      borderRadius: 10,
+                      paddingHorizontal: 9,
+                      paddingVertical: 7.5,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
+                      {ev.image ? (
+                        <Image
+                          source={{ uri: ev.image }}
+                          style={{ width: 32, height: 32, borderRadius: 8 }}
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 8,
+                            backgroundColor: "#134635",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Ionicons name="calendar-outline" size={16} color="#8FD1B8" />
+                        </View>
+                      )}
+                      <View style={{ flex: 1, marginLeft: 9 }}>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 9.5,
+                            fontWeight: "700",
+                            color: "#12221C",
+                          }}
+                        >
+                          {ev.shortTitle}
+                        </Text>
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 8.5,
+                            color: "#7A8580",
+                            marginTop: 1,
+                          }}
+                        >
+                          {ev.dateLabel} · {ev.wing}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View
+                      style={{
+                        backgroundColor: "#0E3A2B",
+                        borderRadius: 999,
+                        paddingHorizontal: 9,
+                        paddingVertical: 3.5,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 8,
+                          fontWeight: "700",
+                          color: "#FFFFFF",
+                        }}
+                      >
+                        View
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </View>
+          </View>
+        </MotionView>
+
+        {/* Request New Society Card */}
         <MotionView delay={110}>
           <View
             style={{
@@ -640,7 +631,7 @@ export default function ProfileTabScreen() {
             </Pressable>
           </View>
 
-          {/* Simplified v0 Account Section */}
+          {/* Account Section */}
           <View
             style={{
               marginTop: 12,
@@ -651,6 +642,27 @@ export default function ProfileTabScreen() {
               overflow: "hidden",
             }}
           >
+            <Pressable
+              onPress={() => router.push("/events/history")}
+              style={{
+                paddingHorizontal: 13,
+                paddingVertical: 11,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottomWidth: 1,
+                borderBottomColor: "#F2F0EA",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Ionicons name="ribbon-outline" size={14} color="#58635E" />
+                <Text style={{ fontSize: 10, fontWeight: "500", color: "#12221C" }}>
+                  Co-Curricular History & Transcript
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={13.5} color="#9BA39F" />
+            </Pressable>
+
             <Pressable
               onPress={() => router.push("/reminders")}
               style={{

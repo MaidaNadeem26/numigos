@@ -17,7 +17,7 @@ import { useSocietyAdminData } from "@/lib/society-admin-data";
 export default function EditProfileScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
-  const { profile } = useSocietyAdminData();
+  const { profile, updateProfile } = useSocietyAdminData();
 
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone);
@@ -25,9 +25,11 @@ export default function EditProfileScreen() {
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    profile.name = name;
-    profile.phone = phone;
-    profile.semester = semester;
+    updateProfile({
+      name: name.trim(),
+      phone: phone.trim(),
+      semester: semester.trim(),
+    });
     setSaved(true);
     setTimeout(() => {
       router.back();

@@ -371,7 +371,29 @@ export default function RegistrantsScreen() {
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, paddingRight: 6 }}>
-                        <Image source={{ uri: reg.avatar }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+                        {reg.avatar ? (
+                          <Image source={{ uri: reg.avatar }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+                        ) : (
+                          <View
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: 18,
+                              backgroundColor: "#1E5D4B",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Text style={{ fontFamily: FONT_SANS, fontSize: 12, fontWeight: "700", color: "#FAF9F5" }}>
+                              {reg.name
+                                .split(" ")
+                                .map((p) => p[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase() || "S"}
+                            </Text>
+                          </View>
+                        )}
                         <View style={{ flex: 1 }}>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                             <Text style={{ fontFamily: FONT_SANS, fontSize: 12, fontWeight: "700", color: "#12221C" }}>

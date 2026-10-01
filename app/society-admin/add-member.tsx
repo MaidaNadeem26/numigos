@@ -47,7 +47,7 @@ export default function AddMemberScreen() {
       group: selectedGroup,
       department: department.trim(),
       email: email.trim() || `${rollNumber.toLowerCase().replace(/[^a-z0-9]/g, "")}@nutech.edu.pk`,
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=240&q=80",
+      avatar: "",
     });
 
     router.replace("/society-admin/members");
@@ -158,7 +158,7 @@ export default function AddMemberScreen() {
                 <TextInput
                   value={name}
                   onChangeText={(n) => { setName(n); setError(""); }}
-                  placeholder="e.g. Zainab Fatima"
+                  placeholder="Enter member's full name"
                   placeholderTextColor="#8D9692"
                   style={[
               {
@@ -185,7 +185,7 @@ export default function AddMemberScreen() {
                 <TextInput
                   value={rollNumber}
                   onChangeText={(r) => { setRollNumber(r); setError(""); }}
-                  placeholder="e.g. 2022-SE-052"
+                  placeholder="e.g. YYYY-DEPT-XXX"
                   placeholderTextColor="#8D9692"
                   autoCapitalize="characters"
                   style={[
@@ -213,7 +213,7 @@ export default function AddMemberScreen() {
                 <TextInput
                   value={department}
                   onChangeText={setDepartment}
-                  placeholder="e.g. BS Software Engineering"
+                  placeholder="e.g. Department of Computer Science"
                   placeholderTextColor="#8D9692"
                   style={[
               {

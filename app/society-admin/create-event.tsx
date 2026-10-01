@@ -37,12 +37,12 @@ export default function CreateEventScreen() {
   const [description, setDescription] = useState(draftEvent?.description ?? "");
   const [category, setCategory] = useState<"Workshops" | "Hackathons" | "Clubs" | "Cultural">(draftEvent?.category ?? "Workshops");
   const [bannerUrl, setBannerUrl] = useState(draftEvent?.image ?? PRESET_BANNERS[0].url);
-  const [date, setDate] = useState(draftEvent?.date ?? "Apr 22, 2026");
-  const [startTime, setStartTime] = useState(draftEvent?.startTime ?? "02:00 PM");
-  const [endTime, setEndTime] = useState(draftEvent?.endTime ?? "05:00 PM");
-  const [venue, setVenue] = useState(draftEvent?.venue ?? "Academic Block · CS Lab 3");
-  const [deadline, setDeadline] = useState(draftEvent?.deadlineText ?? "Apr 20, 2026 · 11:59 PM");
-  const [capacity, setCapacity] = useState(draftEvent?.capacity ? String(draftEvent.capacity) : "120");
+  const [date, setDate] = useState(draftEvent?.date ?? "");
+  const [startTime, setStartTime] = useState(draftEvent?.startTime ?? "");
+  const [endTime, setEndTime] = useState(draftEvent?.endTime ?? "");
+  const [venue, setVenue] = useState(draftEvent?.venue ?? "");
+  const [deadline, setDeadline] = useState(draftEvent?.deadlineText ?? "");
+  const [capacity, setCapacity] = useState(draftEvent?.capacity ? String(draftEvent.capacity) : "");
   const [error, setError] = useState("");
 
   const handleReview = () => {
@@ -52,6 +52,10 @@ export default function CreateEventScreen() {
     }
     if (!description.trim()) {
       setError("Please enter a description for the event");
+      return;
+    }
+    if (!date.trim()) {
+      setError("Please specify the event date");
       return;
     }
     if (!venue.trim()) {
