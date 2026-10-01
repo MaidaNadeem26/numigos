@@ -4,13 +4,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView, useResponsive } from "@/lib/responsive-motion";
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { NUTECH_EVENTS_LIST } from "@/lib/nutech-data";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 const FILTERS = ["All Saved", "Hackathons", "Workshops", "Clubs", "Cultural"] as const;
 

@@ -18,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   },
 });
 
-export const TEST_ACCOUNTS: Record<string, { password: string; name: string; role: string }> = {
+export const TEST_ACCOUNTS: Record<string, { password: string; name: string; role: string; societyId?: string }> = {
   'test@nutech.edu.pk': {
     password: 'Test1234',
     name: 'Bilal Ahmad',
@@ -28,6 +28,18 @@ export const TEST_ACCOUNTS: Record<string, { password: string; name: string; rol
     password: 'Test1234',
     name: 'Bilal Ahmad',
     role: 'student',
+  },
+  'admin.aws@nutech.edu.pk': {
+    password: 'Test1234',
+    name: 'Hamza Malik',
+    role: 'society_admin',
+    societyId: 'aws-student-builder-nutech',
+  },
+  'admin.zindigi@nutech.edu.pk': {
+    password: 'Test1234',
+    name: 'Ayesha Khan',
+    role: 'society_admin',
+    societyId: 'zindigi-prize-nutech',
   },
 };
 

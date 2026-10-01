@@ -18,6 +18,20 @@ import {
  * - Large phones (Redmi Note Pro Max, iPhone Pro Max, Galaxy Ultra: 415px - 480px)
  * - Desktop framed preview (> 500px -> constrained to 393px frame)
  */
+export const FONT_SANS = Platform.select({
+  web: "'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  ios: "Instrument Sans",
+  android: "Instrument Sans",
+  default: "sans-serif",
+});
+
+export const FONT_MONO = Platform.select({
+  web: "'JetBrains Mono', ui-monospace, Menlo, Monaco, Consolas, monospace",
+  ios: "JetBrains Mono",
+  android: "JetBrains Mono",
+  default: "monospace",
+});
+
 export function useResponsive() {
   const { width: rawWidth, height: rawHeight } = useWindowDimensions();
   const isDesktopFrame = Platform.OS === "web" && rawWidth > 500;

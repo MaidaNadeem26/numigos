@@ -37,7 +37,11 @@ export default function LoginScreen() {
     if (testAccount && password === testAccount.password) {
       await setTestSessionEmail(normalizedEmail);
       setIsSubmitting(false);
-      router.replace('/home');
+      if (testAccount.role === "society_admin") {
+        router.replace("/society-admin/dashboard");
+      } else {
+        router.replace("/home");
+      }
       return;
     }
 
@@ -67,7 +71,11 @@ export default function LoginScreen() {
       return;
     }
 
-    router.replace('/home');
+    if (profile?.role === "society_admin") {
+      router.replace("/society-admin/dashboard");
+    } else {
+      router.replace("/home");
+    }
   };
 
   const handleRecovery = async () => {

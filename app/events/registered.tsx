@@ -5,12 +5,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 const PASS_DATA: Record<
   string,

@@ -6,13 +6,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { setTestSessionEmail, supabase } from "@/lib/supabase";
 import { MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { NUTECH_EVENTS_LIST, NUTECH_SOCIETIES_LIST, resolveClubLogoSource } from "@/lib/nutech-data";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 const MY_NUTECH_CLUBS = NUTECH_SOCIETIES_LIST.slice(0, 4);
 const SAVED_NUTECH_EVENTS = NUTECH_EVENTS_LIST.slice(0, 2);

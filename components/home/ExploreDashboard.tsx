@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Image,
@@ -15,14 +15,11 @@ import {
 
 import { LinearGradient } from "@/components/ui/primitives/LinearGradient";
 import { SafeAreaView } from "@/components/ui/primitives/SafeAreaView";
-import { MotionPressable, MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
+import { FONT_MONO, FONT_SANS, MotionPressable, MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
 import { AWS_BUILDER_IMAGE, ENTREPRENEURSHIP_LOGO, IEEE_NUTECH_IMAGE, NUTECH_EVENTS_LIST, NUTECH_SOCIETIES_LIST, resolveClubLogoSource, ZINDIGI_PRIZE_IMAGE } from "@/lib/nutech-data";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+// Typography: Instrument Sans (sans) and JetBrains Mono (mono)
+const SERIF_FONT = FONT_SANS;
 
 const CATEGORIES = ["All Events", "Hackathons", "Workshops", "Clubs", "Cultural"];
 
@@ -63,7 +60,7 @@ const INITIAL_POSTS: ClubPostItem[] = [
     timeAgo: "Just now",
     logoSource: AWS_BUILDER_IMAGE,
     imageSource: AWS_BUILDER_IMAGE,
-    title: "⚡ THE WAIT IS OVER! Core Team Applications Open 🎉",
+    title: "The wait is over! Core team applications are open 🎉",
     body: `AWS Student Builder Group NUTECH has officially opened team applications!
 
 Join NUTECH’s most premium tech community. After events at NASTP and 10Pearls, we’re ready for our next chapter.
@@ -192,11 +189,13 @@ Don’t just attend. Be part of the team that makes it happen. ⚡
 ];
 
 export function ExploreDashboard() {
+  const pathname = usePathname();
+  const isAdminMode = pathname.includes("society-admin");
   const { hPad } = useResponsive();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Events");
   const [activeCardIndex, setActiveCardIndex] = useState(0);
-  const [registeredIds, setRegisteredIds] = useState<string[]>(["event-ieee-fest"]);
+    const [registeredIds, setRegisteredIds] = useState<string[]>(["event-ieee-fest"]);
   const [followedClubIds, setFollowedClubIds] = useState<string[]>(["aws-student-builder-nutech", "zindigi-prize-nutech", "entrepreneurship-club", "ieee-nutech"]);
   const toggleFollowClub = (clubId: string) => {
     setFollowedClubIds((prev) => prev.includes(clubId) ? prev.filter((id) => id !== clubId) : [...prev, clubId]);
@@ -234,6 +233,7 @@ export function ExploreDashboard() {
     return matchesCategory && matchesQuery;
   });
 
+  
   const activeEvent = NUTECH_EVENTS_LIST[activeCardIndex] ?? NUTECH_EVENTS_LIST[0];
   const isRegistered = registeredIds.includes(activeEvent.id);
 
@@ -297,20 +297,19 @@ export function ExploreDashboard() {
             <Text
               style={{
                 color: "#12221C",
-                fontFamily: SERIF_FONT,
-                fontSize: 23,
-                fontWeight: "700",
+                fontFamily: FONT_SANS,
+                fontSize: 22,
+                fontWeight: "800",
                 letterSpacing: -0.4,
-                lineHeight: 27,
               }}
             >
-              Explore
+              Numigos
             </Text>
 
             <Pressable
               accessibilityLabel="Open notifications"
               accessibilityRole="button"
-              onPress={() => router.push("/reminders")}
+              onPress={() => router.push(isAdminMode ? "/society-admin/notifications" : "/reminders")}
               style={{
                 alignItems: "center",
                 backgroundColor: "#FFFFFF",
@@ -387,48 +386,9 @@ export function ExploreDashboard() {
           </View>
         </MotionView>
 
-        {/* Happening Today Section */}
+                {/* Featured Campus Event Card */}
         <MotionView delay={95}>
           <View style={{ marginTop: 14 }}>
-            <View
-              style={{
-                alignItems: "center",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: 8,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#12221C",
-                  fontSize: 13.5,
-                  fontWeight: "700",
-                  letterSpacing: -0.2,
-                }}
-              >
-                Happening at NUTECH
-              </Text>
-
-              <View
-                style={{
-                  backgroundColor: "#E4F2EC",
-                  borderRadius: 999,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2.5,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#1E5D4B",
-                    fontSize: 9.5,
-                    fontWeight: "700",
-                  }}
-                >
-                  {`${activeCardIndex + 1} of ${NUTECH_EVENTS_LIST.length}`}
-                </Text>
-              </View>
-            </View>
-
             {/* Featured Dark Green Card + Stacked Underlay */}
             <View style={{ alignItems: "center" }}>
               <MotionPressable
@@ -714,205 +674,87 @@ export function ExploreDashboard() {
                 }}
               />
             </View>
+          </View>
+        </MotionView>
 
-            <Pressable
-              onPress={() => setActiveCardIndex((prev) => (prev + 1) % NUTECH_EVENTS_LIST.length)}
-            >
+{/* From Your Societies Section */}
+        <MotionView delay={150}>
+          <View style={{ marginTop: 18 }}>
+            <View style={{ marginBottom: 11 }}>
               <Text
                 style={{
-                  color: "#949B97",
-                  fontSize: 9.5,
-                  marginTop: 6,
-                  textAlign: "center",
+                  color: "#111827",
+                  fontFamily: FONT_SANS,
+                  fontSize: 17,
+                  fontWeight: "700",
+                  letterSpacing: -0.3,
                 }}
               >
-                Tap to cycle NUTECH events
+                From NUTECH Societies
               </Text>
-            </Pressable>
-          </View>
-        </MotionView>
-
-        {/* NUTECH Clubs & Societies Horizontal Strip */}
-        <MotionView delay={120}>
-          <View style={{ marginTop: 14 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 9,
-              }}
-            >
-              <View>
-                <Text
-                  style={{
-                    color: "#12221C",
-                    fontSize: 13.5,
-                    fontWeight: "700",
-                    letterSpacing: -0.2,
-                  }}
-                >
-                  NUTECH Clubs & Societies
-                </Text>
-                <Text style={{ color: "#8C9490", fontSize: 9.5, marginTop: 1 }}>
-                  Under Office of Student Affairs (OSA)
-                </Text>
-              </View>
-              <Pressable onPress={() => router.push("/societies")}>
-                <Text style={{ color: "#1E5D4B", fontSize: 10, fontWeight: "700" }}>
-                  See all
-                </Text>
-              </Pressable>
+              <Text
+                style={{
+                  color: "#6B7280",
+                  fontFamily: FONT_SANS,
+                  fontSize: 11.5,
+                  marginTop: 2,
+                }}
+              >
+                Announcements and upcoming campus activities
+              </Text>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 10, paddingRight: 16 }}
-              style={{ marginHorizontal: -hPad, paddingLeft: hPad }}
-            >
-              {NUTECH_SOCIETIES_LIST.map((club) => (
-                <Pressable
-                  key={club.id}
-                  onPress={() => router.push(`/societies/${club.id}` as any)}
-                  style={{
-                    width: 112,
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: "#EAE8E1",
-                    padding: 9,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={resolveClubLogoSource(club.logo)}
-                    style={{
-                      width: 46,
-                      height: 46,
-                      borderRadius: 23,
-                      borderWidth: 1.5,
-                      borderColor: "#D5E8DF",
-                    }}
-                  />
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      marginTop: 6,
-                      fontSize: 9.5,
-                      fontWeight: "700",
-                      color: "#12221C",
-                      textAlign: "center",
-                    }}
-                  >
-                    {club.shortName}
-                  </Text>
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      marginTop: 1,
-                      fontSize: 8,
-                      color: "#7A8580",
-                      textAlign: "center",
-                    }}
-                  >
-                    {club.studentsLabel}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-        </MotionView>
-
-        {/* From Your Societies Section */}
-        <MotionView delay={150}>
-          <View style={{ marginTop: 14 }}>
-            <View
-              style={{
-                alignItems: "center",
-                flexDirection: "row",
-                justifyContent: "space-between",
-              }}
-            >
-              <View>
-                <Text
-                  style={{
-                    color: "#12221C",
-                    fontSize: 13.5,
-                    fontWeight: "700",
-                    letterSpacing: -0.2,
-                  }}
-                >
-                  From NUTECH Societies
-                </Text>
-                <Text
-                  style={{
-                    color: "#8C9490",
-                    fontSize: 9.5,
-                    marginTop: 1,
-                  }}
-                >
-                  Announcements & upcoming campus activities
-                </Text>
-              </View>
-            </View>
-
-            {/* Boxed Society Post Cards (Supports Non-Event Club Posts & Event Posts) */}
-            <View style={{ gap: 11, marginTop: 10 }}>
+            {/* Boxed Society Post Cards matching media_1790836235513.png */}
+            <View style={{ gap: 14 }}>
               {filteredPosts.map((post) => {
                 const isFollowing = followedClubIds.includes(post.societyId);
-                const isLongPost = post.body.length > 130 || post.body.includes("\n");
+                const isLongPost = post.body.length > 110 || post.body.includes("\n");
                 const isExpanded = expandedPostIds.includes(post.id);
                 const shortBody = isLongPost
-                  ? post.body.replace(/\n+/g, " ").slice(0, 128).trim() + "..."
+                  ? post.body.replace(/\n+/g, " ").slice(0, 115).trim() + "..."
                   : post.body;
+
                 return (
                   <View
                     key={post.id}
                     style={{
                       backgroundColor: "#FFFFFF",
-                      borderColor: "#EAE8E1",
-                      borderRadius: 16,
+                      borderColor: "#E5E7EB",
+                      borderRadius: 20,
                       borderWidth: 1,
-                      padding: 12,
+                      overflow: "hidden",
                     }}
                   >
-                    <View style={{ alignItems: "flex-start", flexDirection: "row" }}>
-                      {/* Club Logo Image Avatar */}
-                      <Pressable
-                        onPress={() => router.push(`/societies/${post.societyId}` as any)}
+                    <View style={{ padding: 13 }}>
+                      {/* Header Row: Avatar + Club Name/Time + Following Pill */}
+                      <View
+                        style={{
+                          alignItems: "center",
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
                       >
-                        <Image
-                          source={post.logoSource}
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            borderWidth: 1,
-                            borderColor: "#D5E8DF",
-                          }}
-                        />
-                      </Pressable>
-
-                      {/* Post Right Column */}
-                      <View style={{ flex: 1, marginLeft: 10 }}>
-                        <View
-                          style={{
-                            alignItems: "center",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            gap: 6,
-                          }}
+                        <Pressable
+                          onPress={() => router.push(`/societies/${post.societyId}` as any)}
+                          style={{ alignItems: "center", flexDirection: "row", flex: 1, paddingRight: 8 }}
                         >
-                          <Pressable
-                            onPress={() => router.push(`/societies/${post.societyId}` as any)}
-                            style={{ flex: 1 }}
-                          >
+                          <Image
+                            source={post.logoSource}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              backgroundColor: "#0D1814",
+                            }}
+                            resizeMode="cover"
+                          />
+                          <View style={{ flex: 1, marginLeft: 8 }}>
                             <Text
                               numberOfLines={1}
                               style={{
-                                color: "#12221C",
-                                fontSize: 11,
+                                color: "#111827",
+                                fontFamily: FONT_SANS,
+                                fontSize: 12,
                                 fontWeight: "700",
                               }}
                             >
@@ -920,265 +762,268 @@ export function ExploreDashboard() {
                             </Text>
                             <Text
                               style={{
-                                color: "#949B97",
-                                fontSize: 8.5,
-                                fontWeight: "500",
-                                marginTop: 0.5,
+                                color: "#6B7280",
+                                fontFamily: FONT_SANS,
+                                fontSize: 10,
+                                marginTop: 1,
                               }}
                             >
-                              {post.timeAgo} · {post.eventTag ? "Event Update" : "Club Post"}
+                              {post.timeAgo} · {post.eventTag ? "Event update" : "Club post"}
+                            </Text>
+                          </View>
+                        </Pressable>
+
+                        {isAdminMode && post.societyId === "aws-student-builder-nutech" ? (
+                          <Pressable
+                            onPress={() => router.push("/society-admin/dashboard")}
+                            style={{
+                              backgroundColor: "#134635",
+                              borderRadius: 999,
+                              paddingHorizontal: 10,
+                              paddingVertical: 4.5,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: "#F2CC8F" }} />
+                            <Text
+                              style={{
+                                fontFamily: FONT_SANS,
+                                fontSize: 9.5,
+                                fontWeight: "700",
+                                color: "#F2CC8F",
+                              }}
+                            >
+                              YOUR SOCIETY
                             </Text>
                           </Pressable>
-
+                        ) : (
                           <Pressable
                             onPress={() => toggleFollowClub(post.societyId)}
                             style={{
-                              backgroundColor: isFollowing ? "#CBEAD9" : "#134635",
+                              backgroundColor: isFollowing ? "#DCFCE7" : "#134635",
                               borderRadius: 999,
-                              paddingHorizontal: 9,
-                              paddingVertical: 4,
+                              paddingHorizontal: 11,
+                              paddingVertical: 4.5,
                             }}
                           >
                             <Text
                               style={{
-                                fontSize: 8,
-                                fontWeight: "700",
-                                color: isFollowing ? "#144534" : "#FFFFFF",
+                                fontFamily: FONT_SANS,
+                                fontSize: 10,
+                                fontWeight: "600",
+                                color: isFollowing ? "#166534" : "#FFFFFF",
                               }}
                             >
-                              {isFollowing ? "Following ✓" : "+ Follow"}
+                              {isFollowing ? "Following" : "+ Follow"}
                             </Text>
                           </Pressable>
-                        </View>
+                        )}
+                      </View>
 
-                        {post.title ? (
+                      {/* Post Title (Refined, smaller size) */}
+                      {post.title ? (
+                        <Text
+                          style={{
+                            color: "#111827",
+                            fontFamily: FONT_SANS,
+                            fontSize: 13.5,
+                            fontWeight: "700",
+                            lineHeight: 18,
+                            marginTop: 10,
+                          }}
+                        >
+                          {post.title}
+                        </Text>
+                      ) : null}
+
+                      {/* Post Body Snippet (Refined, smaller size) */}
+                      <Text
+                        numberOfLines={isExpanded ? undefined : 2}
+                        style={{
+                          color: "#4B5563",
+                          fontFamily: FONT_SANS,
+                          fontSize: 11.5,
+                          lineHeight: 16.5,
+                          marginTop: 4,
+                        }}
+                      >
+                        {isExpanded ? post.body : shortBody}
+                      </Text>
+
+                      {/* Read more Link */}
+                      {isLongPost ? (
+                        <Pressable
+                          onPress={() => toggleExpandPost(post.id)}
+                          hitSlop={6}
+                          style={{ alignSelf: "flex-start", marginTop: 5 }}
+                        >
                           <Text
                             style={{
-                              marginTop: 7,
-                              fontFamily: SERIF_FONT,
-                              fontSize: 12.5,
-                              fontWeight: "700",
-                              color: "#12221C",
+                              color: "#111827",
+                              fontFamily: FONT_SANS,
+                              fontSize: 11,
+                              fontWeight: "600",
+                              textDecorationLine: "underline",
                             }}
                           >
-                            {post.title}
+                            {isExpanded ? "Show less" : "Read more"}
                           </Text>
-                        ) : null}
+                        </Pressable>
+                      ) : null}
 
-                        <Text
-                          numberOfLines={isExpanded ? undefined : 2}
-                          style={{
-                            color: "#36403C",
-                            fontSize: 10,
-                            lineHeight: 15,
-                            marginTop: post.title ? 4 : 6,
-                          }}
-                        >
-                          {isExpanded ? post.body : shortBody}
-                        </Text>
-
-                        {isLongPost ? (
-                          <Pressable
-                            onPress={() => toggleExpandPost(post.id)}
-                            hitSlop={6}
-                            style={{
-                              alignSelf: "flex-start",
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 3,
-                              marginTop: 5,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 9.5,
-                                fontWeight: "700",
-                                color: "#144534",
-                              }}
-                            >
-                              {isExpanded ? "Show less" : "Read more"}
-                            </Text>
-                            <Ionicons
-                              name={isExpanded ? "chevron-up" : "chevron-down"}
-                              size={12}
-                              color="#144534"
-                            />
-                          </Pressable>
-                        ) : null}
-
-                        {/* Clickable Registration / External Link for Non-Event Club Posts */}
-                        {post.externalLink ? (
-                          <Pressable
-                            onPress={() => void Linking.openURL(post.externalLink!.url)}
-                            style={{
-                              marginTop: 9,
-                              backgroundColor: "#F6F5F0",
-                              borderColor: "#E2DFD5",
-                              borderWidth: 1,
-                              borderRadius: 10,
-                              paddingHorizontal: 10,
-                              paddingVertical: 8,
-                              flexDirection: "row",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Text
-                              numberOfLines={1}
-                              style={{
-                                fontSize: 9.5,
-                                fontWeight: "700",
-                                color: "#144534",
-                                flex: 1,
-                                paddingRight: 6,
-                              }}
-                            >
-                              {post.externalLink.label}
-                            </Text>
-                            <Ionicons name="open-outline" size={13} color="#144534" />
-                          </Pressable>
-                        ) : null}
-
-                        {post.secondaryLink && isExpanded ? (
-                          <Pressable
-                            onPress={() => void Linking.openURL(post.secondaryLink!.url)}
-                            style={{
-                              marginTop: 6,
-                              backgroundColor: "#EBF5F0",
-                              borderColor: "#D8EBE2",
-                              borderWidth: 1,
-                              borderRadius: 10,
-                              paddingHorizontal: 10,
-                              paddingVertical: 8,
-                              flexDirection: "row",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                            }}
-                          >
-                            <Text
-                              numberOfLines={1}
-                              style={{
-                                fontSize: 9.5,
-                                fontWeight: "700",
-                                color: "#144534",
-                                flex: 1,
-                                paddingRight: 6,
-                              }}
-                            >
-                              {post.secondaryLink.label}
-                            </Text>
-                            <Ionicons name="logo-whatsapp" size={13.5} color="#144534" />
-                          </Pressable>
-                        ) : null}
-
-                        {/* Optional Local Poster Image */}
-                        {post.imageSource ? (
-                          <Pressable
-                            onPress={() => router.push(`/societies/${post.societyId}` as any)}
-                            style={{ marginTop: 9 }}
-                          >
-                            <Image
-                              source={post.imageSource}
-                              style={{
-                                width: "100%",
-                                height: isExpanded ? 220 : 120,
-                                borderRadius: 11,
-                              }}
-                              resizeMode="cover"
-                            />
-                          </Pressable>
-                        ) : null}
-
-                        {/* Optional Post Event Banner Image */}
-                        {post.image ? (
-                          <Pressable
-                            onPress={() =>
-                              post.eventTag
-                                ? router.push(`/event/${post.eventTag.id}` as any)
-                                : router.push(`/societies/${post.societyId}` as any)
-                            }
-                            style={{ marginTop: 8 }}
-                          >
-                            <Image
-                              source={{ uri: post.image }}
-                              style={{
-                                width: "100%",
-                                height: 110,
-                                borderRadius: 11,
-                              }}
-                              resizeMode="cover"
-                            />
-                          </Pressable>
-                        ) : null}
-
-                        {post.eventTag ? (
-                          <Pressable
-                            onPress={() => router.push(`/event/${post.eventTag!.id}` as any)}
-                            style={{
-                              alignItems: "center",
-                              alignSelf: "flex-start",
-                              backgroundColor: "#EBF5F0",
-                              borderColor: "#D8EBE2",
-                              borderRadius: 8,
-                              borderWidth: 1,
-                              flexDirection: "row",
-                              gap: 5,
-                              marginTop: 8,
-                              paddingHorizontal: 8.5,
-                              paddingVertical: 4,
-                            }}
-                          >
-                            <Ionicons color="#1E5D4B" name="calendar-outline" size={11} />
-                            <Text
-                              style={{
-                                color: "#1E5D4B",
-                                fontSize: 9,
-                                fontWeight: "700",
-                              }}
-                            >
-                              {post.eventTag.label}
-                            </Text>
-                          </Pressable>
-                        ) : null}
-
-                        {/* Post Footer Actions */}
-                        <View
+                      {/* Clickable Action Link Pill (Compact & refined) */}
+                      {post.externalLink ? (
+                        <Pressable
+                          onPress={() => void Linking.openURL(post.externalLink!.url)}
                           style={{
                             alignItems: "center",
+                            backgroundColor: "#DCFCE7",
+                            borderRadius: 10,
                             flexDirection: "row",
                             justifyContent: "space-between",
-                            marginTop: 9,
+                            marginTop: 10,
+                            paddingHorizontal: 12,
+                            paddingVertical: 8,
                           }}
                         >
-                          <Pressable
-                            onPress={() => toggleLike(post.id)}
-                            style={{ alignItems: "center", flexDirection: "row", gap: 4 }}
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              color: "#166534",
+                              flex: 1,
+                              fontFamily: FONT_SANS,
+                              fontSize: 11,
+                              fontWeight: "600",
+                              paddingRight: 6,
+                            }}
                           >
-                            <Ionicons
-                              color={post.liked ? "#B85D2B" : "#68736E"}
-                              name={post.liked ? "heart" : "heart-outline"}
-                              size={12.5}
-                            />
-                            <Text
-                              style={{
-                                color: post.liked ? "#B85D2B" : "#68736E",
-                                fontSize: 10,
-                                fontWeight: "700",
-                              }}
-                            >
-                              {post.likes}
-                            </Text>
-                          </Pressable>
+                            {post.externalLink.label.startsWith("Apply now") || post.externalLink.label.startsWith("📝")
+                              ? post.externalLink.label.replace(/^📝\s*/, "")
+                              : `Join the squad. Apply now: ${post.externalLink.url.replace(/^https?:\/\//, "")}`}
+                          </Text>
+                          <Ionicons color="#166534" name="arrow-up-outline" size={14} style={{ transform: [{ rotate: "45deg" }] }} />
+                        </Pressable>
+                      ) : null}
 
-                          <Pressable onPress={() => toggleBookmark(post.id)}>
-                            <Ionicons
-                              color={post.bookmarked ? "#1E5D4B" : "#68736E"}
-                              name={post.bookmarked ? "bookmark" : "bookmark-outline"}
-                              size={13}
-                            />
-                          </Pressable>
-                        </View>
-                      </View>
+                      {/* Secondary WhatsApp Link if present & expanded */}
+                      {post.secondaryLink && isExpanded ? (
+                        <Pressable
+                          onPress={() => void Linking.openURL(post.secondaryLink!.url)}
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: "#F0FDF4",
+                            borderColor: "#DCFCE7",
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            marginTop: 6,
+                            paddingHorizontal: 12,
+                            paddingVertical: 8,
+                          }}
+                        >
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              color: "#166534",
+                              flex: 1,
+                              fontFamily: FONT_SANS,
+                              fontSize: 11,
+                              fontWeight: "600",
+                              paddingRight: 6,
+                            }}
+                          >
+                            {post.secondaryLink.label}
+                          </Text>
+                          <Ionicons color="#166534" name="logo-whatsapp" size={14} />
+                        </Pressable>
+                      ) : null}
+                    </View>
+
+                    {/* Edge-to-Edge Poster Image - Sleek 185px height (no huge height, full width) */}
+                    {post.imageSource ? (
+                      <Pressable
+                        onPress={() => router.push(`/societies/${post.societyId}` as any)}
+                        style={{
+                          width: "100%",
+                          overflow: "hidden",
+                          backgroundColor: "#0D1814",
+                        }}
+                      >
+                        <Image
+                          source={post.imageSource}
+                          style={{
+                            width: "100%",
+                            height: isExpanded ? 200 : 135,
+                          }}
+                          resizeMode={isExpanded ? "contain" : "cover"}
+                        />
+                      </Pressable>
+                    ) : post.image ? (
+                      <Pressable
+                        onPress={() =>
+                          post.eventTag
+                            ? router.push(`/event/${post.eventTag.id}` as any)
+                            : router.push(`/societies/${post.societyId}` as any)
+                        }
+                        style={{
+                          width: "100%",
+                          overflow: "hidden",
+                          backgroundColor: "#0D1814",
+                        }}
+                      >
+                        <Image
+                          source={{ uri: post.image }}
+                          style={{
+                            width: "100%",
+                            height: isExpanded ? 150 : 110,
+                          }}
+                          resizeMode="cover"
+                        />
+                      </Pressable>
+                    ) : null}
+
+                    {/* Footer: Heart + likes on left, Bookmark on right */}
+                    <View
+                      style={{
+                        alignItems: "center",
+                        backgroundColor: "#FFFFFF",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                      }}
+                    >
+                      <Pressable
+                        onPress={() => toggleLike(post.id)}
+                        style={{ alignItems: "center", flexDirection: "row", gap: 5 }}
+                      >
+                        <Ionicons
+                          color={post.liked ? "#EF4444" : "#6B7280"}
+                          name={post.liked ? "heart" : "heart-outline"}
+                          size={16}
+                        />
+                        <Text
+                          style={{
+                            color: "#6B7280",
+                            fontFamily: FONT_SANS,
+                            fontSize: 12,
+                            fontWeight: "500",
+                          }}
+                        >
+                          {post.likes}
+                        </Text>
+                      </Pressable>
+
+                      <Pressable onPress={() => toggleBookmark(post.id)}>
+                        <Ionicons
+                          color={post.bookmarked ? "#166534" : "#6B7280"}
+                          name={post.bookmarked ? "bookmark" : "bookmark-outline"}
+                          size={16}
+                        />
+                      </Pressable>
                     </View>
                   </View>
                 );

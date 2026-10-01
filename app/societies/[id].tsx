@@ -15,13 +15,10 @@ import { LinearGradient } from "@/components/ui/primitives/LinearGradient";
 import { SafeAreaView } from "@/components/ui/primitives/SafeAreaView";
 import { goBackOrReplace } from "@/lib/navigation";
 import { MotionView, useResponsive } from "@/lib/responsive-motion";
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { AWS_BUILDER_IMAGE, IEEE_NUTECH_IMAGE, NUTECH_EVENTS_LIST, NUTECH_SOCIETIES, resolveClubBannerSource, resolveClubLogoSource, ZINDIGI_PRIZE_IMAGE } from "@/lib/nutech-data";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 export default function SocietyProfileScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -528,7 +525,7 @@ export default function SocietyProfileScreen() {
                     color: "#12221C",
                   }}
                 >
-                  ⚡ THE WAIT IS OVER! Core Team Applications Open 🎉
+                  The wait is over! Core team applications are open 🎉
                 </Text>
 
                 <Text
@@ -572,20 +569,19 @@ Join NUTECH’s most premium tech community. After events at NASTP and 10Pearls,
                   style={{
                     marginTop: 9,
                     width: "100%",
-                    height: postExpanded ? 225 : 120,
+                    height: postExpanded ? 200 : 135,
                     borderRadius: 12,
                   }}
-                  resizeMode="cover"
+                  resizeMode="contain"
+                  backgroundColor="#0A120F"
                 />
 
                 <Pressable
                   onPress={() => void Linking.openURL("https://forms.gle/DggZXNdqdzryVpga8")}
                   style={{
                     marginTop: 10,
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: "#E2DFD5",
+                    backgroundColor: "#DCFCE7",
+                    borderRadius: 12,
                     paddingHorizontal: 10,
                     paddingVertical: 8.5,
                     flexDirection: "row",
@@ -705,20 +701,19 @@ Note: No startup needed to join the team.`}
                   style={{
                     marginTop: 9,
                     width: "100%",
-                    height: postExpanded ? 230 : 120,
+                    height: postExpanded ? 200 : 135,
                     borderRadius: 12,
                   }}
-                  resizeMode="cover"
+                  resizeMode="contain"
+                  backgroundColor="#0A120F"
                 />
 
                 <Pressable
                   onPress={() => void Linking.openURL("https://forms.gle/kFDYhRu25iH11Mrz6")}
                   style={{
                     marginTop: 10,
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: "#E2DFD5",
+                    backgroundColor: "#DCFCE7",
+                    borderRadius: 12,
                     paddingHorizontal: 10,
                     paddingVertical: 8.5,
                     flexDirection: "row",
@@ -875,20 +870,19 @@ Don’t just attend. Be part of the team that makes it happen. ⚡
                   style={{
                     marginTop: 9,
                     width: "100%",
-                    height: postExpanded ? 260 : 120,
+                    height: postExpanded ? 200 : 135,
                     borderRadius: 12,
                   }}
-                  resizeMode="cover"
+                  resizeMode="contain"
+                  backgroundColor="#0A120F"
                 />
 
                 <Pressable
                   onPress={() => void Linking.openURL("https://forms.gle/cykdHctmqyfZuXR17")}
                   style={{
                     marginTop: 10,
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: "#E2DFD5",
+                    backgroundColor: "#DCFCE7",
+                    borderRadius: 12,
                     paddingHorizontal: 10,
                     paddingVertical: 8.5,
                     flexDirection: "row",
@@ -1014,10 +1008,8 @@ Huzaifa Khan`}
                   onPress={() => void Linking.openURL("https://forms.gle/pAA2oZmuLwGPSybQ6")}
                   style={{
                     marginTop: 10,
-                    backgroundColor: "#F6F5F0",
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: "#E2DFD5",
+                    backgroundColor: "#DCFCE7",
+                    borderRadius: 12,
                     paddingHorizontal: 10,
                     paddingVertical: 8.5,
                     flexDirection: "row",

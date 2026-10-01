@@ -4,12 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView, useResponsive } from "@/lib/responsive-motion";
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 const DOMAINS = ["Technical", "Creative & Media", "Community Service", "Outdoor & Sports"];
 

@@ -10,7 +10,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { Manrope_600SemiBold, Manrope_700Bold, useFonts } from "@expo-google-fonts/manrope";
 import Constants, { ExecutionEnvironment } from "expo-constants";
-import { Bookmark, Compass, UserRound } from "lucide-react-native";
+import { Bookmark, Calendar, CalendarDays, Compass, LayoutDashboard, MessagesSquare, UserRound, Users } from "lucide-react-native";
 import { Animated, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 import { useEffect, useRef } from "react";
 import * as DevClient from "expo-dev-client";
@@ -90,8 +90,8 @@ function AnimatedNavTab({
           {
             alignItems: "center",
             justifyContent: "center",
-            paddingHorizontal: 14,
-            paddingVertical: 3.5,
+            paddingHorizontal: 10,
+            paddingVertical: 3,
             borderRadius: 999,
             backgroundColor: active ? "#E3F2EC" : "transparent",
           },
@@ -105,13 +105,13 @@ function AnimatedNavTab({
       >
         <Icon
           color={active ? "#134635" : "#8D9692"}
-          size={18}
+          size={17}
           strokeWidth={active ? 2.2 : 1.8}
         />
       </View>
       <Text
         style={{
-          fontSize: 9.5,
+          fontSize: 9,
           fontWeight: active ? "700" : "500",
           color: active ? "#134635" : "#8D9692",
           marginTop: 1.5,
@@ -125,6 +125,99 @@ function AnimatedNavTab({
 
 function GlobalBottomNavBar({ pathname }: { pathname: string }) {
   const insets = useSafeAreaInsets();
+  const isSocietyAdmin = pathname.includes("society-admin");
+
+  if (isSocietyAdmin) {
+    const isExplore = pathname.includes("/explore");
+    const isDashboard = pathname.includes("/dashboard");
+    const isEvents =
+      pathname.includes("/events") ||
+      pathname.includes("/create-event") ||
+      pathname.includes("/review-event") ||
+      pathname.includes("/event/") ||
+      pathname.includes("/registrants");
+    const isChat = pathname.includes("/chat");
+    const isTeam =
+      pathname.includes("/members") ||
+      pathname.includes("/add-member");
+    const isProfile =
+      pathname.includes("/profile") ||
+      pathname.includes("/edit-profile") ||
+      pathname.includes("/settings") ||
+      pathname.includes("/society-profile") ||
+      pathname.includes("/edit-society");
+
+    const adminNavItems = [
+      {
+        key: "explore",
+        label: "Explore",
+        active: isExplore,
+        href: "/society-admin/explore" as const,
+        Icon: Compass,
+      },
+      {
+        key: "dashboard",
+        label: "Dashboard",
+        active: isDashboard,
+        href: "/society-admin/dashboard" as const,
+        Icon: LayoutDashboard,
+      },
+      {
+        key: "events",
+        label: "Events",
+        active: isEvents,
+        href: "/society-admin/events" as const,
+        Icon: CalendarDays,
+      },
+      {
+        key: "chat",
+        label: "Chat",
+        active: isChat,
+        href: "/society-admin/chat" as const,
+        Icon: MessagesSquare,
+      },
+      {
+        key: "members",
+        label: "Team",
+        active: isTeam,
+        href: "/society-admin/members" as const,
+        Icon: Users,
+      },
+      {
+        key: "profile",
+        label: "Profile",
+        active: isProfile,
+        href: "/society-admin/profile" as const,
+        Icon: UserRound,
+      },
+    ];
+
+    return (
+      <View
+        style={{
+          alignItems: "center",
+          backgroundColor: "#FAF9F5",
+          borderTopColor: "#EAE7DF",
+          borderTopWidth: 1,
+          flexDirection: "row",
+          height: 52 + insets.bottom,
+          justifyContent: "space-around",
+          paddingBottom: Math.max(insets.bottom, 4),
+          paddingTop: 4,
+        }}
+      >
+        {adminNavItems.map(({ key, label, active, href, Icon }) => (
+          <AnimatedNavTab
+            key={key}
+            label={label}
+            active={active}
+            Icon={Icon}
+            onPress={() => router.replace(href as any)}
+          />
+        ))}
+      </View>
+    );
+  }
 
   const isSaved = pathname.includes("/bookmarks");
   const isProfile =
@@ -215,6 +308,23 @@ function AppShell() {
           <Stack.Screen name="societies/[id]" />
           <Stack.Screen name="societies/register" />
           <Stack.Screen name="home" />
+          <Stack.Screen name="society-admin/dashboard" />
+          <Stack.Screen name="society-admin/events" />
+          <Stack.Screen name="society-admin/calendar" />
+          <Stack.Screen name="society-admin/members" />
+          <Stack.Screen name="society-admin/profile" />
+          <Stack.Screen name="society-admin/create-event" />
+          <Stack.Screen name="society-admin/review-event" />
+          <Stack.Screen name="society-admin/event/[id]" />
+          <Stack.Screen name="society-admin/registrants" />
+          <Stack.Screen name="society-admin/add-member" />
+          <Stack.Screen name="society-admin/chat" />
+          <Stack.Screen name="society-admin/society-profile" />
+          <Stack.Screen name="society-admin/edit-society" />
+          <Stack.Screen name="society-admin/edit-profile" />
+          <Stack.Screen name="society-admin/settings" />
+          <Stack.Screen name="society-admin/notifications" />
+          <Stack.Screen name="society-admin/explore" />
         </Stack>
       </View>
       {!isAuthScreen ? <GlobalBottomNavBar pathname={pathname} /> : null}

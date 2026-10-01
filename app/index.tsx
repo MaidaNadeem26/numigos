@@ -1,3 +1,4 @@
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,11 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { getAuthenticatedProfile, getTestSessionEmail, supabase } from "@/lib/supabase";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 export default function SplashScreen() {
   const [showSpinner, setShowSpinner] = useState(false);

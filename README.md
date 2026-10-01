@@ -7,7 +7,6 @@
 ## ✨ Key Features (v0)
 
 - **Explore Campus Feed**
-  - Featured **Happening at NUTECH** carousel with instant event registration and venue details.
   - Horizontal **NUTECH Clubs** quick-discovery strip.
   - **From NUTECH Societies** feed supporting both **Club Posts / Recruitment Announcements** (non-event posts with clickable Google Forms & WhatsApp links, compact preview with *Read more / Show less*, and `+ Follow` / `Following ✓` toggles) and **Event Updates**.
 - **NUTECH Clubs & Societies Directory (`/societies`)**

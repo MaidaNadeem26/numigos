@@ -1,3 +1,4 @@
+import { FONT_SANS } from "@/lib/responsive-motion";
 import type { PropsWithChildren, ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
@@ -107,10 +108,7 @@ export function AuthScaffold({
                   <Text
                     style={{
                       color: '#162620',
-                      fontFamily: Platform.select({
-                        web: "Georgia, 'Times New Roman', serif",
-                        default: undefined,
-                      }),
+                      fontFamily: FONT_SANS,
                       fontSize: isCompactHeight ? 21 : 24,
                       fontWeight: '600',
                       letterSpacing: -0.3,

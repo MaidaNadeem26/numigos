@@ -15,13 +15,10 @@ import { LinearGradient } from "@/components/ui/primitives/LinearGradient";
 import { SafeAreaView } from "@/components/ui/primitives/SafeAreaView";
 import { goBackOrReplace } from "@/lib/navigation";
 import { MotionView, useResponsive } from "@/lib/responsive-motion";
+import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import { NUTECH_EVENTS } from "@/lib/nutech-data";
 
-const SERIF_FONT = Platform.select({
-  web: "Georgia, 'Times New Roman', serif",
-  ios: "Georgia",
-  default: "serif",
-});
+const SERIF_FONT = FONT_SANS;
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
