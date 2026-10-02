@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "NUTECH Events & Societies",
+    "slug": "nutech-events",
+    "owner": "waqas50505s-team",
+    "extra": {
+      "eas": {
+        "projectId": "97238ded-1826-4278-a73d-9e30486b0466"
+      }
+    }
+  }
+}

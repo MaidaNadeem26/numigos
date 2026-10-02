@@ -18,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: 'NUTECH Events & Societies',
     slug: 'nutech-events',
+    owner: 'waqas50505s-team',
     version: process.env.BILT_APP_VERSION ?? '1.0.0',
     orientation: 'portrait',
     userInterfaceStyle: 'automatic',
@@ -49,6 +50,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       favicon: './assets/icon.png',
     },
     extra: {
+      ...config.extra,
       supabaseUrl:
         process.env.EXPO_PUBLIC_SUPABASE_URL ||
         'https://wwpqhxobjobqtnwddmya.supabase.co',
@@ -56,7 +58,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
         'sb_publishable_1cuVdNhLUUea5TQu9_33cA_OlxR6SUA',
       eas: {
-        projectId: process.env.EAS_PROJECT_ID,
+        projectId:
+          process.env.EAS_PROJECT_ID ||
+          config.extra?.eas?.projectId ||
+          '97238ded-1826-4278-a73d-9e30486b0466',
       },
     },
     plugins: [
@@ -68,7 +73,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           image: './assets/splash-icon.png',
           imageWidth: 200,
           resizeMode: 'contain',
-          backgroundColor: '#0E3C29',
+          backgroundColor: '#FFFFFF',
         },
       ],
       ...nativePlugins,

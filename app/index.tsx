@@ -1,20 +1,55 @@
-import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Platform, Pressable, Text, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { getAuthenticatedProfile, getTestSessionEmail, supabase, TEST_ACCOUNTS } from "@/lib/supabase";
-
-const SERIF_FONT = FONT_SANS;
+import { StatusBar } from "expo-status-bar";
+import { FONT_SANS } from "@/lib/responsive-motion";
+import {
+  getAuthenticatedProfile,
+  getTestSessionEmail,
+  supabase,
+  TEST_ACCOUNTS,
+} from "@/lib/supabase";
 
 export default function SplashScreen() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(6)).current;
   const [showSpinner, setShowSpinner] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     let didNavigate = false;
+
+    // Subtle, smooth fade-in animation for logo and typography
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Subtle loading indicator appears gently only if auth check takes more than 500ms
+    const spinnerTimer = setTimeout(() => {
+      if (isMounted && !didNavigate) {
+        setShowSpinner(true);
+      }
+    }, 500);
 
     const navigateSafely = (target: string) => {
       if (!isMounted || didNavigate) return;
@@ -22,190 +57,162 @@ export default function SplashScreen() {
       router.replace(target as any);
     };
 
-    // Safety fallback in case of complete network lockup
+    // Clean safety timeout fallback to ensure the splash never hangs indefinitely
     const fallbackTimer = setTimeout(() => {
       navigateSafely("/login");
-    }, 1500);
+    }, 3500);
 
-    const resolveSession = async () => {
-      try {
-        // 1. Check for active test session first
-        const testEmail = await getTestSessionEmail();
-        if (testEmail && TEST_ACCOUNTS[testEmail]) {
-          const account = TEST_ACCOUNTS[testEmail];
-          if (account.role === "society_admin") {
-            navigateSafely("/society-admin/dashboard");
-          } else {
-            navigateSafely("/home");
+    const initializeAuthAndNavigate = async () => {
+      // Intentional short duration (1100ms) for a calm, polished mobile app feel
+      const minDurationPromise = new Promise((resolve) => setTimeout(resolve, 1100));
+
+      const authCheckPromise = (async (): Promise<string> => {
+        try {
+          // 1. Check for active test session first
+          const testEmail = await getTestSessionEmail();
+          if (testEmail && TEST_ACCOUNTS[testEmail]) {
+            const account = TEST_ACCOUNTS[testEmail];
+            if (account.role === "society_admin") {
+              return "/society-admin/dashboard";
+            }
+            return "/(tabs)/explore";
           }
-          return;
+
+          // 2. Silently check real Supabase session
+          const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+
+          if (sessionError || !session || !session.user) {
+            return "/login";
+          }
+
+          // 3. Determine authorized role from Supabase profile
+          const { profile } = await getAuthenticatedProfile(session.user.id);
+
+          if (profile && !profile.is_verified) {
+            return "/verify";
+          }
+
+          if (profile?.role === "society_admin") {
+            return "/society-admin/dashboard";
+          }
+
+          return "/(tabs)/explore";
+        } catch {
+          return "/login";
         }
+      })();
 
-        // 2. Initialize real Supabase session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+      const [_, targetRoute] = await Promise.all([minDurationPromise, authCheckPromise]);
 
-        if (!isMounted) return;
-
-        if (!session) {
-          navigateSafely("/login");
-          return;
-        }
-
-        // 3. Determine authorized role from Supabase profile
-        const { profile } = await getAuthenticatedProfile(session.user.id);
-        if (!isMounted) return;
-
-        if (profile && !profile.is_verified) {
-          navigateSafely("/verify");
-          return;
-        }
-
-        if (profile?.role === "society_admin") {
-          navigateSafely("/society-admin/dashboard");
-        } else {
-          navigateSafely("/home");
-        }
-      } catch {
-        navigateSafely("/login");
-      }
+      clearTimeout(fallbackTimer);
+      clearTimeout(spinnerTimer);
+      navigateSafely(targetRoute);
     };
 
-    void resolveSession();
+    void initializeAuthAndNavigate();
 
     return () => {
       isMounted = false;
       clearTimeout(fallbackTimer);
+      clearTimeout(spinnerTimer);
     };
-  }, []);
+  }, [fadeAnim, translateYAnim]);
 
   return (
-    <LinearGradient
-      colors={["#1B5240", "#11382B", "#0A231B"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={{ flex: 1 }}
-    >
-      <SafeAreaView style={{ flex: 1, justifyContent: "space-between", paddingHorizontal: 24, paddingVertical: 28 }}>
-        {/* Top Institutional Pill */}
-        <View style={{ alignItems: "center", marginTop: 8 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-              backgroundColor: "rgba(255,255,255,0.08)",
-              borderWidth: 1,
-              borderColor: "rgba(243,208,146,0.25)",
-              borderRadius: 999,
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-            }}
-          >
-            <View
-              style={{
-                width: 5.5,
-                height: 5.5,
-                borderRadius: 3,
-                backgroundColor: "#F3D092",
-              }}
-            />
-            <Text
-              style={{
-                fontSize: 8.5,
-                fontWeight: "700",
-                letterSpacing: 1,
-                color: "#F3D092",
-              }}
-            >
-              NUTECH STUDENT AFFAIRS PORTAL
-            </Text>
-          </View>
-        </View>
+    <View style={styles.container}>
+      <StatusBar style="dark" />
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        {/* Top Spacer for Optical Balance */}
+        <View style={styles.topSpacer} />
 
-        {/* Center Brand Crest & Typography */}
-        <View style={{ alignItems: "center", justifyContent: "center" }}>
-          <View
-            style={{
-              width: 84,
-              height: 84,
-              borderRadius: 24,
-              backgroundColor: "rgba(255,255,255,0.07)",
-              borderWidth: 1.5,
-              borderColor: "rgba(243,208,146,0.4)",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 18,
-            }}
-          >
-            <Image
-              source={require("@/assets/images/numigos-logo.jpg")}
-              style={{ width: 74, height: 74, borderRadius: 20 }}
-              resizeMode="cover"
-            />
-          </View>
+        {/* Center Content: Brand Logo & Description */}
+        <Animated.View
+          style={[
+            styles.centerContent,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: translateYAnim }],
+            },
+          ]}
+        >
+          {/* Exact Numigos Brand Logo */}
+          <Image
+            source={require("../assets/images/numigos-brand-logo.png")}
+            style={styles.brandLogo}
+            resizeMode="contain"
+            accessibilityLabel="numigos logo"
+          />
 
-          <Text
-            style={{
-              fontFamily: SERIF_FONT,
-              fontSize: 32,
-              fontWeight: "700",
-              color: "#FFFFFF",
-              letterSpacing: 0.3,
-            }}
-          >
-            Numigos
+          {/* Short Description */}
+          <Text style={styles.description}>
+            Discover events, explore societies, and stay connected with campus life.
           </Text>
+        </Animated.View>
 
-          <Text
-            style={{
-              marginTop: 6,
-              fontSize: 10.5,
-              color: "#A3CBB9",
-              textAlign: "center",
-              lineHeight: 16,
-              maxWidth: 240,
-            }}
-          >
-            Official Campus Societies, Technical Events & Co-Curricular Transcript
-          </Text>
-        </View>
-
-        {/* Bottom Status & Quick Continue */}
-        <View style={{ alignItems: "center", gap: 10, marginBottom: 8 }}>
+        {/* Bottom Area: Minimal Non-Distracting Loading Indicator */}
+        <View style={styles.bottomArea}>
           {showSpinner ? (
-            <ActivityIndicator color="#F3D092" size="small" />
+            <ActivityIndicator size="small" color="#1E5D4B" style={styles.spinner} />
           ) : (
-            <View style={{ height: 20 }} />
+            <View style={styles.spinnerPlaceholder} />
           )}
-          <Text
-            style={{
-              fontSize: 8,
-              fontWeight: "700",
-              letterSpacing: 1.1,
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            SYNCING CAMPUS DIGITAL ID...
-          </Text>
-
-          <Pressable
-            onPress={() => router.replace("/home")}
-            style={{
-              marginTop: 4,
-              paddingHorizontal: 14,
-              paddingVertical: 6,
-              borderRadius: 999,
-              backgroundColor: "rgba(255,255,255,0.08)",
-            }}
-          >
-            <Text style={{ fontSize: 9, fontWeight: "600", color: "#F3D092" }}>
-              Enter Campus Portal →
-            </Text>
-          </Pressable>
         </View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  topSpacer: {
+    height: 48,
+  },
+  centerContent: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    maxWidth: 340,
+    paddingHorizontal: 20,
+    marginTop: -20,
+  },
+  brandLogo: {
+    width: 224,
+    height: 70,
+    marginBottom: 16,
+  },
+  description: {
+    fontFamily: FONT_SANS,
+    fontSize: 13.5,
+    fontWeight: "400",
+    color: "#60726A",
+    textAlign: "center",
+    lineHeight: 20.5,
+    maxWidth: 275,
+    letterSpacing: 0.1,
+  },
+  bottomArea: {
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  spinner: {
+    opacity: 0.7,
+  },
+  spinnerPlaceholder: {
+    height: 20,
+  },
+});

@@ -90,9 +90,9 @@ export const NUTECH_SOCIETIES: Record<string, NutechSociety> = {
     category: "Technical",
     categoryLabel: "CLOUD & TECH COMMUNITY",
     dept: "CS, IT & Engineering · NUTECH",
-    membersCount: 0,
+    membersCount: 1,
     studentsLabel: "Active Club",
-    eventsCount: 0,
+    eventsCount: 1,
     sessionsLabel: "Core Team Open",
     roleInProfile: "Core Team Applications Open",
     badgeInProfile: "Following",
@@ -100,7 +100,13 @@ export const NUTECH_SOCIETIES: Record<string, NutechSociety> = {
     banner: "local:aws-builder",
     mission:
       "NUTECH’s most premium tech community! After flagship events and industry visits at NASTP and 10Pearls, AWS Student Builder Group NUTECH empowers students with AWS cloud credits, exam vouchers, hands-on workshops, and industry networking.",
-    leaders: [],
+    leaders: [
+      {
+        name: "Fatima Noor",
+        role: "Vice President & Cloud Lead",
+        avatar: "",
+      },
+    ],
   },
   "zindigi-prize-nutech": {
     id: "zindigi-prize-nutech",
@@ -298,6 +304,29 @@ export const NUTECH_SOCIETIES: Record<string, NutechSociety> = {
 
 export const NUTECH_SOCIETIES_LIST: NutechSociety[] = Object.values(NUTECH_SOCIETIES);
 
-export const NUTECH_EVENTS: Record<string, NutechEvent> = {};
+export const NUTECH_EVENTS: Record<string, NutechEvent> = {
+  "nutech-hackathon-2026": {
+    id: "nutech-hackathon-2026",
+    title: "NUTECH National Hackathon 2026",
+    shortTitle: "National Hackathon",
+    societyId: "aws-student-builder-nutech",
+    societyName: "AWS Student Builder Group NUTECH",
+    category: "Hackathons",
+    categoryTag: "FLAGSHIP HACKATHON",
+    badge: "Oct 15",
+    dateLabel: "Thu, Oct 15",
+    timeLabel: "09:00 AM - 05:00 PM",
+    dateTimeFull: "Thu, Oct 15, 2026 · 09:00 AM",
+    venue: "Main Auditorium, NUTECH Islamabad",
+    wing: "Main Academic Complex",
+    joinedLabel: "1 registered",
+    deadlineText: "Registration Closes Oct 12",
+    urgent: false,
+    image: "local:aws-builder",
+    clubLogo: "local:aws-builder",
+    description:
+      "Join the premier annual 24-hour coding, AI and cloud innovation hackathon organized by AWS Student Builder Group NUTECH. Compete with top student innovators, solve industry challenges, and win cash prizes, AWS credits, and official certificates.",
+  },
+};
 
-export const NUTECH_EVENTS_LIST: NutechEvent[] = [];
+export const NUTECH_EVENTS_LIST: NutechEvent[] = Object.values(NUTECH_EVENTS);

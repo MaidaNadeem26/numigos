@@ -13,9 +13,9 @@ export type StudentProfile = AuthenticatedProfile;
 
 // In-memory store for instantaneous reactive state across screens
 class StudentStore {
-  registeredEventIds: string[] = [];
-  bookmarkedEventIds: string[] = [];
-  followedSocietyIds: string[] = [];
+  registeredEventIds: string[] = ["nutech-hackathon-2026"];
+  bookmarkedEventIds: string[] = ["nutech-hackathon-2026"];
+  followedSocietyIds: string[] = ["aws-student-builder-nutech"];
   profile: StudentProfile | null = null;
   listeners: Array<() => void> = [];
   isInitialized = false;
@@ -50,13 +50,22 @@ class StudentStore {
       ]);
 
       if (cachedRegs) {
-        try { this.registeredEventIds = JSON.parse(cachedRegs); } catch {}
+        try {
+          const parsed = JSON.parse(cachedRegs);
+          if (Array.isArray(parsed) && parsed.length > 0) this.registeredEventIds = parsed;
+        } catch {}
       }
       if (cachedMarks) {
-        try { this.bookmarkedEventIds = JSON.parse(cachedMarks); } catch {}
+        try {
+          const parsed = JSON.parse(cachedMarks);
+          if (Array.isArray(parsed) && parsed.length > 0) this.bookmarkedEventIds = parsed;
+        } catch {}
       }
       if (cachedFollows) {
-        try { this.followedSocietyIds = JSON.parse(cachedFollows); } catch {}
+        try {
+          const parsed = JSON.parse(cachedFollows);
+          if (Array.isArray(parsed) && parsed.length > 0) this.followedSocietyIds = parsed;
+        } catch {}
       }
       if (cachedProf) {
         try { this.profile = JSON.parse(cachedProf); } catch {}
@@ -80,19 +89,19 @@ class StudentStore {
             dbService.getFollowedSocieties(authProfile.id),
           ]);
 
-          if (dbBookmarks && Array.isArray(dbBookmarks)) {
+          if (dbBookmarks && Array.isArray(dbBookmarks) && dbBookmarks.length > 0) {
             const ids = dbBookmarks.map((b: any) => b.event_id);
             this.bookmarkedEventIds = Array.from(new Set([...this.bookmarkedEventIds, ...ids]));
             await AsyncStorage.setItem(STORAGE_KEYS.BOOKMARKS, JSON.stringify(this.bookmarkedEventIds));
           }
 
-          if (dbRegs && Array.isArray(dbRegs)) {
+          if (dbRegs && Array.isArray(dbRegs) && dbRegs.length > 0) {
             const ids = dbRegs.map((r: any) => r.event_id);
             this.registeredEventIds = Array.from(new Set([...this.registeredEventIds, ...ids]));
             await AsyncStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(this.registeredEventIds));
           }
 
-          if (dbFollowed && Array.isArray(dbFollowed)) {
+          if (dbFollowed && Array.isArray(dbFollowed) && dbFollowed.length > 0) {
             const ids = dbFollowed.map((f: any) => f.society_id);
             this.followedSocietyIds = Array.from(new Set([...this.followedSocietyIds, ...ids]));
             await AsyncStorage.setItem(STORAGE_KEYS.FOLLOWED, JSON.stringify(this.followedSocietyIds));
