@@ -473,11 +473,11 @@ class SocietyAdminStore {
     );
   }
 
-  toggleAttendance(registrantId: string) {
+  toggleAttendance(registrantId: string, status?: SocietyRegistrant['status']) {
     this.registrants = this.registrants.map((r) => {
       if (r.id === registrantId) {
         const nextStatus: SocietyRegistrant['status'] =
-          r.status === 'Registered' ? 'Attended' : r.status === 'Attended' ? 'Absent' : 'Registered';
+          status || (r.status === 'Registered' ? 'Attended' : r.status === 'Attended' ? 'Absent' : 'Registered');
         
         dbService.updateAttendance(registrantId, nextStatus).catch((err) =>
           console.warn('Background dbService.updateAttendance error', err)
@@ -595,6 +595,12 @@ class SocietyAdminStore {
     );
   }
 
+  markAllNotificationsRead() {
+    this.notifications = this.notifications.map((n) => ({ ...n, read: true }));
+    this.persistAll();
+    this.notify();
+  }
+
   clearNotifications() {
     this.notifications = [];
     this.persistAll();
@@ -674,12 +680,13 @@ export function useSocietyAdminData() {
     createEvent: useCallback((draft: any) => societyAdminStore.createEvent(draft), []),
     updateEvent: useCallback((id: string, updates: any) => societyAdminStore.updateEvent(id, updates), []),
     cancelEvent: useCallback((id: string) => societyAdminStore.cancelEvent(id), []),
-    toggleAttendance: useCallback((id: string) => societyAdminStore.toggleAttendance(id), []),
+    toggleAttendance: useCallback((id: string, status?: any) => societyAdminStore.toggleAttendance(id, status), []),
     addMember: useCallback((member: any) => societyAdminStore.addMember(member), []),
     updateMemberRole: useCallback((id: string, role: string, group: any) => societyAdminStore.updateMemberRole(id, role, group), []),
     removeMember: useCallback((id: string) => societyAdminStore.removeMember(id), []),
     sendChatMessage: useCallback((text: string) => societyAdminStore.sendChatMessage(text), []),
     markNotificationRead: useCallback((id: string) => societyAdminStore.markNotificationRead(id), []),
+    markAllNotificationsRead: useCallback(() => societyAdminStore.markAllNotificationsRead(), []),
     clearNotifications: useCallback(() => societyAdminStore.clearNotifications(), []),
     updateProfile: useCallback((updates: any) => societyAdminStore.updateProfile(updates), []),
     updateSociety: useCallback((updates: any) => societyAdminStore.updateSociety(updates), []),

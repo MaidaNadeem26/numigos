@@ -582,7 +582,7 @@ export default function SocietyProfileScreen() {
                         <Text style={{ fontFamily: FONT_SANS, fontSize: 12, fontWeight: "700", color: "#144534" }}>
                           {leader.name
                             .split(" ")
-                            .map((w) => w[0])
+                            .map((w: string) => w[0])
                             .slice(0, 2)
                             .join("")
                             .toUpperCase()}
@@ -761,9 +761,9 @@ export default function SocietyProfileScreen() {
                             width: "100%",
                             height: isExpanded ? 200 : 135,
                             borderRadius: 12,
+                            backgroundColor: "#0A120F",
                           }}
                           resizeMode="contain"
-                          backgroundColor="#0A120F"
                         />
                       ) : null}
 

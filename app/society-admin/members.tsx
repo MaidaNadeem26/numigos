@@ -606,7 +606,7 @@ export default function SocietyMembersScreen() {
                 marginBottom: 14,
               }}
             >
-              <Ionicons name="shield-alert-outline" size={24} color="#D97706" />
+              <Ionicons name="alert-circle-outline" size={24} color="#D97706" />
             </View>
 
             <Text

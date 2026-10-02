@@ -1,9 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
+import Constants from "expo-constants";
 import { AppState, Platform } from "react-native";
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const supabaseUrl =
+  process.env.EXPO_PUBLIC_SUPABASE_URL ||
+  Constants.expoConfig?.extra?.supabaseUrl ||
+  "https://wwpqhxobjobqtnwddmya.supabase.co";
+
+const supabasePublishableKey =
+  process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  Constants.expoConfig?.extra?.supabasePublishableKey ||
+  "sb_publishable_1cuVdNhLUUea5TQu9_33cA_OlxR6SUA";
 
 if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error("Supabase connection is not configured.");
@@ -71,53 +79,80 @@ export interface AuthenticatedProfile {
   role: string;
   is_verified: boolean;
   full_name?: string;
+  name?: string;
   roll_number?: string;
   department?: string;
   semester?: string;
   phone?: string;
+  avatar_url?: string;
   managed_society_id?: string;
 }
 
-export async function getAuthenticatedProfile(userId: string): Promise<{ profile: AuthenticatedProfile | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, email, role, is_verified, full_name, roll_number, department, semester, phone, managed_society_id")
-      .eq("id", userId)
-      .maybeSingle();
+export type RegistrationRecord = any;
+export type NotificationRecord = any;
+export type SocietyMemberRecord = any;
+export type SocietyPostRecord = any;
 
-    if (error || !data) {
-      // Check test session
-      const testEmail = await getTestSessionEmail();
-      if (testEmail && TEST_ACCOUNTS[testEmail]) {
-        const testAcc = TEST_ACCOUNTS[testEmail];
+export async function getAuthenticatedProfile(userId?: string): Promise<{ profile: AuthenticatedProfile | null; error: Error | null }> {
+  try {
+    let resolvedUserId = userId;
+    if (!resolvedUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      resolvedUserId = user?.id;
+    }
+
+    if (resolvedUserId) {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, role, is_verified, full_name, roll_number, department, semester, phone, managed_society_id, avatar_url")
+        .eq("id", resolvedUserId)
+        .maybeSingle();
+
+      if (!error && data) {
         return {
           profile: {
-            role: testAcc.role,
-            is_verified: true,
-            full_name: testAcc.name,
-            managed_society_id: testAcc.societyId,
-          },
+            ...data,
+            name: data.full_name || (data as any).name || "Student",
+          } as AuthenticatedProfile,
           error: null,
         };
       }
+    }
 
+    // Check test session
+    const testEmail = await getTestSessionEmail();
+    if (testEmail && TEST_ACCOUNTS[testEmail]) {
+      const testAcc = TEST_ACCOUNTS[testEmail];
       return {
         profile: {
-          role: "student",
+          id: resolvedUserId || "test-user-id",
+          email: testEmail,
+          role: testAcc.role,
           is_verified: true,
+          full_name: testAcc.name,
+          name: testAcc.name,
+          managed_society_id: testAcc.societyId,
         },
         error: null,
       };
     }
 
     return {
-      profile: data as AuthenticatedProfile,
+      profile: {
+        id: resolvedUserId || "guest-user",
+        name: "Student",
+        full_name: "Student",
+        role: "student",
+        is_verified: true,
+      },
       error: null,
     };
   } catch (err: any) {
     return {
       profile: {
+        id: userId || "guest-user",
+        name: "Student",
+        full_name: "Student",
         role: "student",
         is_verified: true,
       },
@@ -167,7 +202,13 @@ export const dbService = {
   async getSocieties() {
     return safeDbQuery(async () => {
       return await supabase.from("societies").select("*").order("name");
-    }, null);
+    }, [] as any[]);
+  },
+
+  async getSocietyById(id: string) {
+    return safeDbQuery(async () => {
+      return await supabase.from("societies").select("*").eq("id", id).maybeSingle();
+    }, null as any);
   },
 
   async updateSociety(societyId: string, updates: Record<string, any>) {
@@ -187,7 +228,13 @@ export const dbService = {
         query = query.eq("society_id", societyId);
       }
       return await query;
-    }, null);
+    }, [] as any[]);
+  },
+
+  async getEventById(id: string) {
+    return safeDbQuery(async () => {
+      return await supabase.from("events").select("*").eq("id", id).maybeSingle();
+    }, null as any);
   },
 
   async createEvent(eventData: Record<string, any>) {
@@ -213,7 +260,7 @@ export const dbService = {
         .select("*")
         .eq("society_id", societyId)
         .order("created_at", { ascending: true });
-    }, null);
+    }, [] as any[]);
   },
 
   async addSocietyMember(memberData: Record<string, any>) {
@@ -235,14 +282,17 @@ export const dbService = {
   },
 
   // Registrations & Attendance
-  async getRegistrations(eventId?: string) {
+  async getRegistrations(eventId?: string, userId?: string) {
     return safeDbQuery(async () => {
       let query = supabase.from("registrations").select("*").order("registered_at", { ascending: false });
       if (eventId) {
         query = query.eq("event_id", eventId);
       }
+      if (userId) {
+        query = query.eq("user_id", userId);
+      }
       return await query;
-    }, null);
+    }, [] as any[]);
   },
 
   async registerForEvent(regData: {
@@ -250,12 +300,48 @@ export const dbService = {
     name: string;
     roll_number: string;
     email: string;
+    user_id?: string;
     department?: string;
     semester?: string;
     avatar?: string;
   }) {
     return safeDbMutation(async () => {
       return await supabase.from("registrations").insert([regData]).select().single();
+    });
+  },
+
+  // Posts
+  async getPosts(societyId?: string) {
+    return safeDbQuery(async () => {
+      let query = supabase.from("posts").select("*").order("created_at", { ascending: false });
+      if (societyId) {
+        query = query.eq("society_id", societyId);
+      }
+      return await query;
+    }, [] as any[]);
+  },
+
+  // Society Followers
+  async getFollowedSocieties(userId: string) {
+    return safeDbQuery(async () => {
+      return await supabase.from("society_followers").select("society_id").eq("user_id", userId);
+    }, [] as any[]);
+  },
+
+  async toggleFollowSociety(userId: string, societyId: string) {
+    return safeDbMutation(async () => {
+      const { data: existing } = await supabase
+        .from("society_followers")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("society_id", societyId)
+        .maybeSingle();
+
+      if (existing) {
+        return await supabase.from("society_followers").delete().eq("id", existing.id);
+      } else {
+        return await supabase.from("society_followers").insert([{ user_id: userId, society_id: societyId }]);
+      }
     });
   },
 

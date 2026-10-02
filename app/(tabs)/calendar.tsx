@@ -72,10 +72,11 @@ export default function CalendarScreen() {
     let mounted = true;
     async function loadData() {
       setLoading(true);
-      const res = await dbService.getEvents();
+      const res: any = await dbService.getEvents();
       if (mounted) {
-        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          const mapped = res.data.map((e: any) => {
+        const list = Array.isArray(res) ? res : res?.data;
+        if (Array.isArray(list) && list.length > 0) {
+          const mapped = list.map((e: any) => {
             const colors = getTagColors(e.category || e.badge);
             return {
               id: e.id,
