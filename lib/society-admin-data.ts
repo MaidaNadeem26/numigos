@@ -111,78 +111,6 @@ export interface ManagedSocietyData {
   }>;
 }
 
-export const defaultAdminEvent: SocietyAdminEvent = {
-  id: 'nutech-hackathon-2026',
-  title: 'NUTECH National Hackathon 2026',
-  shortTitle: 'National Hackathon',
-  societyId: 'aws-student-builder-nutech',
-  societyName: 'AWS Student Builder Group NUTECH',
-  category: 'Hackathons',
-  categoryTag: 'FLAGSHIP HACKATHON',
-  date: '2026-10-15',
-  dateLabel: 'Thu, Oct 15',
-  timeLabel: '09:00 AM - 05:00 PM',
-  dateTimeFull: 'Thu, Oct 15, 2026 · 09:00 AM',
-  venue: 'Main Auditorium, NUTECH Islamabad',
-  wing: 'Main Academic Complex',
-  capacity: 150,
-  registeredCount: 1,
-  deadlineText: 'Registration Closes Oct 12',
-  image: 'local:aws-builder',
-  clubLogo: 'local:aws-builder',
-  description:
-    'Join the premier annual 24-hour coding, AI and cloud innovation hackathon organized by AWS Student Builder Group NUTECH. Compete with top student innovators, solve industry challenges, and win cash prizes, AWS credits, and official certificates.',
-  status: 'Approved',
-  osaNotes: 'Approved by Directorate of Student Life (DSL) & OSA. Auditorium reserved.',
-  submittedAt: 'Oct 01, 2026',
-};
-
-export const defaultAdminRegistrant: SocietyRegistrant = {
-  id: 'reg-001',
-  eventId: 'nutech-hackathon-2026',
-  name: 'Muhammad Ahmad',
-  rollNumber: 'F22-BSE-042',
-  department: 'Software Engineering',
-  semester: '6th Semester',
-  email: 'ahmad.se@nutech.edu.pk',
-  avatar: '',
-  registeredAt: 'Oct 02, 2026 · 10:15 AM',
-  status: 'Registered',
-};
-
-export const defaultAdminMember: SocietyTeamMember = {
-  id: 'mem-001',
-  name: 'Fatima Noor',
-  rollNumber: 'F21-BCE-018',
-  role: 'Vice President & Cloud Lead',
-  group: 'Leadership',
-  department: 'Computer Engineering',
-  avatar: '',
-  joinedDate: 'Fall 2025',
-  email: 'fatima.noor@nutech.edu.pk',
-};
-
-export const defaultAdminChatMessage: SocietyChatMessage = {
-  id: 'chat-001',
-  senderId: 'osa-coordinator',
-  senderName: 'Engr. Tariq Mehmood (OSA Advisor)',
-  senderRole: 'Faculty & OSA Coordinator',
-  senderAvatar: '',
-  text: 'Welcome to Numigos! The proposal for NUTECH National Hackathon 2026 has been approved by the Directorate of Student Life. Let us know if you need any logistics or auditorium equipment.',
-  timestamp: '10:30 AM',
-  isCurrentUser: false,
-};
-
-export const defaultAdminNotification: SocietyNotification = {
-  id: 'notif-admin-001',
-  title: 'Event Proposal Approved',
-  message: "OSA has approved 'NUTECH National Hackathon 2026'. Your event is now live for all campus students.",
-  type: 'approval',
-  timestamp: 'Oct 02, 2026',
-  read: false,
-  targetRoute: '/society-admin/events',
-};
-
 const initialSociety: ManagedSocietyData = {
   id: 'aws-student-builder-nutech',
   name: 'AWS Student Builder Group NUTECH',
@@ -191,23 +119,17 @@ const initialSociety: ManagedSocietyData = {
   category: 'Technical',
   categoryLabel: 'CLOUD & TECH COMMUNITY',
   dept: 'CS, IT & Engineering · NUTECH',
-  facultyAdvisor: 'Engr. Tariq Mehmood',
+  facultyAdvisor: '',
   contactEmail: 'aws.builder@nutech.edu.pk',
   instagram: '@awsnutech',
-  meetingSchedule: 'Wednesdays at 03:30 PM (CS Lab 2)',
-  membersCount: 1,
-  eventsCount: 1,
+  meetingSchedule: '',
+  membersCount: 0,
+  eventsCount: 0,
   logo: 'local:aws-builder',
   banner: 'local:aws-builder',
   status: 'Active & Approved by OSA',
-  mission: 'Official Student Society at NUTECH Islamabad empowering students with AWS cloud credits, exam vouchers, hands-on workshops, and industry networking.',
-  leaders: [
-    {
-      name: 'Fatima Noor',
-      role: 'Vice President & Cloud Lead',
-      avatar: '',
-    },
-  ],
+  mission: 'Official Student Society at NUTECH Islamabad.',
+  leaders: [],
 };
 
 const initialProfile: SocietyAdminProfile = {
@@ -235,11 +157,11 @@ const STORAGE_KEYS = {
 class SocietyAdminStore {
   society: ManagedSocietyData = initialSociety;
   profile: SocietyAdminProfile = initialProfile;
-  events: SocietyAdminEvent[] = [defaultAdminEvent];
-  registrants: SocietyRegistrant[] = [defaultAdminRegistrant];
-  members: SocietyTeamMember[] = [defaultAdminMember];
-  chatMessages: SocietyChatMessage[] = [defaultAdminChatMessage];
-  notifications: SocietyNotification[] = [defaultAdminNotification];
+  events: SocietyAdminEvent[] = [];
+  registrants: SocietyRegistrant[] = [];
+  members: SocietyTeamMember[] = [];
+  chatMessages: SocietyChatMessage[] = [];
+  notifications: SocietyNotification[] = [];
   draftEvent: any = null;
   private listeners: Set<() => void> = new Set();
   private initialized = false;
@@ -265,14 +187,14 @@ class SocietyAdminStore {
 
       if (savedSociety) { try { this.society = JSON.parse(savedSociety); } catch {} }
       if (savedProfile) { try { this.profile = JSON.parse(savedProfile); } catch {} }
-      if (savedEvents) { try { const parsed = JSON.parse(savedEvents); if (Array.isArray(parsed) && parsed.length > 0) this.events = parsed; } catch {} }
-      if (savedRegs) { try { const parsed = JSON.parse(savedRegs); if (Array.isArray(parsed) && parsed.length > 0) this.registrants = parsed; } catch {} }
-      if (savedMems) { try { const parsed = JSON.parse(savedMems); if (Array.isArray(parsed) && parsed.length > 0) this.members = parsed; } catch {} }
-      if (savedChat) { try { const parsed = JSON.parse(savedChat); if (Array.isArray(parsed) && parsed.length > 0) this.chatMessages = parsed; } catch {} }
-      if (savedNotifs) { try { const parsed = JSON.parse(savedNotifs); if (Array.isArray(parsed) && parsed.length > 0) this.notifications = parsed; } catch {} }
+      if (savedEvents) { try { this.events = JSON.parse(savedEvents); } catch {} }
+      if (savedRegs) { try { this.registrants = JSON.parse(savedRegs); } catch {} }
+      if (savedMems) { try { this.members = JSON.parse(savedMems); } catch {} }
+      if (savedChat) { try { this.chatMessages = JSON.parse(savedChat); } catch {} }
+      if (savedNotifs) { try { this.notifications = JSON.parse(savedNotifs); } catch {} }
       this.notify();
     } catch {
-      // Keep defaults
+      // Keep empty defaults
     }
 
     this.syncFromSupabase();
@@ -325,7 +247,7 @@ class SocietyAdminStore {
         }
       }
 
-      if (dbEvents !== null && Array.isArray(dbEvents) && dbEvents.length > 0) {
+      if (dbEvents !== null && Array.isArray(dbEvents)) {
         this.events = dbEvents.map((e: any) => ({
           id: e.id,
           title: e.title,
@@ -353,7 +275,7 @@ class SocietyAdminStore {
         this.society.eventsCount = this.events.length;
       }
 
-      if (dbMembers !== null && Array.isArray(dbMembers) && dbMembers.length > 0) {
+      if (dbMembers !== null && Array.isArray(dbMembers)) {
         this.members = dbMembers.map((m: any) => ({
           id: m.id,
           name: m.name,
@@ -368,7 +290,7 @@ class SocietyAdminStore {
         this.society.membersCount = this.members.length;
       }
 
-      if (dbRegs !== null && Array.isArray(dbRegs) && dbRegs.length > 0) {
+      if (dbRegs !== null && Array.isArray(dbRegs)) {
         this.registrants = dbRegs.map((r: any) => ({
           id: r.id,
           eventId: r.event_id,
@@ -383,7 +305,7 @@ class SocietyAdminStore {
         }));
       }
 
-      if (dbChat !== null && Array.isArray(dbChat) && dbChat.length > 0) {
+      if (dbChat !== null && Array.isArray(dbChat)) {
         this.chatMessages = dbChat.map((c: any) => ({
           id: c.id,
           senderId: c.sender_id,
@@ -396,7 +318,7 @@ class SocietyAdminStore {
         }));
       }
 
-      if (dbNotifs !== null && Array.isArray(dbNotifs) && dbNotifs.length > 0) {
+      if (dbNotifs !== null && Array.isArray(dbNotifs)) {
         this.notifications = dbNotifs.map((n: any) => ({
           id: n.id,
           title: n.title,

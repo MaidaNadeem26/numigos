@@ -325,7 +325,7 @@ export default function EventHistoryScreen() {
                       color: "#12221C",
                     }}
                   >
-                    {(item as any).event_title || item.event_id}
+                    {item.event_id}
                   </Text>
                   <Text style={{ marginTop: 2, fontSize: 9, color: "#1E5D4B", fontWeight: "600" }}>
                     {item.department || "Student Affairs"}
