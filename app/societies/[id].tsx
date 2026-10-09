@@ -17,11 +17,14 @@ import { goBackOrReplace } from "@/lib/navigation";
 import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
 import {
   NutechEvent,
+  isEventPassed,
+  mapDbEventToNutechEvent,
   NutechSociety,
   NUTECH_SOCIETIES,
   resolveClubBannerSource,
   resolveClubLogoSource,
 } from "@/lib/nutech-data";
+import { RegistrationSuccessModal } from "@/components/events/RegistrationSuccessModal";
 import { dbService, SocietyMemberRecord, SocietyPostRecord } from "@/lib/supabase";
 import { useStudentData } from "@/lib/student-data";
 
@@ -30,7 +33,7 @@ const SERIF_FONT = FONT_SANS;
 export default function SocietyProfileScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { hPad } = useResponsive();
-  const { isFollowed, toggleFollow, isRegistered, registerForEvent } = useStudentData();
+  const { profile, isFollowed, toggleFollow, isRegistered, registerForEvent } = useStudentData();
 
   const [society, setSociety] = useState<NutechSociety | null>(() => {
     if (id && NUTECH_SOCIETIES[id]) return NUTECH_SOCIETIES[id];
@@ -42,6 +45,20 @@ export default function SocietyProfileScreen() {
   const [events, setEvents] = useState<NutechEvent[]>([]);
   const [expandedPostIds, setExpandedPostIds] = useState<string[]>([]);
   const [bookmarked, setBookmarked] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredModalEvent, setRegisteredModalEvent] = useState<NutechEvent | null>(null);
+
+  const handleRegisterEvent = async (eventToRegister: NutechEvent) => {
+    if (isEventPassed(eventToRegister)) return;
+    await registerForEvent(eventToRegister.id, {
+      userName: profile?.full_name || profile?.name || "Student",
+      userEmail: profile?.email || "",
+      rollNumber: profile?.roll_number || "",
+      department: profile?.department || "",
+    });
+    setRegisteredModalEvent(eventToRegister);
+    setShowSuccessModal(true);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -87,7 +104,8 @@ export default function SocietyProfileScreen() {
       if (isMounted) {
         setLeaders(membersData);
         setPosts(postsData);
-        const filtered = allEvents.filter(
+        const mapped = (allEvents || []).map(mapDbEventToNutechEvent);
+        const filtered = mapped.filter(
           (e) =>
             e.societyId === societyId ||
             e.societyName?.toLowerCase() === currentSociety?.name?.toLowerCase()
@@ -941,25 +959,41 @@ export default function SocietyProfileScreen() {
                         </Text>
 
                         <Pressable
+                          disabled={isEventPassed(ev)}
                           onPress={(e) => {
                             e.stopPropagation();
-                            void registerForEvent(ev.id);
+                            if (!isEventPassed(ev) && !isRsvped) {
+                              void handleRegisterEvent(ev);
+                            }
                           }}
                           style={{
-                            backgroundColor: isRsvped ? "#CBEAD9" : "#123F30",
+                            backgroundColor: isEventPassed(ev)
+                              ? "#E5E7EB"
+                              : isRsvped
+                              ? "#CBEAD9"
+                              : "#123F30",
                             borderRadius: 999,
                             paddingHorizontal: 11,
                             paddingVertical: 4.5,
+                            opacity: isEventPassed(ev) ? 0.75 : 1,
                           }}
                         >
                           <Text
                             style={{
-                              color: isRsvped ? "#144534" : "#FFFFFF",
+                              color: isEventPassed(ev)
+                                ? "#6B7280"
+                                : isRsvped
+                                ? "#144534"
+                                : "#FFFFFF",
                               fontSize: 8.5,
                               fontWeight: "700",
                             }}
                           >
-                            {isRsvped ? "✓ Registered" : "Register"}
+                            {isEventPassed(ev)
+                              ? "Event Ended"
+                              : isRsvped
+                              ? "✓ Registered"
+                              : "Register"}
                           </Text>
                         </Pressable>
                       </View>
@@ -971,6 +1005,14 @@ export default function SocietyProfileScreen() {
           </View>
         </MotionView>
       </ScrollView>
+
+      <RegistrationSuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        event={registeredModalEvent}
+        studentName={profile?.full_name || profile?.name || "Student"}
+        rollNumber={profile?.roll_number}
+      />
     </SafeAreaView>
   );
 }

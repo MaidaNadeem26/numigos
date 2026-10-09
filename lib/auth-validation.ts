@@ -85,9 +85,7 @@ export function validateSignup(fields: SignupFields): FieldErrors<SignupFields> 
 export function validateLogin(fields: LoginFields): FieldErrors<LoginFields> {
   const errors: FieldErrors<LoginFields> = {};
   if (!fields.email.trim()) {
-    errors.email = 'University email is required.';
-  } else if (!isUniversityEmail(fields.email)) {
-    errors.email = `Use your ${UNIVERSITY_EMAIL_DOMAIN} email.`;
+    errors.email = 'University email or username is required.';
   }
   if (!fields.password) errors.password = 'Password is required.';
   return errors;
@@ -107,8 +105,11 @@ export function getAuthErrorMessage(error: unknown): string {
   if (message.includes('already registered') || message.includes('already been registered')) {
     return 'An account already exists for this email. Sign in instead.';
   }
-  if (message.includes('invalid login credentials')) {
-    return 'The email or password is incorrect.';
+  if (message.includes('invalid login credentials') || message.includes('invalid credentials')) {
+    return 'Incorrect password';
+  }
+  if (message.includes('user not found') || message.includes('username not found')) {
+    return 'Username not found';
   }
   if (message.includes('email not confirmed')) {
     return 'Verify your university email before signing in.';

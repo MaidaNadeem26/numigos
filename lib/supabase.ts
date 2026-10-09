@@ -288,7 +288,7 @@ export const dbService = {
       if (eventId) {
         query = query.eq("event_id", eventId);
       }
-      if (userId) {
+      if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
         query = query.eq("user_id", userId);
       }
       return await query;
@@ -306,7 +306,11 @@ export const dbService = {
     avatar?: string;
   }) {
     return safeDbMutation(async () => {
-      return await supabase.from("registrations").insert([regData]).select().single();
+      const dataToInsert = { ...regData };
+      if (dataToInsert.user_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dataToInsert.user_id)) {
+        delete dataToInsert.user_id;
+      }
+      return await supabase.from("registrations").insert([dataToInsert]).select().single();
     });
   },
 
@@ -323,12 +327,18 @@ export const dbService = {
 
   // Society Followers
   async getFollowedSocieties(userId: string) {
+    if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+      return [];
+    }
     return safeDbQuery(async () => {
       return await supabase.from("society_followers").select("society_id").eq("user_id", userId);
     }, [] as any[]);
   },
 
   async toggleFollowSociety(userId: string, societyId: string) {
+    if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+      return { success: true };
+    }
     return safeDbMutation(async () => {
       const { data: existing } = await supabase
         .from("society_followers")
@@ -341,6 +351,36 @@ export const dbService = {
         return await supabase.from("society_followers").delete().eq("id", existing.id);
       } else {
         return await supabase.from("society_followers").insert([{ user_id: userId, society_id: societyId }]);
+      }
+    });
+  },
+
+  // Bookmarks
+  async getBookmarks(userId: string) {
+    if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+      return [];
+    }
+    return safeDbQuery(async () => {
+      return await supabase.from("bookmarks").select("event_id").eq("user_id", userId);
+    }, [] as any[]);
+  },
+
+  async toggleBookmark(eventId: string, userId: string) {
+    if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+      return { success: true };
+    }
+    return safeDbMutation(async () => {
+      const { data: existing } = await supabase
+        .from("bookmarks")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("event_id", eventId)
+        .maybeSingle();
+
+      if (existing) {
+        return await supabase.from("bookmarks").delete().eq("id", existing.id);
+      } else {
+        return await supabase.from("bookmarks").insert([{ user_id: userId, event_id: eventId }]);
       }
     });
   },
@@ -421,30 +461,6 @@ export const dbService = {
         .from("profiles")
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", userId);
-    });
-  },
-
-  // Bookmarks
-  async getBookmarks(userId: string) {
-    return safeDbQuery(async () => {
-      return await supabase.from("bookmarks").select("event_id").eq("user_id", userId);
-    }, null);
-  },
-
-  async toggleBookmark(userId: string, eventId: string) {
-    return safeDbMutation(async () => {
-      const { data: existing } = await supabase
-        .from("bookmarks")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("event_id", eventId)
-        .maybeSingle();
-
-      if (existing) {
-        return await supabase.from("bookmarks").delete().eq("id", existing.id);
-      } else {
-        return await supabase.from("bookmarks").insert([{ user_id: userId, event_id: eventId }]);
-      }
     });
   },
 };

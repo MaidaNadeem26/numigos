@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { dbService, setTestSessionEmail, supabase } from "@/lib/supabase";
 import { MotionView, PulseDot, useResponsive } from "@/lib/responsive-motion";
 import { FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
-import { NutechEvent, NUTECH_SOCIETIES_LIST, resolveClubLogoSource } from "@/lib/nutech-data";
+import { mapDbEventToNutechEvent, NutechEvent, NUTECH_SOCIETIES_LIST, resolveClubLogoSource } from "@/lib/nutech-data";
 import { useStudentData } from "@/lib/student-data";
 
 const SERIF_FONT = FONT_SANS;
@@ -21,7 +21,7 @@ export default function ProfileTabScreen() {
   useEffect(() => {
     let isMounted = true;
     dbService.getEvents().then((evs) => {
-      if (isMounted) setAllEvents(evs);
+      if (isMounted) setAllEvents((evs || []).map(mapDbEventToNutechEvent));
     });
     return () => {
       isMounted = false;

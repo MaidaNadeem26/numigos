@@ -81,6 +81,85 @@ export function resolveClubBannerSource(banner: string) {
   return { uri: banner };
 }
 
+export function isEventPassed(eventOrDate?: any): boolean {
+  if (!eventOrDate) return false;
+  const rawDate =
+    typeof eventOrDate === "string"
+      ? eventOrDate
+      : eventOrDate.date || eventOrDate.date_time_full || eventOrDate.dateTimeFull;
+  if (!rawDate || typeof rawDate !== "string") return false;
+
+  try {
+    const isoMatch = rawDate.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const year = parseInt(isoMatch[1], 10);
+      const month = parseInt(isoMatch[2], 10) - 1;
+      const day = parseInt(isoMatch[3], 10);
+      const targetDate = new Date(year, month, day, 23, 59, 59, 999);
+      return targetDate.getTime() < Date.now();
+    }
+
+    const parsed = new Date(rawDate);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.getTime() < Date.now();
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+export function mapDbEventToNutechEvent(ev: any): NutechEvent {
+  if (!ev) {
+    return {
+      id: "",
+      title: "Campus Event",
+      shortTitle: "Campus Event",
+      societyId: "",
+      societyName: "NUTECH Society",
+      category: "Hackathons",
+      categoryTag: "EVENT",
+      badge: "Upcoming",
+      dateLabel: "TBA",
+      timeLabel: "TBA",
+      dateTimeFull: "TBA",
+      venue: "NUTECH Campus",
+      wing: "Main Campus",
+      joinedLabel: "0 registered",
+      deadlineText: "Open registration",
+      urgent: false,
+      image: "",
+      clubLogo: "local:entrepreneurship",
+      description: "",
+    };
+  }
+
+  const societyId = ev.society_id || ev.societyId || "";
+  const societyInfo = NUTECH_SOCIETIES[societyId];
+
+  return {
+    id: ev.id,
+    title: ev.title || "Campus Event",
+    shortTitle: ev.short_title || ev.shortTitle || ev.title || "Campus Event",
+    societyId,
+    societyName: ev.society_name || ev.societyName || societyInfo?.name || "NUTECH Society",
+    category: (ev.category as any) || "Hackathons",
+    categoryTag: (ev.category_tag || ev.categoryTag || ev.category || "EVENT").toUpperCase(),
+    badge: ev.badge || (ev.date ? new Date(ev.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Upcoming"),
+    dateLabel: ev.date_label || ev.dateLabel || (ev.date ? new Date(ev.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "TBA"),
+    timeLabel: ev.time_label || ev.timeLabel || ev.time || "TBA",
+    dateTimeFull: ev.date_time_full || ev.dateTimeFull || `${ev.date || ""} ${ev.time || ""}`,
+    venue: ev.venue || "NUTECH Campus",
+    wing: ev.wing || "Main Campus",
+    joinedLabel: `${ev.registrations_count || ev.registered_count || 0} registered`,
+    deadlineText: ev.deadline_text || ev.deadlineText || (ev.deadline ? `Deadline: ${new Date(ev.deadline).toLocaleDateString()}` : "Open registration"),
+    urgent: Boolean(ev.urgent),
+    image: ev.image || "",
+    clubLogo: ev.club_logo || ev.clubLogo || societyInfo?.logo || "local:entrepreneurship",
+    description: ev.description || "",
+  };
+}
+
 export const NUTECH_SOCIETIES: Record<string, NutechSociety> = {
   "aws-student-builder-nutech": {
     id: "aws-student-builder-nutech",

@@ -191,9 +191,8 @@ export default function SocietiesScreen() {
             {filteredSocieties.map((soc) => {
               const isJoined = followedSocietyIds.includes(soc.id);
               return (
-                <Pressable
+                <View
                   key={soc.id}
-                  onPress={() => router.push(`/societies/${soc.id}` as any)}
                   style={{
                     backgroundColor: "#FFFFFF",
                     borderRadius: 16,
@@ -202,63 +201,70 @@ export default function SocietiesScreen() {
                     overflow: "hidden",
                   }}
                 >
-                  <Image
-                    source={resolveClubBannerSource(soc.banner)}
-                    style={{ width: "100%", height: 76 }}
-                    resizeMode="cover"
-                  />
+                  <Pressable onPress={() => router.push(`/societies/${soc.id}` as any)}>
+                    <Image
+                      source={resolveClubBannerSource(soc.banner)}
+                      style={{ width: "100%", height: 76 }}
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+
                   <View style={{ padding: 12 }}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                      <Image
-                        source={resolveClubLogoSource(soc.logo)}
-                        style={{
-                          width: 46,
-                          height: 46,
-                          borderRadius: 12,
-                          borderWidth: 2,
-                          borderColor: "#FFFFFF",
-                          marginTop: -26,
-                          backgroundColor: "#FAF9F5",
-                        }}
-                      />
-
-                      <View style={{ flex: 1, marginLeft: 10, paddingRight: 8 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                          <View
-                            style={{
-                              backgroundColor: "#E4F2EC",
-                              borderRadius: 999,
-                              paddingHorizontal: 6.5,
-                              paddingVertical: 1.5,
-                            }}
-                          >
-                            <Text style={{ fontSize: 7, fontWeight: "700", color: "#144534" }}>
-                              {soc.categoryLabel}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <Text
+                      <Pressable
+                        onPress={() => router.push(`/societies/${soc.id}` as any)}
+                        style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}
+                      >
+                        <Image
+                          source={resolveClubLogoSource(soc.logo)}
                           style={{
-                            marginTop: 2,
-                            fontFamily: SERIF_FONT,
-                            fontSize: 12.5,
-                            fontWeight: "700",
-                            color: "#12221C",
+                            width: 46,
+                            height: 46,
+                            borderRadius: 12,
+                            borderWidth: 2,
+                            borderColor: "#FFFFFF",
+                            marginTop: -26,
+                            backgroundColor: "#FAF9F5",
                           }}
-                          numberOfLines={1}
-                        >
-                          {soc.name}
-                        </Text>
+                        />
 
-                        <Text style={{ marginTop: 1, fontSize: 8.5, color: "#6E7773" }}>
-                          {soc.studentsLabel} · {soc.dept}
-                        </Text>
-                      </View>
+                        <View style={{ flex: 1, marginLeft: 10 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                            <View
+                              style={{
+                                backgroundColor: "#E4F2EC",
+                                borderRadius: 999,
+                                paddingHorizontal: 6.5,
+                                paddingVertical: 1.5,
+                              }}
+                            >
+                              <Text style={{ fontSize: 7, fontWeight: "700", color: "#144534" }}>
+                                {soc.categoryLabel}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <Text
+                            style={{
+                              marginTop: 2,
+                              fontFamily: SERIF_FONT,
+                              fontSize: 12.5,
+                              fontWeight: "700",
+                              color: "#12221C",
+                            }}
+                            numberOfLines={1}
+                          >
+                            {soc.name}
+                          </Text>
+
+                          <Text style={{ marginTop: 1, fontSize: 8.5, color: "#6E7773" }}>
+                            {soc.studentsLabel} · {soc.dept}
+                          </Text>
+                        </View>
+                      </Pressable>
 
                       <Pressable
-                        onPress={(e) => {
-                          e.stopPropagation();
+                        onPress={() => {
                           void toggleFollow(soc.id);
                         }}
                         style={{
@@ -267,6 +273,7 @@ export default function SocietiesScreen() {
                           paddingHorizontal: 10,
                           paddingVertical: 5.5,
                         }}
+                        accessibilityLabel={isJoined ? "Unfollow club" : "Follow club"}
                       >
                         <Text
                           style={{
@@ -280,19 +287,21 @@ export default function SocietiesScreen() {
                       </Pressable>
                     </View>
 
-                    <Text
-                      style={{
-                        marginTop: 7,
-                        fontSize: 9,
-                        lineHeight: 13.5,
-                        color: "#58635E",
-                      }}
-                      numberOfLines={2}
-                    >
-                      {soc.mission}
-                    </Text>
+                    <Pressable onPress={() => router.push(`/societies/${soc.id}` as any)}>
+                      <Text
+                        style={{
+                          marginTop: 7,
+                          fontSize: 9,
+                          lineHeight: 13.5,
+                          color: "#58635E",
+                        }}
+                        numberOfLines={2}
+                      >
+                        {soc.mission}
+                      </Text>
+                    </Pressable>
                   </View>
-                </Pressable>
+                </View>
               );
             })}
           </View>

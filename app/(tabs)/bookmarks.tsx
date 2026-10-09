@@ -4,7 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
-import { NutechEvent, resolveClubLogoSource } from "@/lib/nutech-data";
+import { isEventPassed, mapDbEventToNutechEvent, NutechEvent, resolveClubLogoSource } from "@/lib/nutech-data";
+import { RegistrationSuccessModal } from "@/components/events/RegistrationSuccessModal";
 import { dbService } from "@/lib/supabase";
 import { useStudentData } from "@/lib/student-data";
 
@@ -15,16 +16,18 @@ const FILTERS = ["All Saved", "Hackathons", "Workshops", "Clubs", "Cultural"] as
 export default function BookmarksScreen() {
   const router = useRouter();
   const { hPad } = useResponsive();
-  const { bookmarkedEventIds, toggleBookmark } = useStudentData();
+  const { profile, bookmarkedEventIds, toggleBookmark, isRegistered, registerForEvent } = useStudentData();
   const [selectedFilter, setSelectedFilter] = useState<(typeof FILTERS)[number]>("All Saved");
   const [events, setEvents] = useState<NutechEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredModalEvent, setRegisteredModalEvent] = useState<NutechEvent | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     dbService.getEvents().then((evs) => {
       if (isMounted) {
-        setEvents(evs);
+        setEvents((evs || []).map(mapDbEventToNutechEvent));
         setLoading(false);
       }
     });
@@ -32,6 +35,18 @@ export default function BookmarksScreen() {
       isMounted = false;
     };
   }, []);
+
+  const handleRegisterEvent = async (eventToRegister: NutechEvent) => {
+    if (isEventPassed(eventToRegister)) return;
+    await registerForEvent(eventToRegister.id, {
+      userName: profile?.full_name || profile?.name || "Student",
+      userEmail: profile?.email || "",
+      rollNumber: profile?.roll_number || "",
+      department: profile?.department || "",
+    });
+    setRegisteredModalEvent(eventToRegister);
+    setShowSuccessModal(true);
+  };
 
   const visibleEvents = useMemo(() => {
     const base = events.filter((item) => bookmarkedEventIds.includes(item.id));
@@ -286,12 +301,85 @@ export default function BookmarksScreen() {
                       </View>
                     </View>
                   </View>
+
+                  {/* Register footer button on saved card */}
+                  <View
+                    style={{
+                      borderTopWidth: 1,
+                      borderTopColor: "#F3F4F6",
+                      paddingHorizontal: 11,
+                      paddingVertical: 7,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      backgroundColor: "#FAF9F5",
+                    }}
+                  >
+                    <Text style={{ fontSize: 8, color: "#6E7773", fontWeight: "500" }}>
+                      {ev.joinedLabel}
+                    </Text>
+
+                    <Pressable
+                      disabled={isEventPassed(ev)}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        if (!isEventPassed(ev) && !isRegistered(ev.id)) {
+                          void handleRegisterEvent(ev);
+                        }
+                      }}
+                      style={{
+                        backgroundColor: isEventPassed(ev)
+                          ? "#E5E7EB"
+                          : isRegistered(ev.id)
+                          ? "#CBEAD9"
+                          : "#123F30",
+                        borderRadius: 999,
+                        paddingHorizontal: 11,
+                        paddingVertical: 4.5,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 3.5,
+                        opacity: isEventPassed(ev) ? 0.75 : 1,
+                      }}
+                    >
+                      {isRegistered(ev.id) && !isEventPassed(ev) ? (
+                        <Ionicons color="#144534" name="checkmark" size={10.5} />
+                      ) : isEventPassed(ev) ? (
+                        <Ionicons color="#6B7280" name="time-outline" size={10.5} />
+                      ) : null}
+                      <Text
+                        style={{
+                          color: isEventPassed(ev)
+                            ? "#6B7280"
+                            : isRegistered(ev.id)
+                            ? "#144534"
+                            : "#FFFFFF",
+                          fontSize: 8.5,
+                          fontWeight: "700",
+                        }}
+                      >
+                        {isEventPassed(ev)
+                          ? "Event Ended"
+                          : isRegistered(ev.id)
+                          ? "✓ Registered"
+                          : "Register"}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </Pressable>
               ))}
             </View>
           )}
         </MotionView>
       </ScrollView>
+
+      <RegistrationSuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        event={registeredModalEvent}
+        studentName={profile?.full_name || profile?.name || "Student"}
+        rollNumber={profile?.roll_number}
+      />
     </SafeAreaView>
   );
 }

@@ -15,7 +15,8 @@ import { LinearGradient } from "@/components/ui/primitives/LinearGradient";
 import { SafeAreaView } from "@/components/ui/primitives/SafeAreaView";
 import { goBackOrReplace } from "@/lib/navigation";
 import { MotionView, useResponsive, FONT_SANS, FONT_MONO } from "@/lib/responsive-motion";
-import { NutechEvent, NUTECH_SOCIETIES, resolveClubLogoSource } from "@/lib/nutech-data";
+import { isEventPassed, NutechEvent, NUTECH_SOCIETIES, resolveClubLogoSource } from "@/lib/nutech-data";
+import { RegistrationSuccessModal } from "@/components/events/RegistrationSuccessModal";
 import { dbService } from "@/lib/supabase";
 import { useStudentData } from "@/lib/student-data";
 
@@ -24,10 +25,11 @@ const SERIF_FONT = FONT_SANS;
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { hPad } = useResponsive();
-  const { isRegistered, registerForEvent, isBookmarked, toggleBookmark } = useStudentData();
+  const { profile, isRegistered, registerForEvent, isBookmarked, toggleBookmark } = useStudentData();
 
   const [event, setEvent] = useState<NutechEvent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -124,6 +126,18 @@ export default function EventDetailScreen() {
 
   const enrolled = isRegistered(event.id);
   const bookmarked = isBookmarked(event.id);
+  const isEnded = isEventPassed(event);
+
+  const handleRegister = async () => {
+    if (isEnded || enrolled) return;
+    await registerForEvent(event.id, {
+      userName: profile?.full_name || profile?.name || "Student",
+      userEmail: profile?.email || "",
+      rollNumber: profile?.roll_number || "",
+      department: profile?.department || "",
+    });
+    setShowSuccessModal(true);
+  };
 
   return (
     <SafeAreaView
@@ -365,31 +379,33 @@ export default function EventDetailScreen() {
             }}
           >
             <Pressable
-              onPress={() => void registerForEvent(event.id)}
+              disabled={isEnded}
+              onPress={handleRegister}
               style={{
                 alignItems: "center",
-                backgroundColor: enrolled ? "#BCE5D1" : "#1B4D3E",
+                backgroundColor: isEnded ? "#E5E7EB" : enrolled ? "#BCE5D1" : "#1B4D3E",
                 borderRadius: 999,
                 flex: 1,
                 flexDirection: "row",
                 gap: 5,
                 height: 38,
                 justifyContent: "center",
+                opacity: isEnded ? 0.75 : 1,
               }}
             >
               <Ionicons
-                color={enrolled ? "#12382B" : "#FFFFFF"}
-                name={enrolled ? "checkmark-circle-outline" : "ticket-outline"}
+                color={isEnded ? "#6B7280" : enrolled ? "#12382B" : "#FFFFFF"}
+                name={isEnded ? "time-outline" : enrolled ? "checkmark-circle-outline" : "ticket-outline"}
                 size={14}
               />
               <Text
                 style={{
-                  color: enrolled ? "#12382B" : "#FFFFFF",
+                  color: isEnded ? "#6B7280" : enrolled ? "#12382B" : "#FFFFFF",
                   fontSize: 11,
                   fontWeight: "700",
                 }}
               >
-                {enrolled ? "Registered for Event ✓" : "Register for Event"}
+                {isEnded ? "Event Ended" : enrolled ? "Registered for Event ✓" : "Register for Event"}
               </Text>
             </Pressable>
 
@@ -484,6 +500,14 @@ export default function EventDetailScreen() {
           </View>
         </MotionView>
       </ScrollView>
+
+      <RegistrationSuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        event={event}
+        studentName={profile?.full_name || profile?.name || "Student"}
+        rollNumber={profile?.roll_number}
+      />
     </SafeAreaView>
   );
 }

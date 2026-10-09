@@ -33,26 +33,58 @@ export default function LoginScreen() {
 
     setIsSubmitting(true);
 
-    const testAccount = TEST_ACCOUNTS[normalizedEmail];
-    if (testAccount && password === testAccount.password) {
-      await setTestSessionEmail(normalizedEmail);
-      setIsSubmitting(false);
-      if (testAccount.role === "society_admin") {
-        router.replace("/society-admin/dashboard");
+    const rawInput = email.trim();
+    const normalizedInput = rawInput.toLowerCase();
+    const candidateEmail = normalizedInput.includes('@')
+      ? normalizedInput
+      : `${normalizedInput}@nutech.edu.pk`;
+
+    // 1. Check TEST_ACCOUNTS
+    const testAccount = TEST_ACCOUNTS[candidateEmail] || TEST_ACCOUNTS[normalizedInput];
+    if (testAccount) {
+      if (password === testAccount.password) {
+        await setTestSessionEmail(candidateEmail);
+        setIsSubmitting(false);
+        if (testAccount.role === "society_admin") {
+          router.replace("/society-admin/dashboard");
+        } else {
+          router.replace("/home");
+        }
+        return;
       } else {
-        router.replace("/home");
+        setIsSubmitting(false);
+        setErrors({ form: "Incorrect password" });
+        return;
       }
+    }
+
+    // 2. Check if user exists in Supabase profiles
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('id, email, is_verified, role')
+      .or(`email.eq.${candidateEmail},email.eq.${normalizedInput},roll_number.eq.${rawInput}`)
+      .maybeSingle();
+
+    if (!profileRow) {
+      setIsSubmitting(false);
+      setErrors({ form: "Username not found" });
       return;
     }
 
+    // 3. User exists, authenticate password
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
+      email: profileRow.email || candidateEmail,
       password,
     });
 
     if (error || !data.user) {
       setIsSubmitting(false);
-      setErrors({ form: mapAuthError(error?.message ?? 'Unable to sign in.') });
+      const msg = error?.message?.toLowerCase() || '';
+      if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+        setErrors({ form: "Incorrect password" });
+      } else {
+        setErrors({ form: mapAuthError(error?.message ?? 'Incorrect password') });
+      }
       return;
     }
 
@@ -66,7 +98,7 @@ export default function LoginScreen() {
 
     if (!profile?.is_verified) {
       await supabase.auth.signOut();
-      beginRecovery(normalizedEmail);
+      beginRecovery(profileRow.email || candidateEmail);
       router.push({ pathname: '/verify', params: { mode: 'signup' } });
       return;
     }
@@ -125,9 +157,9 @@ export default function LoginScreen() {
             error={errors.email}
             fieldTone="softNeutral"
             keyboardType="email-address"
-            label="University email"
+            label="University email or username"
             onChangeText={setEmail}
-            placeholder="you@nutech.edu.pk"
+            placeholder="you@nutech.edu.pk or username"
             textContentType="emailAddress"
             value={email}
           />

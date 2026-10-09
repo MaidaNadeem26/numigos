@@ -20,11 +20,14 @@ import {
   AWS_BUILDER_IMAGE,
   ENTREPRENEURSHIP_LOGO,
   IEEE_NUTECH_IMAGE,
+  isEventPassed,
+  mapDbEventToNutechEvent,
   NutechEvent,
   NUTECH_SOCIETIES,
   resolveClubLogoSource,
   ZINDIGI_PRIZE_IMAGE,
 } from "@/lib/nutech-data";
+import { RegistrationSuccessModal } from "@/components/events/RegistrationSuccessModal";
 import { useStudentData } from "@/lib/student-data";
 import { dbService } from "@/lib/supabase";
 
@@ -77,18 +80,33 @@ export function ExploreDashboard() {
     toggleFollow,
     toggleBookmark: toggleStudentBookmark,
     isRegistered,
+    isBookmarked,
   } = useStudentData();
 
   const [events, setEvents] = useState<NutechEvent[]>([]);
   const [posts, setPosts] = useState<ClubPostItem[]>([]);
   const [expandedPostIds, setExpandedPostIds] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [registeredModalEvent, setRegisteredModalEvent] = useState<NutechEvent | null>(null);
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toggleExpandPost = (postId: string) => {
     setExpandedPostIds((prev) =>
       prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId]
     );
+  };
+
+  const handleRegisterEvent = async (eventToRegister: NutechEvent) => {
+    if (isEventPassed(eventToRegister)) return;
+    await registerForEvent(eventToRegister.id, {
+      userName: profile?.full_name || profile?.name || "Student",
+      userEmail: profile?.email || "",
+      rollNumber: profile?.roll_number || "",
+      department: profile?.department || "",
+    });
+    setRegisteredModalEvent(eventToRegister);
+    setShowSuccessModal(true);
   };
 
   const loadData = useCallback(async () => {
@@ -99,27 +117,7 @@ export function ExploreDashboard() {
       ]);
 
       if (eventsRes && Array.isArray(eventsRes)) {
-        const mappedEvents: NutechEvent[] = eventsRes.map((ev: any) => ({
-          id: ev.id,
-          title: ev.title || "Campus Event",
-          shortTitle: ev.title || "Campus Event",
-          societyId: ev.society_id || "",
-          societyName: ev.society_name || NUTECH_SOCIETIES[ev.society_id]?.name || "NUTECH Society",
-          category: (ev.category as any) || "Hackathons",
-          categoryTag: (ev.category || "EVENT").toUpperCase(),
-          badge: ev.date ? new Date(ev.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Upcoming",
-          dateLabel: ev.date ? new Date(ev.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "TBA",
-          timeLabel: ev.time || "TBA",
-          dateTimeFull: `${ev.date || ""} ${ev.time || ""}`,
-          venue: ev.venue || "NUTECH Campus",
-          wing: ev.wing || "Main Campus",
-          joinedLabel: `${ev.registrations_count || 0} registered`,
-          deadlineText: ev.deadline ? `Deadline: ${new Date(ev.deadline).toLocaleDateString()}` : "Open registration",
-          urgent: false,
-          image: ev.image || "",
-          clubLogo: ev.club_logo || NUTECH_SOCIETIES[ev.society_id]?.logo || "local:entrepreneurship",
-          description: ev.description || "",
-        }));
+        const mappedEvents: NutechEvent[] = eventsRes.map(mapDbEventToNutechEvent);
         setEvents(mappedEvents);
       }
 
@@ -686,34 +684,75 @@ export function ExploreDashboard() {
                         </Text>
                       </Pressable>
 
-                      <Pressable
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          void registerForEvent(activeEvent.id);
-                        }}
-                        style={{
-                          alignItems: "center",
-                          backgroundColor: isEventRegistered ? "#F5F3EB" : "#E9C48C",
-                          borderRadius: 999,
-                          flexDirection: "row",
-                          gap: 4,
-                          paddingHorizontal: 12,
-                          paddingVertical: 5.5,
-                        }}
-                      >
-                        {isEventRegistered ? (
-                          <Ionicons color="#1B4D3E" name="checkmark" size={11.5} />
-                        ) : null}
-                        <Text
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <Pressable
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            void toggleStudentBookmark(activeEvent.id);
+                          }}
+                          hitSlop={6}
                           style={{
-                            color: isEventRegistered ? "#1B4D3E" : "#3D2715",
-                            fontSize: 10,
-                            fontWeight: "700",
+                            alignItems: "center",
+                            backgroundColor: "rgba(255, 255, 255, 0.16)",
+                            borderRadius: 999,
+                            padding: 6,
+                          }}
+                          accessibilityLabel="Save event"
+                        >
+                          <Ionicons
+                            name={isBookmarked(activeEvent.id) ? "bookmark" : "bookmark-outline"}
+                            size={13}
+                            color="#FFFFFF"
+                          />
+                        </Pressable>
+
+                        <Pressable
+                          disabled={isEventPassed(activeEvent)}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            if (!isEventPassed(activeEvent) && !isEventRegistered) {
+                              void handleRegisterEvent(activeEvent);
+                            }
+                          }}
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: isEventPassed(activeEvent)
+                              ? "rgba(255, 255, 255, 0.22)"
+                              : isEventRegistered
+                              ? "#F5F3EB"
+                              : "#E9C48C",
+                            borderRadius: 999,
+                            flexDirection: "row",
+                            gap: 4,
+                            paddingHorizontal: 12,
+                            paddingVertical: 5.5,
+                            opacity: isEventPassed(activeEvent) ? 0.75 : 1,
                           }}
                         >
-                          {isEventRegistered ? "Registered" : "Register"}
-                        </Text>
-                      </Pressable>
+                          {isEventRegistered && !isEventPassed(activeEvent) ? (
+                            <Ionicons color="#1B4D3E" name="checkmark" size={11.5} />
+                          ) : isEventPassed(activeEvent) ? (
+                            <Ionicons color="rgba(255, 255, 255, 0.8)" name="time-outline" size={11.5} />
+                          ) : null}
+                          <Text
+                            style={{
+                              color: isEventPassed(activeEvent)
+                                ? "rgba(255, 255, 255, 0.9)"
+                                : isEventRegistered
+                                ? "#1B4D3E"
+                                : "#3D2715",
+                              fontSize: 10,
+                              fontWeight: "700",
+                            }}
+                          >
+                            {isEventPassed(activeEvent)
+                              ? "Event Ended"
+                              : isEventRegistered
+                              ? "Registered"
+                              : "Register"}
+                          </Text>
+                        </Pressable>
+                      </View>
                     </View>
                   </LinearGradient>
                 </MotionPressable>
@@ -737,7 +776,280 @@ export function ExploreDashboard() {
           </View>
         </MotionView>
 
-        {/* From Your Societies Section */}
+        {/* Campus Events Section */}
+        <MotionView delay={120}>
+          <View style={{ marginTop: 18 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 10,
+              }}
+            >
+              <View>
+                <Text
+                  style={{
+                    color: "#111827",
+                    fontFamily: FONT_SANS,
+                    fontSize: 17,
+                    fontWeight: "700",
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  Campus Events
+                </Text>
+                <Text
+                  style={{
+                    color: "#6B7280",
+                    fontFamily: FONT_SANS,
+                    fontSize: 11.5,
+                    marginTop: 2,
+                  }}
+                >
+                  Register directly for official workshops and competitions
+                </Text>
+              </View>
+            </View>
+
+            {displayEvents.length === 0 ? (
+              <View
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  borderRadius: 15,
+                  borderWidth: 1,
+                  borderColor: "#EAE8E1",
+                  padding: 24,
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons name="calendar-outline" size={24} color="#144534" />
+                <Text
+                  style={{
+                    fontFamily: SERIF_FONT,
+                    fontSize: 13,
+                    fontWeight: "700",
+                    color: "#12221C",
+                    marginTop: 8,
+                  }}
+                >
+                  No events found
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: "#6E7773",
+                    textAlign: "center",
+                    marginTop: 4,
+                  }}
+                >
+                  Try selecting another category or check back later.
+                </Text>
+              </View>
+            ) : (
+              <View style={{ gap: 11 }}>
+                {displayEvents.map((ev) => {
+                  const evRegistered = isRegistered(ev.id);
+                  const evEnded = isEventPassed(ev);
+                  const evBookmarked = isBookmarked(ev.id);
+
+                  return (
+                    <Pressable
+                      key={ev.id}
+                      onPress={() => router.push(`/event/${ev.id}` as any)}
+                      style={{
+                        backgroundColor: "#FFFFFF",
+                        borderColor: "#E5E7EB",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        overflow: "hidden",
+                        padding: 12,
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+                        {ev.image ? (
+                          <Image
+                            source={{ uri: ev.image }}
+                            style={{
+                              width: 72,
+                              height: 72,
+                              borderRadius: 10,
+                              backgroundColor: "#0D1814",
+                            }}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              width: 72,
+                              height: 72,
+                              borderRadius: 10,
+                              backgroundColor: "#134635",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name="calendar-outline" size={26} color="#8FD1B8" />
+                          </View>
+                        )}
+
+                        <View style={{ flex: 1, marginLeft: 11 }}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <View
+                              style={{
+                                backgroundColor: "#E4F2EC",
+                                borderRadius: 999,
+                                paddingHorizontal: 7,
+                                paddingVertical: 2,
+                              }}
+                            >
+                              <Text style={{ fontSize: 7.5, fontWeight: "700", color: "#144534" }}>
+                                {ev.categoryTag}
+                              </Text>
+                            </View>
+
+                            <Pressable
+                              hitSlop={6}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                void toggleStudentBookmark(ev.id);
+                              }}
+                              accessibilityLabel="Save event"
+                            >
+                              <Ionicons
+                                name={evBookmarked ? "bookmark" : "bookmark-outline"}
+                                size={15}
+                                color={evBookmarked ? "#1E5D4B" : "#8E9893"}
+                              />
+                            </Pressable>
+                          </View>
+
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              color: "#111827",
+                              fontFamily: SERIF_FONT,
+                              fontSize: 13,
+                              fontWeight: "700",
+                              marginTop: 4,
+                            }}
+                          >
+                            {ev.title}
+                          </Text>
+
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              color: "#1E5D4B",
+                              fontSize: 9,
+                              fontWeight: "600",
+                              marginTop: 1,
+                            }}
+                          >
+                            {ev.societyName}
+                          </Text>
+
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 6,
+                              marginTop: 4,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                              <Ionicons name="calendar-outline" size={10} color="#6B7280" />
+                              <Text style={{ color: "#6B7280", fontSize: 8.5 }}>{ev.dateLabel}</Text>
+                            </View>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                              <Ionicons name="location-outline" size={10} color="#6B7280" />
+                              <Text numberOfLines={1} style={{ color: "#6B7280", fontSize: 8.5, maxWidth: 110 }}>
+                                {ev.wing || ev.venue}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+
+                      {/* Card Bottom: Register CTA on Every Event Card (No Follow button) */}
+                      <View
+                        style={{
+                          marginTop: 10,
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: "#F3F4F6",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={{ fontSize: 8.5, color: "#6B7280", fontWeight: "500" }}>
+                          {ev.joinedLabel}
+                        </Text>
+
+                        <Pressable
+                          disabled={evEnded}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            if (!evEnded && !evRegistered) {
+                              void handleRegisterEvent(ev);
+                            }
+                          }}
+                          style={{
+                            alignItems: "center",
+                            backgroundColor: evEnded
+                              ? "#E5E7EB"
+                              : evRegistered
+                              ? "#CBEAD9"
+                              : "#123F30",
+                            borderRadius: 999,
+                            flexDirection: "row",
+                            gap: 4,
+                            paddingHorizontal: 12,
+                            paddingVertical: 5.5,
+                            opacity: evEnded ? 0.7 : 1,
+                          }}
+                        >
+                          {evRegistered && !evEnded ? (
+                            <Ionicons color="#144534" name="checkmark" size={11} />
+                          ) : evEnded ? (
+                            <Ionicons color="#6B7280" name="time-outline" size={11} />
+                          ) : null}
+                          <Text
+                            style={{
+                              color: evEnded
+                                ? "#6B7280"
+                                : evRegistered
+                                ? "#144534"
+                                : "#FFFFFF",
+                              fontSize: 9,
+                              fontWeight: "700",
+                            }}
+                          >
+                            {evEnded
+                              ? "Event Ended"
+                              : evRegistered
+                              ? "✓ Registered"
+                              : "Register"}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        </MotionView>
+
+        {/* From Your Societies Section (Announcements feed - Follow button removed) */}
         <MotionView delay={150}>
           <View style={{ marginTop: 18 }}>
             <View style={{ marginBottom: 11 }}>
@@ -760,7 +1072,7 @@ export function ExploreDashboard() {
                   marginTop: 2,
                 }}
               >
-                Announcements and upcoming campus activities
+                Announcements and campus updates
               </Text>
             </View>
 
@@ -802,7 +1114,6 @@ export function ExploreDashboard() {
             ) : (
               <View style={{ gap: 14 }}>
                 {filteredPosts.map((post) => {
-                  const isFollowing = followedSocietyIds.includes(post.societyId);
                   const isLongPost = post.body.length > 110 || post.body.includes("\n");
                   const isExpanded = expandedPostIds.includes(post.id);
                   const shortBody = isLongPost
@@ -821,7 +1132,7 @@ export function ExploreDashboard() {
                       }}
                     >
                       <View style={{ padding: 13 }}>
-                        {/* Header Row: Avatar + Club Name/Time + Following Pill */}
+                        {/* Header Row: Avatar + Club Name/Time + Category Tag (Follow button removed) */}
                         <View
                           style={{
                             alignItems: "center",
@@ -867,28 +1178,27 @@ export function ExploreDashboard() {
                             </View>
                           </Pressable>
 
-                          <Pressable
-                            onPress={() => toggleFollow(post.societyId)}
+                          <View
                             style={{
-                              backgroundColor: isFollowing ? "#F3F4F6" : "#E2F0EA",
-                              borderColor: isFollowing ? "#E5E7EB" : "#BCE3D2",
+                              backgroundColor: "#F3F4F6",
+                              borderColor: "#E5E7EB",
                               borderRadius: 999,
                               borderWidth: 1,
-                              paddingHorizontal: 9.5,
-                              paddingVertical: 3.5,
+                              paddingHorizontal: 8,
+                              paddingVertical: 2.5,
                             }}
                           >
                             <Text
                               style={{
-                                color: isFollowing ? "#4B5563" : "#1E5D4B",
+                                color: "#4B5563",
                                 fontFamily: FONT_SANS,
-                                fontSize: 9.5,
-                                fontWeight: "700",
+                                fontSize: 8.5,
+                                fontWeight: "600",
                               }}
                             >
-                              {isFollowing ? "Following" : "+ Follow"}
+                              {post.category || "Announcement"}
                             </Text>
-                          </Pressable>
+                          </View>
                         </View>
 
                         {/* Title if available */}
@@ -1051,6 +1361,14 @@ export function ExploreDashboard() {
           </View>
         </MotionView>
       </ScrollView>
+
+      <RegistrationSuccessModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        event={registeredModalEvent}
+        studentName={profile?.full_name || profile?.name || "Student"}
+        rollNumber={profile?.roll_number}
+      />
     </SafeAreaView>
   );
 }
